@@ -143,8 +143,8 @@ Serving as a tool to augment the process of writing, tailoring, or editing a res
 - [Tailwind CSS + shadcn](https://tailwindcss.com/) – Clean, modern UI.  
 - [PDF.js](https://mozilla.github.io/pdf.js/) – PDF display, search, and comparison.  
 
-**Backend**  
-- [Supabase](https://supabase.com/) – PostgreSQL, storage, and authentication.  
+**Backend**   
+- [AWS Textract + S3 + DynamoDB](https://aws.amazon.com/) - Parsing resume data, cloud backups for resumes, and storing metadata
 - [SQLite](https://www.sqlite.org/index.html) – Lightweight local database.  
 - [OpenAI API](https://platform.openai.com/docs/api-reference) – Resume summarization and intelligent search.  
 
