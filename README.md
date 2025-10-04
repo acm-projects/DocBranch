@@ -184,10 +184,11 @@ Serving as a tool to augment the process of writing, tailoring, or editing a res
 - In the terminal run [cd backend] to go into the electron folder
 - run [node testapp.js] to run the backend
 - The terminal will prompt you with three questions:
-  File path of uploaded file:
-  Location of new file:
-  Name of file in s3:
+  - File path of uploaded file:
+  - Location of new file:
+  - Name of file in s3:
 - Give a file path as a response to the first two prompts
-  Example: C:/Users/Downloads/image.jpg
-  Example: C:/Users/OneDrive/Pictures/downloadedimage.jpg // downloadedimage.jpg is the name of the new file that will be created
+  - Example: C:/Users/Downloads/image.jpg
+  - Example: C:/Users/OneDrive/Pictures/downloadedimage.jpg
+    - downloadedimage.jpg is the name of the new file that will be created
 - The name of file in s3 will be the name of the file uploaded to the s3 bucket
