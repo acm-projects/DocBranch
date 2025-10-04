@@ -181,6 +181,7 @@ Serving as a tool to augment the process of writing, tailoring, or editing a res
 
 **Backend**
 
+- **AWS ACCESS KEYS ARE REQUIRED TO RUN THE BACKEND**
 - In the terminal run [cd backend] to go into the electron folder
 - run [node testapp.js] to run the backend
 - The terminal will prompt you with three questions:
