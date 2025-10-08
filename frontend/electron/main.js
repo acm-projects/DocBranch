@@ -1,5 +1,9 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const dotenv = require('dotenv');
+const OpenAI = require('openai');
 
+<<<<<<< HEAD
 const path = require('node:path')
 
 const createWindow = () => {
@@ -10,10 +14,46 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js')
     }
   })
+=======
+dotenv.config();
+>>>>>>> 190b99a6a44905b3ba7377602222bd3274cb5b57
 
-  win.loadFile('index.html')
+const openai = new OpenAI({
+  //baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.API_KEY,
+});
+
+let mainWindow;
+
+async function callAI() {
+  try {
+    console.log('Calling OpenAI...');
+    const completion = await openai.chat.completions.create({
+      //model: 'deepseek/deepseek-r1-0528-qwen3-8b:free'
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: 'What is the meaning of life?' }],
+    });
+
+    const aiResponse = completion.choices[0].message.content;
+    console.log('Got AI response:', aiResponse);
+
+    // Directly run JS in renderer to update DOM
+    if (mainWindow && aiResponse) {
+      mainWindow.webContents.executeJavaScript(
+        `window.electronAPI.setElementText('output', ${JSON.stringify(aiResponse)});`
+      );
+    }
+  } catch (err) {
+    console.error('OpenAI call failed:', err);
+    if (mainWindow) {
+      mainWindow.webContents.executeJavaScript(
+        `window.electronAPI.setElementText('output', 'Error: ${err.message}');`
+      );
+    }
+  }
 }
 
+<<<<<<< HEAD
 app.whenReady().then(() => {
   createWindow()
 
@@ -25,3 +65,23 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
+=======
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  mainWindow.loadFile('index.html');
+  mainWindow.webContents.on('did-finish-load', () => {
+    callAI();
+  });
+}
+
+app.whenReady().then(createWindow);
+>>>>>>> 190b99a6a44905b3ba7377602222bd3274cb5b57
