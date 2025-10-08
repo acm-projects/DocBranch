@@ -24,29 +24,65 @@ const addOrUpdateResume = async (resume) => {
     TableName: TABLE_NAME,
     Item: resume
   };
-  console.log("Resume added/updated:", resume);
+  //console.log("Resume added/updated:", resume);
   return await dynamoClient.put(param).promise();
 }
 
-const getResumeById = async (id) => {
+const getResumesByUser = async (userid) => {
   const params = {
     TableName: TABLE_NAME,
-    Key: { id }
-  }
-  return await dynamoClient.get(params).promise();
+    KeyConditionExpression: 'user_id = :uid',
+    ExpressionAttributeValues: {
+      ':uid': userid
+    }
+    // Key: {
+    //   user_id: userid
+    // }
+  };
+  const resumes = await dynamoClient.query(params).promise();
+  console.log(JSON.stringify(resumes, null, 2));
+  return resumes;
 }
 
-const deleteResumeById = async (id) => {
+const getResumeById = async (userid, resumeid) => {
   const params = {
     TableName: TABLE_NAME,
-    Key: { id }
+    Key: {
+      user_id: userid,
+      resume_id: resumeid
+    }
+  }
+  const resume = await dynamoClient.get(params).promise();
+  console.log(JSON.stringify(resume, null, 2));
+  return resume;
+}
+
+const deleteResumeById = async (userid, resumeid) => {
+  const params = {
+    TableName: TABLE_NAME,
+    Key: {
+      user_id: userid,
+      resume_id: resumeid
+    }
   };
   return await dynamoClient.delete(params).promise();
 }
+
+// const newresume = {
+//   user_id: "1",
+//   resume_id: "1",
+//   name: "John Doe",
+//   email: "john.doe@example.com",
+// }
+
+//addOrUpdateResume(newresume);
+getResumesByUser('0');
+
 module.exports = {
   dynamoClient,
   getResumes,
   addOrUpdateResume,
   getResumeById,
-  deleteResumeById
+  deleteResumeById,
+  getResumesByUser
 };
