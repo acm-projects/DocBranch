@@ -14,23 +14,23 @@ let mainWindow;
 
 async function callAI() {
   try {
-    console.log('⚙️ Calling OpenAI...');
+    console.log('Calling OpenAI...');
     const completion = await openai.chat.completions.create({
       model: 'deepseek/deepseek-r1-0528-qwen3-8b:free',
       messages: [{ role: 'user', content: 'What is the meaning of life?' }],
     });
 
     const aiResponse = completion.choices[0].message.content;
-    console.log('✅ Got AI response:', aiResponse);
+    console.log('Got AI response:', aiResponse);
 
-    // ✅ Directly run JS in renderer to update DOM
+    // Directly run JS in renderer to update DOM
     if (mainWindow && aiResponse) {
       mainWindow.webContents.executeJavaScript(
         `window.electronAPI.setElementText('output', ${JSON.stringify(aiResponse)});`
       );
     }
   } catch (err) {
-    console.error('❌ OpenAI call failed:', err);
+    console.error('OpenAI call failed:', err);
     if (mainWindow) {
       mainWindow.webContents.executeJavaScript(
         `window.electronAPI.setElementText('output', 'Error: ${err.message}');`
