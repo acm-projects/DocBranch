@@ -1,0 +1,98 @@
+module.exports = {
+  
+  personal_information: {
+    name: "Jake Ryan",
+    phone: "123-456-7890",
+    email: "jake@su.edu",
+    linkedin: "linkedin.com/in/jake",
+    github: "github.com/jake"
+  },
+  education: [
+    {
+      institution: "Southwestern University",
+      location: "Georgetown, TX",
+      degree: "Bachelor of Arts in Computer Science",
+      minor: "Business",
+      duration: "Aug. 2018 – May 2021"
+    },
+    {
+      institution: "Blinn College",
+      location: "Bryan, TX",
+      degree: "Associate's in Liberal Arts",
+      duration: "Aug. 2014 – May 2018"
+    }
+  ],
+
+  experience: [
+    {
+      position: "Undergraduate Research Assistant",
+      organization: "Texas A&M University",
+      location: "College Station, TX",
+      duration: "June 2020 – Present",
+      responsibilities: [
+        "Developed a REST API using FastAPI and PostgreSQL to store data from learning management systems",
+        "Developed a full-stack web application using Flask, React, PostgreSQL, and Docker to analyze GitHub data",
+        "Explored ways to visualize GitHub collaboration in a classroom setting"
+      ]
+    },
+    {
+      position: "Information Technology Support Specialist",
+      organization: "Southwestern University",
+      location: "Georgetown, TX",
+      duration: "Sep. 2018 – Present",
+      responsibilities: [
+        "Communicated with managers to set up campus computers used on campus",
+        "Assessed and troubleshooted computer problems brought by students, faculty, and staff",
+        "Maintained upkeep of computers, classroom equipment, and 200 printers across campus"
+      ]
+    },
+    {
+      position: "Artificial Intelligence Research Assistant",
+      organization: "Southwestern University",
+      location: "Georgetown, TX",
+      duration: "May 2019 – July 2019",
+      responsibilities: [
+        "Explored methods to generate video game dungeons based off of The Legend of Zelda",
+        "Developed a game in Java to test the generated dungeons",
+        "Contributed 50K+ lines of code to an established codebase via Git",
+        "Conducted a human subject study to determine which video game dungeon generation technique is enjoyable",
+        "Wrote an 8-page paper and gave multiple presentations on-campus",
+        "Presented virtually to the World Conference on Computational Intelligence"
+      ]
+    }
+  ],
+
+  projects: [
+    {
+      name: "Gitlytics",
+      technologies: ["Python", "Flask", "React", "PostgreSQL", "Docker"],
+      duration: "June 2020 – Present",
+      description:
+        "Developed a full-stack web application using Flask serving a REST API with React as the frontend",
+      achievements: [
+        "Implemented GitHub OAuth to get data from user's repositories",
+        "Visualized GitHub data to show collaboration",
+        "Used Celery and Redis for asynchronous tasks"
+      ]
+    },
+    {
+      name: "Simple Paintball",
+      technologies: ["Spigot API", "Java", "Maven", "TravisCI", "Git"],
+      duration: "May 2018 – May 2020",
+      description:
+        "Developed a Minecraft server plugin to entertain kids during free time for a previous job",
+      achievements: [
+        "Published plugin to websites gaining 2K+ downloads and an average 4.5/5-star review",
+        "Implemented continuous delivery using TravisCI to build the plugin upon a new release",
+        "Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin"
+      ]
+    }
+  ],
+
+  skills: {
+    programming_languages: ["Java", "Python", "C/C++", "SQL (Postgres)", "JavaScript", "HTML/CSS", "R"],
+    frameworks: ["React", "Node.js", "Flask", "JUnit", "WordPress", "Material-UI", "FastAPI"],
+    developer_tools: ["Git", "Docker", "TravisCI", "Google Cloud Platform", "VS Code", "Visual Studio", "PyCharm", "IntelliJ", "Eclipse"],
+    libraries: ["pandas", "NumPy", "Matplotlib"]
+  }
+};
