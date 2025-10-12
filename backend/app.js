@@ -2,6 +2,8 @@ const express = require('express');
 const { getResumes, getResumeById, addOrUpdateResume, deleteResumeById, getResumesByUser } = require('./dynamo');
 const app = express();
 
+app.use(express.json());
+
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
@@ -33,6 +35,43 @@ app.get('/resumes/:userid/:resumeid', async (req, res) => {
   try {
     const resumes = await getResumeById(userid, resumeid);
     res.json(resumes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
+app.post('/resumes', async (req, res) => {
+  const resume = req.body;
+  try {
+    const newResume = await addOrUpdateResume(resume);
+    res.json(newResume);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
+app.put('/resumes/:userid/:resumeid', async (req, res) => {
+  const resume = req.body;
+  const userid = req.params.userid;
+  const resumeid = req.params.resumeid;
+  resume.user_id = userid;
+  resume.resume_id = resumeid;
+  try {
+    const newResume = await addOrUpdateResume(resume);
+    res.json(newResume);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
+app.delete('/resumes/:userid/:resumeid', async (req, res) => {
+  const userid = req.params.userid;
+  const resumeid = req.params.resumeid;
+  try {
+    res.json(await deleteResumeById(userid, resumeid));
   } catch (error) {
     console.error(error);
     res.status(500).json({err: 'Something went wrong'});
