@@ -2,5 +2,37 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "openai": "^6.2.0"
-  }
+  },
+  "name": "docbranch",
+  "version": "1.0.0",
+  "description": "<h1 align=\"center\"> DocBranch 📄🌿 </h1>",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^38.2.2",
+    "wait-on": "^9.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
+    "dev:electron": "cross-env NODE_ENV=development electron main.js",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npx nodemon server.js",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acm-projects/DocBranch.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/acm-projects/DocBranch/issues"
+  },
+  "homepage": "https://github.com/acm-projects/DocBranch#readme"
 }
