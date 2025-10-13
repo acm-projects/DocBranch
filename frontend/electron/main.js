@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
@@ -98,9 +98,7 @@ async function analyzeResume() {
       jobDescContent = jobDescriptionInput;
       sourceType = 'local file';
     }
-    
     console.log(`Using job description from: ${sourceType}`);
-    
     const prompt = `
 Analyze this resume against the job description and provide constructive feedback.
 
@@ -173,12 +171,15 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false,
+      nodeIntegration: true,
     },
   });
 
   mainWindow.loadFile('index.html');
-  
+
+  ipcMain.on('resize-window', (event, width, height) => {
+    mainWindow.setSize(width, height);
+  });
   // Wait a bit longer for the window to be fully ready
   mainWindow.webContents.on('did-finish-load', () => {
     setTimeout(() => {
@@ -186,5 +187,7 @@ function createWindow() {
     }, 1000);
   });
 }
+
+
 
 app.whenReady().then(createWindow);
