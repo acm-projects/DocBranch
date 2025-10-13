@@ -1,3 +1,4 @@
 node_modules
 *.env
-*.jpg
+backend/database/*.jpg
+backend/resume-generator/*.pdf

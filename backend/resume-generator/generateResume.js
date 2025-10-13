@@ -1,68 +1,136 @@
+
+
+
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-function generateResume(resumeData, outputFileName = 'Jake_Resume.pdf') {
+function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
   const outputPath = path.resolve(__dirname, outputFileName);
-  const doc = new PDFDocument({ margin: 40 });
+  // const fontPath = path.resolve(__dirname, 'fonts', 'cmunrm.ttf');
+  const doc = new PDFDocument({ size: 'LETTER', margins: { top: 36, bottom: 36, left: 36, right: 36 } });
+  const textSize = 10;
+  const itemSize = 11;
+  const spaceAboveLine = 0.25;
+  const headingPadding = 0.5;
+  const indentSize = 14;
   doc.pipe(fs.createWriteStream(outputPath));
 
-  // Header: Name and Contact
+  // Register CMU Serif Roman font
+  doc.registerFont('CMUSerif', path.resolve(__dirname, 'fonts', 'cmunrm.ttf'));
+  doc.registerFont('CMUSerif-Bold', path.resolve(__dirname, 'fonts', 'cmunbx.ttf'));
+  doc.registerFont('CMUSerif-Italic', path.resolve(__dirname, 'fonts', 'cmunti.ttf'));
+  doc.registerFont('CMUSerif-BoldItalic', path.resolve(__dirname, 'fonts', 'cmunbi.ttf'));
+
+  // Header: Name (LaTeX style: large, bold, centered)
   const info = resumeData.personal_information;
-  doc.font('Helvetica-Bold').fontSize(18)
+  doc.font('CMUSerif-Bold').fontSize(24)
     .text(info.name, { align: 'center' });
+  // Contact line (LaTeX style: normal, centered)
+  doc.font('CMUSerif').fontSize(textSize)
+    .text(
+      [info.phone, info.email, info.linkedin, info.github].filter(Boolean).join(' | '),
+      { align: 'center' }
+    );
   doc.moveDown(0.5);
-  doc.font('Helvetica').fontSize(10)
-    .text([info.email, info.phone, info.linkedin, info.github].filter(Boolean).join(' | '), { align: 'center' });
-  doc.moveDown(1);
 
-  // Education
-  doc.font('Helvetica-Bold').fontSize(12).text('Education', { underline: true });
-  doc.moveDown(0.5);
+  // Section: Education (LaTeX style: section header bold, 12pt)
+  smallCapitals('EDUCATION', 'CMUSerif', 12);
+  y = doc.y + spaceAboveLine; // Slightly below the heading
+  doc.moveTo(doc.page.margins.left, y)
+    .lineTo(doc.page.width - doc.page.margins.right, y)
+    .stroke();
+  doc.moveDown(headingPadding);
   resumeData.education.forEach(edu => {
-    doc.font('Helvetica-Bold').fontSize(10).text(`${edu.institution}, ${edu.location}`);
-    doc.font('Helvetica').fontSize(10).text(`${edu.degree}${edu.minor ? ', Minor in ' + edu.minor : ''} (${edu.duration})`);
-    doc.moveDown(0.5);
+    doc.font('CMUSerif-Bold').fontSize(itemSize)
+      .text(`${edu.institution}`, { continued: true , indent: indentSize })
+      .font('CMUSerif').fontSize(itemSize)
+      .text(`${edu.location}`, { align: 'right' });
+    doc.font('CMUSerif-Italic').fontSize(textSize)
+      .text(`${edu.degree}${edu.minor ? ', Minor in ' + edu.minor : ''}`, { continued: true , indent: indentSize })
+      .font('CMUSerif-Italic').fontSize(textSize)
+      .text(`${edu.duration}`, { align: 'right' , indent: indentSize });
+    doc.moveDown(0.15);
   });
 
-  // Experience
-  doc.moveDown(1);
-  doc.font('Helvetica-Bold').fontSize(12).text('Experience', { underline: true });
-  doc.moveDown(0.5);
+  // Section: Experience
+  doc.moveDown(0.25);
+  smallCapitals('EXPERIENCE', 'CMUSerif', 12);
+  y = doc.y + spaceAboveLine; // Slightly below the heading
+  doc.moveTo(doc.page.margins.left, y)
+    .lineTo(doc.page.width - doc.page.margins.right, y)
+    .stroke();
+  doc.moveDown(headingPadding);
+
   resumeData.experience.forEach(exp => {
-    doc.font('Helvetica-Bold').fontSize(10).text(`${exp.position} - ${exp.organization}, ${exp.location} (${exp.duration})`);
+    doc.font('CMUSerif-Bold').fontSize(itemSize)
+      .text(`${exp.position}`, { continued: true , indent: indentSize })
+      .font('CMUSerif').fontSize(itemSize)
+      .text(`${exp.duration}`, { align: 'right' , indent: indentSize });
+    doc.font('CMUSerif-Italic').fontSize(textSize)
+      .text(`${exp.organization}`, { continued: true , indent: indentSize })
+      .font('CMUSerif-Italic').fontSize(textSize)
+      .text(`${exp.location}`, { align: 'right' , indent: indentSize });
+
     exp.responsibilities.forEach(r => {
-      doc.font('Helvetica').fontSize(10).text(`• ${r}`, { indent: 20 });
+      doc.font('CMUSerif').fontSize(textSize)
+        .text(`• ${r}`, { indent: 14 + indentSize, lineGap: 1 });
     });
-    doc.moveDown(0.5);
+    doc.moveDown(0.15);
   });
 
-  // Projects
-  doc.moveDown(1);
-  doc.font('Helvetica-Bold').fontSize(12).text('Projects', { underline: true });
-  doc.moveDown(0.5);
+  // Section: Projects
+  doc.moveDown(0.25);
+  smallCapitals('PROJECTS', 'CMUSerif', 12);
+  y = doc.y + spaceAboveLine; // Slightly below the heading
+  doc.moveTo(doc.page.margins.left, y)
+   .lineTo(doc.page.width - doc.page.margins.right, y)
+   .stroke();
+  doc.moveDown(headingPadding);
   resumeData.projects.forEach(project => {
-    doc.font('Helvetica-Bold').fontSize(10).text(`${project.name} (${project.duration})`);
-    doc.font('Helvetica').fontSize(10).text(`Technologies: ${project.technologies.join(', ')}`);
-    doc.font('Helvetica').fontSize(10).text(project.description);
+    doc.font('CMUSerif-Bold').fontSize(textSize)
+      .text(`${project.name}`, { continued: true , indent: indentSize })
+      .font('CMUSerif-Italic').fontSize(textSize)
+      .text(` | ${project.technologies.join(', ')}`, { continued: true , indent: indentSize })
+      .font('CMUSerif').fontSize(textSize)
+      .text(`${project.duration}`, { align: 'right' , indent: indentSize });
+    doc.font('CMUSerif').fontSize(textSize)
+      .text(`• ${project.description}`, { indent: 14 + indentSize, lineGap: 1 });
     project.achievements.forEach(a => {
-      doc.font('Helvetica').fontSize(10).text(`• ${a}`, { indent: 20 });
+      doc.font('CMUSerif').fontSize(textSize)
+        .text(`• ${a}`, { indent: 14 + indentSize, lineGap: 1 });
     });
-    doc.moveDown(0.5);
+    doc.moveDown(0.15);
   });
 
-  // Skills
-  doc.moveDown(1);
-  doc.font('Helvetica-Bold').fontSize(12).text('Technical Skills', { underline: true });
-  doc.moveDown(0.5);
+  // Section: Technical Skills
+  doc.moveDown(0.25);
+  smallCapitals('TECHNICAL SKILLS', 'CMUSerif', 12);
+  y = doc.y + spaceAboveLine; // Slightly below the heading
+  doc.moveTo(doc.page.margins.left, y)
+   .lineTo(doc.page.width - doc.page.margins.right, y)
+   .stroke();
+  doc.moveDown(headingPadding);
+  
   Object.entries(resumeData.skills).forEach(([label, items]) => {
-    doc.font('Helvetica').fontSize(10).text(`${label}: ${items.join(', ')}`);
+    doc.font('CMUSerif-Bold').fontSize(textSize)
+      .text(label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ':', { continued: true , indent: indentSize })
+      .font('CMUSerif').fontSize(textSize)
+      .text(` ${items.join(', ')}`, { indent: indentSize });
+    doc.moveDown(0.05);
   });
-
-  // Add other sections (e.g., awards, volunteer) as needed
 
   doc.end();
   doc.on('end', () => console.log('Resume generated at:', outputPath));
+
+  function smallCapitals(header, font, fontSize) {
+    const textShift = 2;
+    doc.font(font).fontSize(fontSize)
+      .text(header.charAt(0), { align: 'left', continued: true });
+    const baseY = doc.y;
+    doc.font(font).fontSize(textSize)
+      .text(header.slice(1).toUpperCase(), doc.x, baseY + textShift);
+  }
 }
 
 module.exports = generateResume;
