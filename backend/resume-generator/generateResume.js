@@ -9,11 +9,16 @@ function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
   const outputPath = path.resolve(__dirname, outputFileName);
   // const fontPath = path.resolve(__dirname, 'fonts', 'cmunrm.ttf');
   const doc = new PDFDocument({ size: 'LETTER', margins: { top: 36, bottom: 36, left: 36, right: 36 } });
+  const nameSize = 24;
   const textSize = 10;
   const itemSize = 11;
+  const headingSize = 12;
   const spaceAboveLine = 0.25;
   const headingPadding = 0.5;
+  const itemGap = 0.15;
+  const headingGap = 0.25;
   const indentSize = 14;
+  const bulletIndent = 14 + indentSize;
   doc.pipe(fs.createWriteStream(outputPath));
 
   // Register CMU Serif Roman font
@@ -24,7 +29,7 @@ function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
 
   // Header: Name (LaTeX style: large, bold, centered)
   const info = resumeData.personal_information;
-  doc.font('CMUSerif-Bold').fontSize(24)
+  doc.font('CMUSerif-Bold').fontSize(nameSize)
     .text(info.name, { align: 'center' });
   // Contact line (LaTeX style: normal, centered)
   doc.font('CMUSerif').fontSize(textSize)
@@ -35,7 +40,7 @@ function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
   doc.moveDown(0.5);
 
   // Section: Education (LaTeX style: section header bold, 12pt)
-  smallCapitals('EDUCATION', 'CMUSerif', 12);
+  smallCapitals('EDUCATION', 'CMUSerif', headingSize);
   y = doc.y + spaceAboveLine; // Slightly below the heading
   doc.moveTo(doc.page.margins.left, y)
     .lineTo(doc.page.width - doc.page.margins.right, y)
@@ -50,12 +55,12 @@ function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
       .text(`${edu.degree}${edu.minor ? ', Minor in ' + edu.minor : ''}`, { continued: true , indent: indentSize })
       .font('CMUSerif-Italic').fontSize(textSize)
       .text(`${edu.duration}`, { align: 'right' , indent: indentSize });
-    doc.moveDown(0.15);
+    doc.moveDown(itemGap);
   });
 
   // Section: Experience
-  doc.moveDown(0.25);
-  smallCapitals('EXPERIENCE', 'CMUSerif', 12);
+  doc.moveDown(headingGap);
+  smallCapitals('EXPERIENCE', 'CMUSerif', headingSize);
   y = doc.y + spaceAboveLine; // Slightly below the heading
   doc.moveTo(doc.page.margins.left, y)
     .lineTo(doc.page.width - doc.page.margins.right, y)
@@ -74,38 +79,38 @@ function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
 
     exp.responsibilities.forEach(r => {
       doc.font('CMUSerif').fontSize(textSize)
-        .text(`• ${r}`, { indent: 14 + indentSize, lineGap: 1 });
+        .text(`• ${r}`, { indent: bulletIndent, lineGap: 1 });
     });
-    doc.moveDown(0.15);
+    doc.moveDown(itemGap);
   });
 
   // Section: Projects
-  doc.moveDown(0.25);
-  smallCapitals('PROJECTS', 'CMUSerif', 12);
+  doc.moveDown(headingGap);
+  smallCapitals('PROJECTS', 'CMUSerif', headingSize);
   y = doc.y + spaceAboveLine; // Slightly below the heading
   doc.moveTo(doc.page.margins.left, y)
    .lineTo(doc.page.width - doc.page.margins.right, y)
    .stroke();
   doc.moveDown(headingPadding);
   resumeData.projects.forEach(project => {
-    doc.font('CMUSerif-Bold').fontSize(textSize)
+    doc.font('CMUSerif-Bold').fontSize(itemSize)
       .text(`${project.name}`, { continued: true , indent: indentSize })
       .font('CMUSerif-Italic').fontSize(textSize)
       .text(` | ${project.technologies.join(', ')}`, { continued: true , indent: indentSize })
       .font('CMUSerif').fontSize(textSize)
       .text(`${project.duration}`, { align: 'right' , indent: indentSize });
     doc.font('CMUSerif').fontSize(textSize)
-      .text(`• ${project.description}`, { indent: 14 + indentSize, lineGap: 1 });
+      .text(`• ${project.description}`, { indent: bulletIndent, lineGap: 1 });
     project.achievements.forEach(a => {
       doc.font('CMUSerif').fontSize(textSize)
-        .text(`• ${a}`, { indent: 14 + indentSize, lineGap: 1 });
+        .text(`• ${a}`, { indent: bulletIndent, lineGap: 1 });
     });
-    doc.moveDown(0.15);
+    doc.moveDown(itemGap);
   });
 
   // Section: Technical Skills
-  doc.moveDown(0.25);
-  smallCapitals('TECHNICAL SKILLS', 'CMUSerif', 12);
+  doc.moveDown(headingGap);
+  smallCapitals('TECHNICAL SKILLS', 'CMUSerif', headingSize);
   y = doc.y + spaceAboveLine; // Slightly below the heading
   doc.moveTo(doc.page.margins.left, y)
    .lineTo(doc.page.width - doc.page.margins.right, y)
@@ -117,7 +122,7 @@ function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
       .text(label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ':', { continued: true , indent: indentSize })
       .font('CMUSerif').fontSize(textSize)
       .text(` ${items.join(', ')}`, { indent: indentSize });
-    doc.moveDown(0.05);
+    doc.moveDown(itemGap);
   });
 
   doc.end();
