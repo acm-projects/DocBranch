@@ -1,11 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Electron AI App</title>
-  </head>
-  <body>
-    <h1>AI Response:</h1>
-    <p id="output">Loading response...</p>
-  </body>
+<head>
+    <title>Resume Analyzer</title>
+    <style>
+        #output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resume Analysis</h1>
+    <div id="output">Analyzing resume...</div>
+    
+    <script>
+        // Ensure the output element exists and is accessible
+        console.log('Renderer loaded, output element:', document.getElementById('output'));
+    </script>
+</body>
 </html>

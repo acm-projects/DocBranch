@@ -130,18 +130,38 @@ Please provide feedback in this format:
     console.log(aiResponse);
     console.log('\n=== END FEEDBACK ===\n');
 
-    // Send to renderer if window exists
+    // FIXED: Properly escape the content and send to renderer
     if (mainWindow) {
-      mainWindow.webContents.executeJavaScript(
-        `document.getElementById('output').textContent = ${JSON.stringify(aiResponse)};`
-      );
+      // Escape backticks and other special characters
+      const escapedResponse = aiResponse
+        .replace(/\\/g, '\\\\')  // Escape backslashes first
+        .replace(/`/g, '\\`')    // Escape backticks
+        .replace(/\$/g, '\\$')   // Escape dollar signs
+        .replace(/\n/g, '\\n')   // Preserve newlines as \n
+        .replace(/\r/g, '\\r');  // Preserve carriage returns
+
+      mainWindow.webContents.executeJavaScript(`
+        const outputElement = document.getElementById('output');
+        if (outputElement) {
+          outputElement.textContent = \`${escapedResponse}\`;
+        } else {
+          console.error('Output element not found');
+        }
+      `).catch(err => {
+        console.error('Error executing JavaScript in renderer:', err);
+      });
     }
   } catch (err) {
     console.error('Analysis failed:', err);
     if (mainWindow) {
-      mainWindow.webContents.executeJavaScript(
-        `document.getElementById('output').textContent = 'Error: ${err.message}';`
-      );
+      mainWindow.webContents.executeJavaScript(`
+        const outputElement = document.getElementById('output');
+        if (outputElement) {
+          outputElement.textContent = 'Error: ${err.message.replace(/'/g, "\\'")}';
+        }
+      `).catch(rendererErr => {
+        console.error('Error sending error to renderer:', rendererErr);
+      });
     }
   }
 }
@@ -158,8 +178,12 @@ function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
+  
+  // Wait a bit longer for the window to be fully ready
   mainWindow.webContents.on('did-finish-load', () => {
-    analyzeResume(); // Auto-run analysis when window loads
+    setTimeout(() => {
+      analyzeResume();
+    }, 1000);
   });
 }
 
