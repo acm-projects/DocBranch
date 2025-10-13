@@ -2,98 +2,67 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-function generateResume(data, outputFileName = 'professional-resume.pdf') {
+function generateResume(resumeData, outputFileName = 'Jake_Resume.pdf') {
   const outputPath = path.resolve(__dirname, outputFileName);
   const doc = new PDFDocument({ margin: 40 });
   doc.pipe(fs.createWriteStream(outputPath));
 
-  const info = data.personal_information;
-  const pageWidth = doc.page.width-80;
-  let y = 45;
-
-  doc.font('Helvetica-Bold').fontSize(16)
-    .text(info.name, 40, y, { align: 'center', width: pageWidth });
-  y += 20;
-
-  const contactInfo = [
-    info.phone,
-    info.email,
-    info.linkedin,
-    info.github
-  ].join(' | ');
-
+  // Header: Name and Contact
+  const info = resumeData.personal_information;
+  doc.font('Helvetica-Bold').fontSize(18)
+    .text(info.name, { align: 'center' });
+  doc.moveDown(0.5);
   doc.font('Helvetica').fontSize(10)
-    .text(contactInfo, 40, y, { align: 'center', width: pageWidth });
-  y += 28;
+    .text([info.email, info.phone, info.linkedin, info.github].filter(Boolean).join(' | '), { align: 'center' });
+  doc.moveDown(1);
 
-  y = drawSectionTitle(doc, 'Education', y);
-  data.education.forEach(edu => {
-    y = drawTwoColumn(doc, edu.institution, edu.location, y);
-    y = drawTwoColumn(doc, `${edu.degree}${edu.minor ? ', Minor in ' + edu.minor : ''}`, edu.duration, y);
-    y += 7; 
+  // Education
+  doc.font('Helvetica-Bold').fontSize(12).text('Education', { underline: true });
+  doc.moveDown(0.5);
+  resumeData.education.forEach(edu => {
+    doc.font('Helvetica-Bold').fontSize(10).text(`${edu.institution}, ${edu.location}`);
+    doc.font('Helvetica').fontSize(10).text(`${edu.degree}${edu.minor ? ', Minor in ' + edu.minor : ''} (${edu.duration})`);
+    doc.moveDown(0.5);
   });
-  y += 5;
 
-  y = drawSectionTitle(doc, 'Experience', y);
-  data.experience.forEach(exp => {
-    y = drawTwoColumn(doc, exp.position, exp.duration, y);
-    y = drawTwoColumn(doc, exp.organization, exp.location, y);
+  // Experience
+  doc.moveDown(1);
+  doc.font('Helvetica-Bold').fontSize(12).text('Experience', { underline: true });
+  doc.moveDown(0.5);
+  resumeData.experience.forEach(exp => {
+    doc.font('Helvetica-Bold').fontSize(10).text(`${exp.position} - ${exp.organization}, ${exp.location} (${exp.duration})`);
     exp.responsibilities.forEach(r => {
-      y = drawBullet(doc, r, y);
+      doc.font('Helvetica').fontSize(10).text(`• ${r}`, { indent: 20 });
     });
-    y += 7;
+    doc.moveDown(0.5);
   });
-  y += 5;
 
-  y = drawSectionTitle(doc, 'Projects', y);
-  data.projects.forEach(project => {
-    const techString = project.technologies.join(', ');
-    y = drawTwoColumn(doc, `${project.name} | ${techString}`, project.duration, y);
-    y = drawBullet(doc, project.description, y);
+  // Projects
+  doc.moveDown(1);
+  doc.font('Helvetica-Bold').fontSize(12).text('Projects', { underline: true });
+  doc.moveDown(0.5);
+  resumeData.projects.forEach(project => {
+    doc.font('Helvetica-Bold').fontSize(10).text(`${project.name} (${project.duration})`);
+    doc.font('Helvetica').fontSize(10).text(`Technologies: ${project.technologies.join(', ')}`);
+    doc.font('Helvetica').fontSize(10).text(project.description);
     project.achievements.forEach(a => {
-      y = drawBullet(doc, a, y);
+      doc.font('Helvetica').fontSize(10).text(`• ${a}`, { indent: 20 });
     });
-    y += 7; 
+    doc.moveDown(0.5);
   });
-  y += 5;
-  
-  y = drawSectionTitle(doc, 'Technical Skills', y);
-  doc.font('Helvetica').fontSize(10);
-  y = drawSkillLine(doc, 'Languages', data.skills.programming_languages, y);
-  y = drawSkillLine(doc, 'Frameworks', data.skills.frameworks, y);
-  y = drawSkillLine(doc, 'Developer Tools', data.skills.developer_tools, y);
-  y = drawSkillLine(doc, 'Libraries', data.skills.libraries, y);
+
+  // Skills
+  doc.moveDown(1);
+  doc.font('Helvetica-Bold').fontSize(12).text('Technical Skills', { underline: true });
+  doc.moveDown(0.5);
+  Object.entries(resumeData.skills).forEach(([label, items]) => {
+    doc.font('Helvetica').fontSize(10).text(`${label}: ${items.join(', ')}`);
+  });
+
+  // Add other sections (e.g., awards, volunteer) as needed
 
   doc.end();
   doc.on('end', () => console.log('Resume generated at:', outputPath));
-}
-
-function drawSectionTitle(doc, title, y) {
-  doc.font('Helvetica-Bold').fontSize(11)
-    .text(title.toUpperCase(), 40, y);
-  return y + 16; 
-}
-
-function drawTwoColumn(doc, left, right, y) {
-  const leftX = 40;
-  const rightX = 450;
-  doc.font('Helvetica-Bold').fontSize(9.5).text(left, leftX, y, { width: 390 });
-  doc.font('Helvetica').fontSize(9.5).text(right, rightX, y, { align: 'right' });
-  return y + 13;
-}
-
-function drawBullet(doc, text, y) {
-  const bulletIndent = 55;
-  const maxWidth = 480;
-  doc.font('Helvetica').fontSize(9.5)
-    .text(`• ${text}`, bulletIndent, y, { width: maxWidth });
-  return y + 12;
-}
-
-function drawSkillLine(doc, label, items, y) {
-  const text = `${label}: ${items.join(', ')}`;
-  doc.text(text, 40, y, { width: 500 });
-  return y + 12;
 }
 
 module.exports = generateResume;
