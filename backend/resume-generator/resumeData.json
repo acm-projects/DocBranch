@@ -110,64 +110,132 @@
   },
   "metadata": {
     "resume_info": {
-      "user_id": "",
-      "resume_id": "",
-      "resume_creation_date": "",
-      "filename": "",
-      "template_used": ""
+      "user_id": "000002",
+      "resume_id": "jake_ryan_001",
+      "resume_creation_date": "2024-01-15",
+      "filename": "Jake_Ryan_Resume.pdf",
+      "template_used": "jakes_resume"
     },
     "branch_info": {
-      "branch_id": "",
-      "parent_branch_id": [null],
-      "children_branch_ids": [null],
-      "branch_name": "",
-      "created_date": "",
-      "last_modified": ""
+      "branch_id": "branch_002",
+      "parent_branch_id": [
+        null
+      ],
+      "children_branch_ids": [
+        null
+      ],
+      "branch_name": "main",
+      "created_date": "2024-01-15T11:45:00Z",
+      "last_modified": "2024-01-15T11:45:00Z"
     },
     "commit_info": {
-      "number_of_commits": 0,
-      "commits": []
+      "number_of_commits": 1,
+      "commits": [
+        {
+          "commit_id": "commit_002",
+          "timestamp": "2024-01-15T11:45:00Z",
+          "message": "Initial import from Jake_Ryan_Resume.pdf",
+          "changes_summary": {
+            "added_sections": ["all"],
+            "modified_sections": [],
+            "removed_sections": []
+          }
+        }
+      ]
     },
     "ai_insights": {
-      "generated_on": "",
-      "strengths": [],
-      "improvement_suggestions": [],
-      "skill_gaps": [],
-      "recommended_keywords": []
+      "generated_on": "2024-01-15T11:50:00Z",
+      "strengths": [
+        "Strong research experience with multiple university research positions",
+        "Full-stack development experience with modern web technologies",
+        "Proven track record of project delivery and maintenance",
+        "Experience with both academic and practical software development"
+      ],
+      "improvement_suggestions": [
+        "Add GPA if strong academic performance",
+        "Include specific metrics for research impact or project performance",
+        "Expand on leadership and collaboration experiences",
+        "Consider adding publications or conference presentations to education section"
+      ],
+      "skill_gaps": [
+        "Limited mobile development experience",
+        "No cloud platform experience beyond Google Cloud Platform",
+        "Limited experience with AI/ML frameworks despite research background"
+      ],
+      "recommended_keywords": ["research assistant", "full-stack", "REST API", "PostgreSQL", "Docker", "academic research", "web development"]
     },
-    "user_comments": [],
+    "user_comments": [
+      {
+        "comment_id": "comment_002",
+        "timestamp": "2024-01-15T12:00:00Z",
+        "user_id": "user_67890",
+        "section": "experience",
+        "comment_text": "Consider quantifying the impact of the IT support role - number of users supported, efficiency improvements, etc.",
+        "resolved": false,
+        "tags": ["enhancement", "metrics"]
+      }
+    ],
     "tags_keywords": {
-      "technical_skills": [],
-      "achievements": [],
-      "project_types": [],
-      "roles": [],
-      "education_level": [],
-      "languages": []
+      "technical_skills": [
+        "java",
+        "python",
+        "react",
+        "postgresql",
+        "docker",
+        "full-stack",
+        "research",
+        "api-development"
+      ],
+      "achievements": [
+        "research-assistant",
+        "conference-presentation",
+        "published-plugin",
+        "academic-research"
+      ],
+      "project_types": [
+        "web-application",
+        "minecraft-plugin",
+        "research-project",
+        "data-visualization"
+      ],
+      "roles": [
+        "research-assistant",
+        "full-stack-developer",
+        "it-support",
+        "backend-developer"
+      ],
+      "education_level": [
+        "undergraduate",
+        "associate-degree"
+      ],
+      "languages": [
+        "english"
+      ]
     },
     "search_optimization": {
-      "boost_terms": [],
+      "boost_terms": [
+        "research assistant",
+        "full stack developer",
+        "university research",
+        "REST API",
+        "Docker"
+      ],
       "custom_fields": {
         "hackathon_count": 0,
-        "project_count": 0,
-        "programming_languages_count": 0,
-        "has_open_source": false,
-        "has_internship_experience": false,
+        "project_count": 2,
+        "programming_languages_count": 7,
+        "has_open_source": true,
+        "has_internship_experience": true,
         "has_leadership_roles": false
       }
     },
-    "privacy_settings": {
-      "visibility": "",
-      "allowed_viewers": [],
-      "shareable_sections": [],
-      "sensitive_information": []
-    },
     "system_metadata": {
-      "created_date": "",
-      "last_modified": "",
-      "file_size": "",
+      "created_date": "2024-01-15T11:45:00Z",
+      "last_modified": "2024-01-15T11:45:00Z",
+      "file_size": "1890",
       "format": "json",
-      "backup_locations": [],
-      "integrity_check": ""
+      "backup_locations": ["cloud_storage_002", "local_backup_003"],
+      "integrity_check": "verified"
     }
   }
 }

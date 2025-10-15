@@ -7,8 +7,8 @@
       "email": "allenzhengadmissions@gmail.com",
       "address": "",
       "links": [
-        {"linkedin": "linkedin.com/in/allenzheng"},
-        {"github": "github.com/allenzheng"}
+        {"linkedin": "linkedin.com/in/allen-zheng05"},
+        {"github": "github.com/AllenZheng-05"}
       ]
       
     },
@@ -30,17 +30,7 @@
       ]
       }
     ],
-    "experience": [
-      {
-        "role": "",
-        "organization": "",
-        "location": "",
-        "duration": "",
-        "description": [
-          ""
-        ]
-      }
-    ],
+    "experience": [],
     "projects": [
       {
         "name": "DocBranch",
@@ -63,9 +53,7 @@
         "description": [
           "Axxess Hackathon: Streamlining Documentation and Inventory Management 1st Place Winner",
           "Dynamic food and nutrition tracking Web App using AI image recognition to instantly provide insight on a user's meals, nutrition, and eating habits",
-          "Frontend developer for Forkast",
-          "Used React Native and Flask",
-          "Used Recharts for dynamic nutrition data visualizations"
+          "Frontend developer for Forkast, using React Native and Flask, with Recharts for dynamic nutrition data visualizations."
         ]
       },
       {
@@ -76,8 +64,7 @@
         "description": [
           "HackReason Hackathon: 3rd Place Winner",
           "Travel Planning Website utilizing logic programming and automated reasoning to calculate routes and estimate costs of travel",
-          "Backend developer for WanderLogic",
-          "Used logic programming and s(CASP) to calculate all possible routes between destinations and find the best options"
+          "Backend developor for WanderLogic, using logic programming and s(CASP) to calculate all possible routes between destinations and find the best options"
         ]
       },
       {
@@ -88,8 +75,7 @@
         "description": [
           "Congressional App Challenge: 2nd Place Winner",
           "iOS mobile app to provide information and news on the 2024 presidential election and candidates",
-          "Backend developer for Candidate Compass",
-          "Used Swift to integrate multiple APIs with the frontend"
+          "Backend developer for Candidate Compass, using Swift to integrate multiple APIs with the frontend"
         ]
       }
     ],
@@ -124,7 +110,7 @@
         "duration": "August 2013 – May 2024",
         "role": "Competitor and volunteer",
         "description": [
-          "Competitor in local, state, and national level chess tournaments",
+          "Competitor for the Grace Foo Chess Club in local, state, and national level chess tournaments",
           "Volunteered to teach chess tactics, strategies, and skills to children at various schools"
         ]
       }
@@ -262,12 +248,6 @@
         "has_internship_experience": false,
         "has_leadership_roles": true
       }
-    },
-    "privacy_settings": {
-      "visibility": "private",
-      "allowed_viewers": ["user_12345"],
-      "shareable_sections": ["projects", "skills"],
-      "sensitive_information": ["phone", "email"]
     },
     "system_metadata": {
       "created_date": "2024-01-15T10:30:00Z",
