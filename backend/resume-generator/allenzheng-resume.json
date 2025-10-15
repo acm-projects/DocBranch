@@ -130,7 +130,8 @@
       "resume_id": "allen_zheng_001",
       "resume_creation_date": "2025-10-14",
       "filename": "Allen_Zheng_Resume.pdf",
-      "template_used": "jakes_resume"
+      "template_used": "jakes_resume",
+      "section_order": ["personal_information", "education", "projects", "volunteer_experience", "activities", "skills"]
     },
     "branch_info": {
       "branch_id": "branch_001",

@@ -114,7 +114,8 @@
       "resume_id": "jake_ryan_001",
       "resume_creation_date": "2024-01-15",
       "filename": "Jake_Ryan_Resume.pdf",
-      "template_used": "jakes_resume"
+      "template_used": "jakes_resume",
+      "section_order": ["personal_information", "education", "experience", "projects", "skills"]
     },
     "branch_info": {
       "branch_id": "branch_002",
