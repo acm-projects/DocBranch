@@ -15,10 +15,15 @@ function createWindow() {
   });
 
   if (isDev) {
+    // for further clarity, when running `npm run dev` the app just takes the webpage from
+    // localhost and displays on an app, when ran `npm run start` the app actually runs on
+    // the proper file.
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, 'frontend/dist/index.html'));
+    const buildPath = path.join(__dirname, 'frontend/dist/index.html');
+    console.log('Loading from:', buildPath);
+    mainWindow.loadFile(buildPath);
   }
 }
 
