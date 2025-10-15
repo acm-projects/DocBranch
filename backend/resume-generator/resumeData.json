@@ -1,98 +1,173 @@
 {
-  "personal_information": {
-    "name": "Jake Ryan",
-    "phone": "123-456-7890",
-    "email": "jake@su.edu",
-    "linkedin": "linkedin.com/in/jake",
-    "github": "github.com/jake"
+  "resume": {
+    "personal_information": {
+      "name": "Jake Ryan",
+      "phone": "123-456-7890",
+      "email": "jake@su.edu",
+      "address": "",
+      "links": [
+        {"linkedin": "linkedin.com/in/jake"},
+        {"github": "github.com/jake"}
+      ]
+    },
+    "education": [
+      {
+        "institution": "Southwestern University",
+        "location": "Georgetown, TX",
+        "majors": [
+          "Bachelor of Arts in Computer Science"
+        ],
+        "minors": ["Business"],
+        "duration": "Aug. 2018 – May 2021",
+        "GPA": "",
+        "description": []
+      },
+      {
+        "institution": "Blinn College",
+        "location": "Bryan, TX",
+        "majors": [
+          "Associate's in Liberal Arts"
+        ],
+        "minors": [],
+        "duration": "Aug. 2014 – May 2018",
+        "GPA": "",
+        "description": []
+      }
+    ],
+    "experience": [
+      {
+        "role": "Undergraduate Research Assistant",
+        "organization": "Texas A&M University",
+        "location": "College Station, TX",
+        "duration": "June 2020 – Present",
+        "description": [
+          "Developed a REST API using FastAPI and PostgreSQL to store data from learning management systems",
+          "Developed a full-stack web application using Flask, React, PostgreSQL, and Docker to analyze GitHub data",
+          "Explored ways to visualize GitHub collaboration in a classroom setting"
+        ]
+      },
+      {
+        "role": "Information Technology Support Specialist",
+        "organization": "Southwestern University",
+        "location": "Georgetown, TX",
+        "duration": "Sep. 2018 – Present",
+        "description": [
+          "Communicated with managers to set up campus computers used on campus",
+          "Assessed and troubleshooted computer problems brought by students, faculty, and staff",
+          "Maintained upkeep of computers, classroom equipment, and 200 printers across campus"
+        ]
+      },
+      {
+        "role": "Artificial Intelligence Research Assistant",
+        "organization": "Southwestern University",
+        "location": "Georgetown, TX",
+        "duration": "May 2019 – July 2019",
+        "description": [
+          "Explored methods to generate video game dungeons based off of The Legend of Zelda",
+          "Developed a game in Java to test the generated dungeons",
+          "Contributed 50K+ lines of code to an established codebase via Git",
+          "Conducted a human subject study to determine which video game dungeon generation technique is enjoyable",
+          "Wrote an 8-page paper and gave multiple presentations on-campus",
+          "Presented virtually to the World Conference on Computational Intelligence"
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "Gitlytics",
+        "technologies": ["Python", "Flask", "React", "PostgreSQL", "Docker"],
+        "duration": "June 2020 – Present",
+        "role": "",
+        "description": [
+          "Developed a full-stack web application using Flask serving a REST API with React as the frontend",
+          "Implemented GitHub OAuth to get data from user's repositories",
+          "Visualized GitHub data to show collaboration",
+          "Used Celery and Redis for asynchronous tasks"
+        ]
+      },
+      {
+        "name": "Simple Paintball",
+        "technologies": ["Spigot API", "Java", "Maven", "TravisCI", "Git"],
+        "duration": "May 2018 – May 2020",
+        "role": "",
+        "description": [
+          "Developed a Minecraft server plugin to entertain kids during free time for a previous job",
+          "Published plugin to websites gaining 2K+ downloads and an average 4.5/5-star review",
+          "Implemented continuous delivery using TravisCI to build the plugin upon a new release",
+          "Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin"
+        ]
+      }
+    ],
+    "volunteer_experience": [],
+    "activities": [],
+    "skills": {
+      "programming_languages": ["Java", "Python", "C/C++", "SQL (Postgres)", "JavaScript", "HTML/CSS", "R"],
+      "frameworks": ["React", "Node.js", "Flask", "JUnit", "WordPress", "Material-UI", "FastAPI"],
+      "developer_tools": ["Git", "Docker", "TravisCI", "Google Cloud Platform", "VS Code", "Visual Studio", "PyCharm", "IntelliJ", "Eclipse"],
+      "libraries": ["pandas", "NumPy", "Matplotlib"],
+      "languages": []
+    }
   },
-  "education": [
-    {
-      "institution": "Southwestern University",
-      "location": "Georgetown, TX",
-      "degrees": [
-        "Bachelor of Arts in Computer Science"
-      ],
-      "minor": "Business",
-      "duration": "Aug. 2018 – May 2021"
+  "metadata": {
+    "resume_info": {
+      "user_id": "",
+      "resume_id": "",
+      "resume_creation_date": "",
+      "filename": "",
+      "template_used": ""
     },
-    {
-      "institution": "Blinn College",
-      "location": "Bryan, TX",
-      "degree": "Associate's in Liberal Arts",
-      "duration": "Aug. 2014 – May 2018"
+    "branch_info": {
+      "branch_id": "",
+      "parent_branch_id": [null],
+      "children_branch_ids": [null],
+      "branch_name": "",
+      "created_date": "",
+      "last_modified": ""
+    },
+    "commit_info": {
+      "number_of_commits": 0,
+      "commits": []
+    },
+    "ai_insights": {
+      "generated_on": "",
+      "strengths": [],
+      "improvement_suggestions": [],
+      "skill_gaps": [],
+      "recommended_keywords": []
+    },
+    "user_comments": [],
+    "tags_keywords": {
+      "technical_skills": [],
+      "achievements": [],
+      "project_types": [],
+      "roles": [],
+      "education_level": [],
+      "languages": []
+    },
+    "search_optimization": {
+      "boost_terms": [],
+      "custom_fields": {
+        "hackathon_count": 0,
+        "project_count": 0,
+        "programming_languages_count": 0,
+        "has_open_source": false,
+        "has_internship_experience": false,
+        "has_leadership_roles": false
+      }
+    },
+    "privacy_settings": {
+      "visibility": "",
+      "allowed_viewers": [],
+      "shareable_sections": [],
+      "sensitive_information": []
+    },
+    "system_metadata": {
+      "created_date": "",
+      "last_modified": "",
+      "file_size": "",
+      "format": "json",
+      "backup_locations": [],
+      "integrity_check": ""
     }
-  ],
-
-  "experience": [
-    {
-      "position": "Undergraduate Research Assistant",
-      "organization": "Texas A&M University",
-      "location": "College Station, TX",
-      "duration": "June 2020 – Present",
-      "responsibilities": [
-        "Developed a REST API using FastAPI and PostgreSQL to store data from learning management systems",
-        "Developed a full-stack web application using Flask, React, PostgreSQL, and Docker to analyze GitHub data",
-        "Explored ways to visualize GitHub collaboration in a classroom setting"
-      ]
-    },
-    {
-      "position": "Information Technology Support Specialist",
-      "organization": "Southwestern University",
-      "location": "Georgetown, TX",
-      "duration": "Sep. 2018 – Present",
-      "responsibilities": [
-        "Communicated with managers to set up campus computers used on campus",
-        "Assessed and troubleshooted computer problems brought by students, faculty, and staff",
-        "Maintained upkeep of computers, classroom equipment, and 200 printers across campus"
-      ]
-    },
-    {
-      "position": "Artificial Intelligence Research Assistant",
-      "organization": "Southwestern University",
-      "location": "Georgetown, TX",
-      "duration": "May 2019 – July 2019",
-      "responsibilities": [
-        "Explored methods to generate video game dungeons based off of The Legend of Zelda",
-        "Developed a game in Java to test the generated dungeons",
-        "Contributed 50K+ lines of code to an established codebase via Git",
-        "Conducted a human subject study to determine which video game dungeon generation technique is enjoyable",
-        "Wrote an 8-page paper and gave multiple presentations on-campus",
-        "Presented virtually to the World Conference on Computational Intelligence"
-      ]
-    }
-  ],
-
-  "projects": [
-    {
-      "name": "Gitlytics",
-      "technologies": ["Python", "Flask", "React", "PostgreSQL", "Docker"],
-      "duration": "June 2020 – Present",
-      "description":
-        "Developed a full-stack web application using Flask serving a REST API with React as the frontend",
-      "achievements": [
-        "Implemented GitHub OAuth to get data from user's repositories",
-        "Visualized GitHub data to show collaboration",
-        "Used Celery and Redis for asynchronous tasks"
-      ]
-    },
-    {
-      "name": "Simple Paintball",
-      "technologies": ["Spigot API", "Java", "Maven", "TravisCI", "Git"],
-      "duration": "May 2018 – May 2020",
-      "description":
-        "Developed a Minecraft server plugin to entertain kids during free time for a previous job",
-      "achievements": [
-        "Published plugin to websites gaining 2K+ downloads and an average 4.5/5-star review",
-        "Implemented continuous delivery using TravisCI to build the plugin upon a new release",
-        "Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin"
-      ]
-    }
-  ],
-  "skills": {
-    "programming_languages": ["Java", "Python", "C/C++", "SQL (Postgres)", "JavaScript", "HTML/CSS", "R"],
-    "frameworks": ["React", "Node.js", "Flask", "JUnit", "WordPress", "Material-UI", "FastAPI"],
-    "developer_tools": ["Git", "Docker", "TravisCI", "Google Cloud Platform", "VS Code", "Visual Studio", "PyCharm", "IntelliJ", "Eclipse"],
-    "libraries": ["pandas", "NumPy", "Matplotlib"]
   }
 }
