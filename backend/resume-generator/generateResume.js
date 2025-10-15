@@ -1,13 +1,9 @@
-
-
-
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-function generateResume(resumeData, outputFileName = 'newjakes-resume.pdf') {
+function generateResume(resumeData, outputFileName = 'allenzheng-resume.pdf') {
   const outputPath = path.resolve(__dirname, outputFileName);
-  // const fontPath = path.resolve(__dirname, 'fonts', 'cmunrm.ttf');
   const doc = new PDFDocument({ size: 'LETTER', margins: { top: 36, bottom: 36, left: 36, right: 36 } });
   const nameSize = 24;
   const textSize = 10;

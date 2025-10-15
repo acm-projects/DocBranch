@@ -1,5 +1,4 @@
-module.exports =
-  {
+{
   "personal_information": {
     "name": "Jake Ryan",
     "phone": "123-456-7890",
@@ -14,7 +13,7 @@ module.exports =
       "degrees": [
         "Bachelor of Arts in Computer Science"
       ],
-      "minors": ["Business"],
+      "minor": "Business",
       "duration": "Aug. 2018 – May 2021"
     },
     {
