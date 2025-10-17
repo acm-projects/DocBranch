@@ -1,10 +1,11 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
+import { app, BrowserWindow } from 'electron';
+import * as path from 'path';
+
 const isDev = process.env.NODE_ENV === 'development';
 
-let mainWindow;
+let mainWindow: BrowserWindow | null = null;
 
-function createWindow() {
+function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -15,13 +16,11 @@ function createWindow() {
   });
 
   if (isDev) {
-    // for further clarity, when running `npm run dev` the app just takes the webpage from
-    // localhost and displays on an app, when ran `npm run start` the app actually runs on
-    // the proper file.
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    const buildPath = path.join(__dirname, 'frontend/dist/index.html');
+    // Simple path resolution
+    const buildPath = path.join(process.cwd(), 'frontend', 'dist', 'index.html');
     console.log('Loading from:', buildPath);
     mainWindow.loadFile(buildPath);
   }
@@ -30,9 +29,13 @@ function createWindow() {
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });

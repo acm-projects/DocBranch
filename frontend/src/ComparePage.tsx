@@ -1,13 +1,21 @@
-//import './index.css';
+import { Link } from 'react-router-dom';
 
-function ComparePage() {
+const ComparePage = () => {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-100">
-      <div className="w-32 h-32 border-4 border-blue-500 p-4 bg-white shadow-lg rounded">
-        This box should show up!
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Compare Page</h1>
+        <p className="text-lg text-gray-600 mb-6">This is the compare page.</p>
+        {//put ur code here
+         }
+        <Link
+          to="/"
+        >
+          Go back to Home Page
+        </Link>
       </div>
     </div>
   );
-}
+};
 
 export default ComparePage;

@@ -1,40 +1,37 @@
 {
+  "name": "docbranch",
+  "version": "1.0.0",
+  "description": "DocBranch 📄🌿",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
+    "dev:electron": "cross-env NODE_ENV=development tsc && electron .",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npx nodemon server.ts",
+    "build": "npm run build:frontend && npm run build:electron",
+    "build:electron": "tsc",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "cross-env NODE_ENV=production tsc && electron .",
+    "type-check": "tsc --noEmit"
+  },
   "dependencies": {
     "autoprefixer": "^10.4.16",
     "dotenv": "^17.2.3",
     "openai": "^6.2.0",
+    "react-router-dom": "^7.9.4",
     "tailwindcss": "^3.4.0"
   },
-  "name": "docbranch",
-  "version": "1.0.0",
-  "description": "<h1 align=\"center\"> DocBranch 📄🌿 </h1>",
-  "main": "main.js",
   "devDependencies": {
+    "@types/electron": "^1.4.38",
+    "@types/node": "^24.7.2",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^38.2.2",
+    "electron": "^38.3.0",
+    "electron-builder": "^26.0.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
     "wait-on": "^9.0.1"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
-    "dev:electron": "cross-env NODE_ENV=development electron main.js",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && npx nodemon server.js",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "start": "electron ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/acm-projects/DocBranch.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/acm-projects/DocBranch/issues"
-  },
-  "homepage": "https://github.com/acm-projects/DocBranch#readme"
+  }
 }
