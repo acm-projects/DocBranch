@@ -1,7 +1,12 @@
+// main.ts (updated)
 import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 const isDev = process.env.NODE_ENV === 'development';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -19,10 +24,22 @@ function createWindow(): void {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    // Simple path resolution
-    const buildPath = path.join(process.cwd(), 'frontend', 'dist', 'index.html');
+    const buildPath = path.join(__dirname, '../frontend/dist/index.html');
     console.log('Loading from:', buildPath);
-    mainWindow.loadFile(buildPath);
+    
+    // For BrowserRouter, we need to handle all routes by serving index.html
+    mainWindow.loadFile(buildPath).catch((err) => {
+      console.error('Failed to load file:', err);
+    });
+
+    // Handle deep links and routing
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.log('Failed load:', errorDescription);
+      // Fallback to index.html for client-side routes
+      if (!isDev && errorCode === -6) { // -6 is FILE_NOT_FOUND
+        mainWindow?.loadFile(buildPath);
+      }
+    });
   }
 }
 
