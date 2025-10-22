@@ -127,7 +127,7 @@
   {
     "resume_info": {
       "user_id": "000002",
-      "resume_id": "000001",
+      "resume_id": "000002",
       "resume_creation_date": "2025-10-14",
       "filename": "Allen_Zheng_Resume.pdf",
       "template_used": "jakes_resume",
@@ -136,10 +136,10 @@
     "branch_info": {
       "branch_id": "branch_001",
       "parent_resume_id": [
-        "head"
+        "000001"
       ],
       "children_resume_ids": [
-        "000002"
+        "000003"
       ],
       "branch_name": "main",
       "created_date": "2024-01-15T10:30:00Z",
