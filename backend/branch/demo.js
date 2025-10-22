@@ -3,7 +3,8 @@ const path = require('path');
 const { BranchGraph } = require('./branch');
 
 function demo() {
-  // Load resume JSON files from the resume-generator folder
+
+  // branch demo with 3 example resumes.
   const r1 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'resume-generator', 'allenzheng-resume.json'), 'utf8'));
   const r2 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'resume-generator', 'allenzheng-resume2.json'), 'utf8'));
   const r3 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'resume-generator', 'allenzheng-resume3.json'), 'utf8'));
