@@ -115,9 +115,9 @@ function generateResume(jsonFilePath, outputFileName = 'resume.pdf') {
     doc.moveDown(spaceBelowLine);
     resumeData.projects.forEach(project => {
       doc.font('CMUSerif-Bold').fontSize(positionTitleFontSize)
-        .text(`${project.name}`, { continued: true , indent: indentSize })
+        .text(`${project.name} | `, { continued: true , indent: indentSize })
         .font('CMUSerif-Italic').fontSize(smallTextFontSize)
-        .text(` | ${project.technologies.join(', ')}`, { continued: true , indent: indentSize })
+        .text(`${project.technologies.join(', ')}`, { continued: true , indent: indentSize })
         .font('CMUSerif').fontSize(smallTextFontSize)
         .text(`${project.duration}`, { align: 'right' , indent: indentSize });
       if (project.description && Array.isArray(project.description) && project.description.length > 0) {

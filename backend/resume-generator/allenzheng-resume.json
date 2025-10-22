@@ -192,62 +192,81 @@
         "tags": ["enhancement", "content"]
       }
     ],
-    "tags_keywords": {
-      "technical_skills": [
-        "javascript",
-        "python",
-        "react",
-        "aws",
-        "swift",
-        "prolog",
-        "full-stack",
-        "mobile-development",
-        "desktop-apps"
-      ],
-      "achievements": [
-        "hackathon-winner",
-        "congressional-app-challenge",
-        "national-merit",
-        "honors-program"
-      ],
-      "project_types": [
-        "resume-editor",
-        "nutrition-tracker",
-        "travel-planner",
-        "election-app"
-      ],
-      "roles": [
-        "full-stack-developer",
-        "frontend-developer",
-        "backend-developer",
-        "acm-developer"
-      ],
-      "education_level": [
-        "undergraduate",
-        "honors-student",
-        "dual-degree"
-      ],
-      "languages": [
-        "english",
-        "mandarin",
-        "japanese"
-      ]
-    },
-    "search_optimization": {
-      "boost_terms": [
-        "hackathon winner",
-        "national merit scholar",
-        "full stack developer",
-        "honors student",
-        "acm project"
-      ],
-      "custom_fields": {
-        "hackathon_count": 3,
-        "project_count": 4,
-        "programming_languages_count": 9,
-        "has_open_source": false,
-        "has_internship_experience": false,
-        "has_leadership_roles": true
+    "search": {
+      "job_listing": {
+        "url": "example.com/job/full-stack-developer-001",
+        "role": "Full Stack Developer",
+        "company": "Tech Innovators Inc.",
+        "location": "Remote",
+        "description": "Seeking a skilled Full Stack Developer with experience in JavaScript, Python, React, and AWS to join our dynamic team. The ideal candidate will have a strong background in building scalable web applications and a passion for innovative solutions.",
+        "requirements": [
+          "Proficiency in JavaScript and Python",
+          "Experience with React and AWS services",
+          "Strong problem-solving skills",
+          "Ability to work in a fast-paced environment"
+        ],
+        "preferred_qualifications": [
+          "Experience with mobile development",
+          "Familiarity with logic programming languages"
+        ]
+      },
+      "tags_keywords": {
+        "technical_skills": [
+          "javascript",
+          "python",
+          "react",
+          "aws",
+          "swift",
+          "prolog",
+          "full-stack",
+          "mobile-development",
+          "desktop-apps"
+        ],
+        "achievements": [
+          "hackathon-winner",
+          "congressional-app-challenge",
+          "national-merit",
+          "honors-program"
+        ],
+        "project_types": [
+          "resume-editor",
+          "nutrition-tracker",
+          "travel-planner",
+          "election-app"
+        ],
+        "roles": [
+          "full-stack-developer",
+          "frontend-developer",
+          "backend-developer",
+          "acm-developer"
+        ],
+        "education_level": [
+          "undergraduate",
+          "honors-student",
+          "dual-degree"
+        ],
+        "languages": [
+          "english",
+          "mandarin",
+          "japanese"
+        ]
+      },
+      "search_optimization": {
+        "boost_terms": [
+          "hackathon winner",
+          "national merit scholar",
+          "full stack developer",
+          "honors student",
+          "acm project"
+        ],
+        "custom_fields": {
+          "hackathon_count": 3,
+          "project_count": 4,
+          "programming_languages_count": 9,
+          "has_open_source": false,
+          "has_internship_experience": false,
+          "has_leadership_roles": true
+        }
       }
     },
     "system_metadata": {
