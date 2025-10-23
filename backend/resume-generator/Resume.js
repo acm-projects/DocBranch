@@ -56,8 +56,11 @@ class Resume {
     doc.registerFont('CMUSerif-BoldItalic', path.resolve(this.fontsDir, 'cmunbi.ttf'));
   }
 
-  /** Convenience: create and pipe a PDFDocument and render the resume. */
-  renderToStream(outputStream) {
+  /** Convenience: create and pipe a PDFDocument and render the resume.
+   * @param {stream.Writable} outputStream - destination stream for PDF bytes
+   * @param {string[]} [sectionOrder] - array of section keys in the desired render order
+   */
+  renderToStream(outputStream, sectionOrder) {
     if (!this.resume) throw new Error('No resume data loaded.');
     this.doc = new PDFDocument(this.pdfOptions);
     this.registerFonts(this.doc);
@@ -81,24 +84,50 @@ class Resume {
     doc.font('CMUSerif').fontSize(this.smallTextFontSize)
       .text(contactArr.filter(Boolean).join(' | '), { align: 'center' });
 
-    // Render sections using helper methods
-    this._renderEducation(resumeData.education);
-    this._renderExperience(resumeData.experience);
-    this._renderProjects(resumeData.projects);
-    this._renderVolunteer(resumeData.volunteer_experience);
-    this._renderActivities(resumeData.activities);
-    this._renderSkills(resumeData.skills);
+    // Render sections using helper methods in requested order
+    const defaultOrder = ['education', 'experience', 'projects', 'volunteer_experience', 'activities', 'skills'];
+    const order = Array.isArray(sectionOrder) && sectionOrder.length ? sectionOrder : defaultOrder;
+
+    const rendererMap = {
+      education: () => this._renderEducation(resumeData.education),
+      experience: () => this._renderExperience(resumeData.experience),
+      projects: () => this._renderProjects(resumeData.projects),
+      // accept both 'volunteer' and 'volunteer_experience'
+      volunteer: () => this._renderVolunteer(resumeData.volunteer_experience),
+      volunteer_experience: () => this._renderVolunteer(resumeData.volunteer_experience),
+      activities: () => this._renderActivities(resumeData.activities),
+      skills: () => this._renderSkills(resumeData.skills),
+    };
+
+    order.forEach(key => {
+      const k = String(key || '').trim();
+      const fn = rendererMap[k];
+      if (typeof fn === 'function') {
+        try {
+          fn();
+        } catch (err) {
+          // don't crash entire rendering for a single section error
+          /* eslint-disable no-console */
+          console.error(`Error rendering section ${k}:`, err && err.message);
+        }
+      } else {
+        // unknown section key: ignore
+      }
+    });
 
     // finalize
     doc.end();
     return doc;
   }
 
-  /** Save the resume PDF to disk. Returns a Promise that resolves when stream ends. */
-  savePDF(outputPath = 'resume.pdf') {
+  /** Save the resume PDF to disk. Returns a Promise that resolves when stream ends.
+   * @param {string} [outputPath]
+   * @param {string[]} [sectionOrder]
+   */
+  savePDF(outputPath = 'resume.pdf', sectionOrder) {
     const resolved = path.resolve(__dirname, outputPath);
     const outStream = fs.createWriteStream(resolved);
-    const doc = this.renderToStream(outStream);
+    const doc = this.renderToStream(outStream, sectionOrder);
     return new Promise((resolve, reject) => {
       outStream.on('finish', () => resolve(resolved));
       outStream.on('error', reject);
@@ -256,10 +285,19 @@ class Resume {
   }
 
   /** Convenience static helper: generate PDF from a json file path. */
-  static async fromFileToPDF(jsonFilePath, outputFileName = 'resume.pdf') {
+  /**
+   * Generate PDF from a JSON file. Requires sectionOrder array to define render order.
+   * @param {string} jsonFilePath
+   * @param {string} outputFileName
+   * @param {string[]} sectionOrder - ordered array of section keys (e.g. ['education','experience',...])
+   */
+  static async fromFileToPDF(jsonFilePath, outputFileName = 'resume.pdf', sectionOrder) {
+    if (!Array.isArray(sectionOrder)) {
+      throw new Error('fromFileToPDF requires sectionOrder array as the third argument');
+    }
     const r = new Resume();
     r.loadFromFile(jsonFilePath);
-    return r.savePDF(outputFileName);
+    return r.savePDF(outputFileName, sectionOrder);
   }
 }
 
