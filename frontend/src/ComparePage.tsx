@@ -1,3 +1,5 @@
+import './index.css';
+import React from 'react';
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 
@@ -18,7 +20,7 @@ const ComparePage = () => {
     const startHeight = commentBoxHeight;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaY = moveEvent.clientY - startY;
+      const deltaY = -moveEvent.clientY + startY; // -(moveEvent.clientY+startY)
       const newHeight = Math.max(0, Math.min(startHeight + deltaY, 400));
       setCommentBoxHeight(newHeight);
     };
@@ -378,7 +380,7 @@ const ComparePage = () => {
             </button>
           </div>
 
-          <div
+          <div className='hide-scrollbar'
             style={{
               backgroundColor: '#f9fafb',
               borderRadius: '0.5rem',
@@ -390,8 +392,8 @@ const ComparePage = () => {
               display: commentBoxHeight === 0 ? 'none' : 'block'
             }}
           >
-            {activeTab === 'comments' && <div>Comments section</div>}
-            {activeTab === 'job-description' && <div>Job Description</div>}
+            {activeTab === 'comments' && <div className='hide-scrollbar'>Comments section</div>}
+            {activeTab === 'job-description' && <div className='hide-scrollbar'>Job Description</div>}
           </div>
         </div>
 
@@ -418,7 +420,7 @@ const ComparePage = () => {
         </div>
 
         {/* Generated Resume Panel */}
-        <div
+        <div className='hide-scrollbar'
           style={{
             flex: 1,
             backgroundColor: 'white',
@@ -446,7 +448,7 @@ const ComparePage = () => {
             Generated Resume
           </h3>
 
-          <div
+          <div className='trans'
             style={{
               flex: 1,
               display: 'flex',

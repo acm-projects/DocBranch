@@ -2,3 +2,4 @@
 *.jpg
 node_modules
 /frontend/electron/node_modules
+/frontend/.vite
