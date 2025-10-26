@@ -1,4 +1,3 @@
-import './index.css';
 import React from 'react';
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
@@ -13,14 +12,15 @@ const ComparePage = () => {
   const [leftWidth, setLeftWidth] = useState(15);
   const [middleLeftWidth, setMiddleLeftWidth] = useState(50);
   const [rightWidth, setRightWidth] = useState(15);
+  const [rightTab, setRightTab] = useState('ai-insights');
 
-  const handleCommentResize = (e: React.MouseEvent) => {
+  const handleCommentResize = (e: { preventDefault: () => void; clientY: any; }) => {
     e.preventDefault();
     const startY = e.clientY;
     const startHeight = commentBoxHeight;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaY = -moveEvent.clientY + startY; // -(moveEvent.clientY+startY)
+    const handleMouseMove = (moveEvent: { clientY: number; }) => {
+      const deltaY = -moveEvent.clientY + startY;
       const newHeight = Math.max(0, Math.min(startHeight + deltaY, 400));
       setCommentBoxHeight(newHeight);
     };
@@ -34,12 +34,12 @@ const ComparePage = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleLeftResize = (e: React.MouseEvent) => {
+  const handleLeftResize = (e: { preventDefault: () => void; clientX: any; }) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = leftWidth;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handleMouseMove = (moveEvent: { clientX: number; }) => {
       const containerWidth = window.innerWidth - 48;
       const deltaX = moveEvent.clientX - startX;
       const deltaPercent = (deltaX / containerWidth) * 100;
@@ -56,12 +56,12 @@ const ComparePage = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleMiddleResize = (e: React.MouseEvent) => {
+  const handleMiddleResize = (e: { preventDefault: () => void; clientX: any; }) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = middleLeftWidth;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handleMouseMove = (moveEvent: { clientX: number; }) => {
       const containerWidth = window.innerWidth - 48;
       const middleTotal = 100 - leftWidth - rightWidth;
       const deltaX = moveEvent.clientX - startX;
@@ -79,12 +79,12 @@ const ComparePage = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleRightResize = (e: React.MouseEvent) => {
+  const handleRightResize = (e: { preventDefault: () => void; clientX: any; }) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = rightWidth;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handleMouseMove = (moveEvent: { clientX: number; }) => {
       const containerWidth = window.innerWidth - 48;
       const deltaX = moveEvent.clientX - startX;
       const deltaPercent = (deltaX / containerWidth) * 100;
@@ -272,7 +272,7 @@ const ComparePage = () => {
         }}
       >
         {/* Current Resume Panel */}
-        <div
+        { <div
           style={{
             width: `${middleLeftWidth}%`,
             backgroundColor: 'white',
@@ -395,10 +395,10 @@ const ComparePage = () => {
             {activeTab === 'comments' && <div className='hide-scrollbar'>Comments section</div>}
             {activeTab === 'job-description' && <div className='hide-scrollbar'>Job Description</div>}
           </div>
-        </div>
+        </div> }
 
         {/* Resize Handle 2 */}
-        <div
+        { <div
           style={{
             width: '8px',
             cursor: 'ew-resize',
@@ -417,7 +417,7 @@ const ComparePage = () => {
               borderRadius: '2px'
             }}
           ></div>
-        </div>
+        </div> }
 
         {/* Generated Resume Panel */}
         <div className='hide-scrollbar'
@@ -553,30 +553,101 @@ const ComparePage = () => {
           padding: '1.5rem',
           minWidth: '150px',
           boxSizing: 'border-box',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Lightbulb
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            marginBottom: '1rem',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            flexShrink: 0
+          }}
+        >
+          <button
+            onClick={() => setRightTab('ai-insights')}
             style={{
-              width: '1.25rem',
-              height: '1.25rem',
-              color: '#10b981',
-              flexShrink: 0
-            }}
-          />
-          <h2
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: '600',
-              color: '#111827',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              padding: '0.5rem 1rem',
+              borderRadius: rightTab === 'ai-insights' ? '1.25rem' : '0.375rem',
+              fontSize: '0.8125rem',
+              fontWeight: '500',
+              backgroundColor:
+                rightTab === 'ai-insights' ? '#10b981' : 'transparent',
+              color: rightTab === 'ai-insights' ? 'white' : '#6b7280',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem'
             }}
           >
+            <Lightbulb
+              style={{
+                width: '1rem',
+                height: '1rem',
+                flexShrink: 0
+              }}
+            />
             AI Insights
-          </h2>
+          </button>
+          <button
+            onClick={() => setRightTab('job-description')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius:
+                rightTab === 'job-description' ? '1.25rem' : '0.375rem',
+              fontSize: '0.8125rem',
+              fontWeight: '500',
+              backgroundColor:
+                rightTab === 'job-description' ? '#10b981' : 'transparent',
+              color: rightTab === 'job-description' ? 'white' : '#6b7280',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Job Description
+          </button>
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0
+          }}
+        >
+          {rightTab === 'ai-insights' && (
+            <div>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
+                AI-generated insights will appear here based on your resume and job description.
+              </p>
+            </div>
+          )}
+          {rightTab === 'job-description' && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center' }}>
+                Add a job description to get AI-powered insights and recommendations.
+              </p>
+              <button
+                style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  padding: '0.625rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Add Job Description
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
