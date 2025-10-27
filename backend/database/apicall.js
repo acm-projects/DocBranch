@@ -1,5 +1,15 @@
 const express = require('express');
-const { getResumes, getResumeById, addOrUpdateResume, deleteResumeById, getResumesByUser } = require('./dynamo');
+const {
+  getResumes,
+  getProfiles,
+  addOrUpdateResume,
+  addOrUpdateProfile,
+  getProfileByUser,
+  getResumeById,
+  deleteResumeById,
+  getResumesByUser,
+  deleteProfileById
+} = require('./dynamo');
 const app = express();
 
 app.use(express.json());
@@ -18,11 +28,32 @@ app.get('/resumes', async (req, res) => {
   }
 });
 
+app.get('/profiles', async (req, res) => {
+  try {
+    const profiles = await getProfiles();
+    res.json(profiles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
 app.get('/resumes/:userid', async (req, res) => {
   const userid = req.params.userid;
   try {
     const resumes = await getResumesByUser(userid);
     res.json(resumes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
+app.get('/profiles/:userid', async (req, res) => {
+  const userid = req.params.userid;
+  try {
+    const profiles = await getProfileByUser(userid);
+    res.json(profiles);
   } catch (error) {
     console.error(error);
     res.status(500).json({err: 'Something went wrong'});
@@ -52,6 +83,17 @@ app.post('/resumes', async (req, res) => {
   }
 });
 
+app.post('/profiles', async (req, res) => {
+  const profile = req.body;
+  try {
+    const newProfile = await addOrUpdateProfile(profile);
+    res.json(newProfile);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
 app.put('/resumes/:userid/:resumeid', async (req, res) => {
   const resume = req.body;
   const userid = req.params.userid;
@@ -72,6 +114,16 @@ app.delete('/resumes/:userid/:resumeid', async (req, res) => {
   const resumeid = req.params.resumeid;
   try {
     res.json(await deleteResumeById(userid, resumeid));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({err: 'Something went wrong'});
+  }
+});
+
+app.delete('/profiles/:userid', async (req, res) => {
+  const userid = req.params.userid;
+  try {
+    res.json(await deleteProfileById(userid));
   } catch (error) {
     console.error(error);
     res.status(500).json({err: 'Something went wrong'});
