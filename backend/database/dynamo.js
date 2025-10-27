@@ -1,14 +1,11 @@
-const AWS = require('aws-sdk');
-const {uploadFileToS3, downloadFileFromS3} = require('./s3');
+const { uploadFileToS3, downloadFileFromS3 } = require('./s3');
 require('dotenv').config();
 
-AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_DEFAULT_REGION
-});
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, QueryCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 
-const dynamoClient = new AWS.DynamoDB.DocumentClient();
+const ddbClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION });
+const dynamoClient = DynamoDBDocumentClient.from(ddbClient);
 const TABLE_NAME = "DocBranch";
 const PROFILES = "DocBranch_profiles";
 
@@ -85,7 +82,7 @@ const getResumes = async () => {
   const param = {
     TableName: TABLE_NAME
   };
-  const resumes = await dynamoClient.scan(param).promise();
+  const resumes = await dynamoClient.send(new ScanCommand(param));
   //console.log(JSON.stringify(resumes, null, 2));
   return resumes;
 }
@@ -94,7 +91,7 @@ const getProfiles = async () => {
   const param = {
     TableName: PROFILES
   };
-  const profiles = await dynamoClient.scan(param).promise();
+  const profiles = await dynamoClient.send(new ScanCommand(param));
   //console.log(JSON.stringify(profiles, null, 2));
   return profiles;
 }
@@ -114,7 +111,7 @@ const addOrUpdateResume = async (resume) => {
   // ALSO ADD TO S3 AS JSON FILE
   await uploadFileToS3(JSON.stringify(resume), "docbranchtestbucket", `resumes/${resume.user_id}/${resume.resume_id}.json`, "application/json");
   
-  return await dynamoClient.put(param).promise();
+  return await dynamoClient.send(new PutCommand(param));
 }
 
 const addOrUpdateProfile = async (profile) => {
@@ -127,7 +124,7 @@ const addOrUpdateProfile = async (profile) => {
     TableName: PROFILES,
     Key: { user_id: profile.user_id }
   };
-  const existingRes = await dynamoClient.get(getParams).promise();
+  const existingRes = await dynamoClient.send(new GetCommand(getParams));
   const existing = existingRes && existingRes.Item ? existingRes.Item : {};
 
   const merged = mergeObjects(existing, profile);
@@ -136,7 +133,7 @@ const addOrUpdateProfile = async (profile) => {
     TableName: PROFILES,
     Item: merged
   };
-  return await dynamoClient.put(param).promise();
+  return await dynamoClient.send(new PutCommand(param));
 }
 
 const getResumesByUser = async (userid) => {
@@ -147,7 +144,7 @@ const getResumesByUser = async (userid) => {
       ':uid': userid
     }
   };
-  const resumes = await dynamoClient.query(params).promise();
+  const resumes = await dynamoClient.send(new QueryCommand(params));
   //console.log(JSON.stringify(resumes, null, 2));
   return resumes;
 }
@@ -160,7 +157,7 @@ const getProfileByUser = async (userid) => {
       ':uid': userid
     }
   };
-  const profiles = await dynamoClient.query(params).promise();
+  const profiles = await dynamoClient.send(new QueryCommand(params));
   //console.log(JSON.stringify(profiles, null, 2));
   return profiles;
 }
@@ -173,7 +170,7 @@ const getResumeById = async (userid, resumeid) => {
       resume_id: resumeid
     }
   }
-  const resume = await dynamoClient.get(params).promise();
+  const resume = await dynamoClient.send(new GetCommand(params));
   //console.log(JSON.stringify(resume, null, 2));
   return resume;
 }
@@ -186,7 +183,7 @@ const deleteResumeById = async (userid, resumeid) => {
       resume_id: resumeid
     }
   };
-  return await dynamoClient.delete(params).promise();
+  return await dynamoClient.send(new DeleteCommand(params));
 }
 
 const deleteProfileById = async (userid) => {
@@ -196,7 +193,7 @@ const deleteProfileById = async (userid) => {
       user_id: userid
     }
   };
-  return await dynamoClient.delete(params).promise();
+  return await dynamoClient.send(new DeleteCommand(params));
 }
 
 const newresume = {
@@ -221,37 +218,37 @@ const newresume = {
   // name: 'John Doe'
 }
 
-// Sample / test runner: only execute when this file is run directly (not when required)
-// if (require.main === module) {
-//   (async () => {
-//     try {
-//       console.log(JSON.stringify(await getProfiles(), null, 2));
-//       console.log('Adding/updating profile with user_id 1');
-//       await addOrUpdateProfile(newresume);
-//       //console.log(JSON.stringify(await getProfileByUser('1'), null, 2));
-//       //console.log('\n\n');
-//       console.log(JSON.stringify(await getProfiles(), null, 2));
-//       // console.log('Deleting profile with user_id 1');
-//       // await deleteProfileById('1');
-//       // console.log(JSON.stringify(await getProfiles(), null, 2));
-//     } catch (err) {
-//       console.error('Error running dynamo.js test runner:', err);
-//     }
-//   })();
-// }
-
+//  Sample / test runner: only execute when this file is run directly (not when required)
 if (require.main === module) {
   (async () => {
     try {
-      await addOrUpdateResume(newresume);
-      console.log("Returned: ", JSON.stringify(await getResumesByUser("1"), null, 2));
-
-      await downloadFileFromS3("docbranchtestbucket", `resumes/1/1.json`, "./downloaded_resume_1_1.json");
+      console.log(JSON.stringify(await getProfiles(), null, 2));
+      console.log('Adding/updating profile with user_id 1');
+      await addOrUpdateProfile(newresume);
+      //console.log(JSON.stringify(await getProfileByUser('1'), null, 2));
+      //console.log('\n\n');
+      console.log(JSON.stringify(await getProfiles(), null, 2));
+      // console.log('Deleting profile with user_id 1');
+      // await deleteProfileById('1');
+      // console.log(JSON.stringify(await getProfiles(), null, 2));
     } catch (err) {
       console.error('Error running dynamo.js test runner:', err);
     }
   })();
 }
+
+// if (require.main === module) {
+//   (async () => {
+//     try {
+//       await addOrUpdateResume(newresume);
+//       console.log("Returned: ", JSON.stringify(await getResumesByUser("1"), null, 2));
+
+//       await downloadFileFromS3("docbranchtestbucket", `resumes/1/1.json`, "./downloaded_resume_1_1.json");
+//     } catch (err) {
+//       console.error('Error running dynamo.js test runner:', err);
+//     }
+//   })();
+// }
 
 
 module.exports = {
