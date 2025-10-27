@@ -9,5 +9,20 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: true
+  },
+  // ADD THESE NEW SETTINGS:
+  resolve: {
+    dedupe: ['react', 'react-dom'] // Crucial for React 19
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'], // Ensures single instance
+    esbuildOptions: {
+      target: 'es2020' // Better compatibility
+    }
+  },
+  server: {
+    fs: {
+      strict: false // Helps with module resolution
+    }
   }
 })
