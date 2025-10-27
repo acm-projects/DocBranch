@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
+import { ResumeEditor } from './Components/ResumeEditor';
 
 const ComparePage = () => {
   const [activeTab, setActiveTab] = useState('comments');
@@ -435,89 +436,8 @@ const ComparePage = () => {
             overflow: 'hidden'
           }}
         >
-          <h3
-            style={{
-              textAlign: 'center',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              color: '#374151',
-              marginBottom: '1rem',
-              flexShrink: 0
-            }}
-          >
-            Generated Resume
-          </h3>
-
-          <div className='trans'
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              overflowY: 'auto',
-              minHeight: 0
-            }}
-          >
-            {[
-              'Education',
-              'Skills',
-              'Professional Experience',
-              'Organizations',
-              'Awards & Honors'
-            ].map((section) => (
-              <div
-                key={section}
-                style={{
-                  backgroundColor: '#f3f4f6',
-                  borderRadius: '0.5rem',
-                  padding: '1rem',
-                  flexShrink: 0
-                }}
-              >
-                <h4
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#374151',
-                    marginBottom: '0.75rem'
-                  }}
-                >
-                  {section}
-                </h4>
-                <div
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '0.375rem',
-                    height: '4rem'
-                  }}
-                ></div>
-              </div>
-            ))}
-          </div>
-
-          <div
-            style={{
-              marginTop: '1rem',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              flexShrink: 0
-            }}
-          >
-            <button
-              style={{
-                backgroundColor: '#10b981',
-                color: 'white',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              Preview
-            </button>
-          </div>
+          //resumeEditor goes here 
+          <ResumeEditor></ResumeEditor>
         </div>
       </div>
 
