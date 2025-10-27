@@ -1,30 +1,72 @@
-import "dotenv/config";
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import fs from "fs";
-import path from "path";
+const dotenv = require('dotenv');
+dotenv.config();
+const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+const fs = require('fs');
+const path = require('path');
 
 const config = {
-  region: "us-east-2",
+  region: process.env.AWS_DEFAULT_REGION
 };
 const client = new S3Client(config);
 
-async function uploadFileToS3(localFilePath, bucket, key, contentType = "application/octet-stream") {
-  const absolutePath = path.isAbsolute(localFilePath) ? localFilePath : path.resolve(localFilePath);
-  const filestream = fs.createReadStream(absolutePath);
-  console.log(filestream)
+const uploadFileToS3 = async (localFilePathOrBody, bucket, key, contentType = "application/octet-stream") => {
+  // localFilePathOrBody can be:
+  // - a path to an existing local file (string)
+  // - a string body
+  // - a Buffer
+  // - an object (will be JSON.stringified)
+
+  let Body;
+  let resolvedPath;
+
+  if (typeof localFilePathOrBody === 'string') {
+    // Check if it's a path to an existing file
+    const possiblePath = path.isAbsolute(localFilePathOrBody) ? localFilePathOrBody : path.resolve(localFilePathOrBody);
+    if (fs.existsSync(possiblePath) && fs.statSync(possiblePath).isFile()) {
+      resolvedPath = possiblePath;
+      Body = fs.createReadStream(resolvedPath);
+    } else {
+      // treat as raw string body
+      Body = Buffer.from(localFilePathOrBody, 'utf8');
+      // if contentType was default, assume text/plain
+      if (contentType === 'application/octet-stream') contentType = 'text/plain; charset=utf-8';
+    }
+  } else if (Buffer.isBuffer(localFilePathOrBody)) {
+    Body = localFilePathOrBody;
+  } else if (typeof localFilePathOrBody === 'object' && localFilePathOrBody !== null) {
+    // JSON object
+    const json = JSON.stringify(localFilePathOrBody);
+    Body = Buffer.from(json, 'utf8');
+    contentType = 'application/json';
+  } else {
+    throw new Error('Unsupported body type for uploadFileToS3');
+  }
+
   const input = {
-    Body: filestream,
+    Body,
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
   };
+
+  // If Body is a Buffer or string, set ContentLength to avoid undefined-length streaming headers
+  if (Buffer.isBuffer(Body)) {
+    input.ContentLength = Body.length;
+  }
+
   const uploadCommand = new PutObjectCommand(input);
-  const uploadResponse = await client.send(uploadCommand);
-  console.log(`Uploaded ${absolutePath} to s3://${bucket}/${key}`);
-  return uploadResponse;
+  try {
+    const uploadResponse = await client.send(uploadCommand);
+    if (resolvedPath) console.log(`Uploaded ${resolvedPath} to s3://${bucket}/${key}`);
+    else console.log(`Uploaded data to s3://${bucket}/${key}`);
+    return uploadResponse;
+  } catch (err) {
+    console.error('S3 upload error:', err);
+    throw err;
+  }
 }
 
-async function downloadFileFromS3(bucket, key, localFilePath) {
+const downloadFileFromS3 = async (bucket, key, localFilePath) => {
   const absolutePath = path.isAbsolute(localFilePath) ? localFilePath : path.resolve(localFilePath);
   const output = {
     Bucket: bucket,
@@ -39,13 +81,18 @@ async function downloadFileFromS3(bucket, key, localFilePath) {
 }
 
 // Example usage:
-import promptSync from 'prompt-sync';
-const prompt = promptSync();
+// import promptSync from 'prompt-sync';
+// const prompt = promptSync();
 
-const uploadFileLocation = prompt('File path of uploaded file: ');
-const downloadLocation = prompt('Location of downloaded file: ');
-const s3Name = prompt('Name of file in s3: ');
-const fileType = "image/png";
+// const uploadFileLocation = prompt('File path of uploaded file: ');
+// const downloadLocation = prompt('Location of downloaded file: ');
+// const s3Name = prompt('Name of file in s3: ');
+// const fileType = "image/png";
 
-await uploadFileToS3(uploadFileLocation, "docbranchtestbucket", s3Name, fileType);
-await downloadFileFromS3("docbranchtestbucket", s3Name, downloadLocation);
+// await uploadFileToS3(uploadFileLocation, "docbranchtestbucket", s3Name, fileType);
+// await downloadFileFromS3("docbranchtestbucket", s3Name, downloadLocation);
+
+module.exports = {
+  uploadFileToS3,
+  downloadFileFromS3
+};

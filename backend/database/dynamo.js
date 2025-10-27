@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const {uploadFileToS3, downloadFileFromS3} = require('./s3');
 require('dotenv').config();
 
 AWS.config.update({
@@ -109,6 +110,10 @@ const addOrUpdateResume = async (resume) => {
   };
   //console.log("Resume added/updated:", resume);
   await addOrUpdateProfile(resume);
+
+  // ALSO ADD TO S3 AS JSON FILE
+  await uploadFileToS3(JSON.stringify(resume), "docbranchtestbucket", `resumes/${resume.user_id}/${resume.resume_id}.json`, "application/json");
+  
   return await dynamoClient.put(param).promise();
 }
 
@@ -240,6 +245,8 @@ if (require.main === module) {
     try {
       await addOrUpdateResume(newresume);
       console.log("Returned: ", JSON.stringify(await getResumesByUser("1"), null, 2));
+
+      await downloadFileFromS3("docbranchtestbucket", `resumes/1/1.json`, "./downloaded_resume_1_1.json");
     } catch (err) {
       console.error('Error running dynamo.js test runner:', err);
     }
