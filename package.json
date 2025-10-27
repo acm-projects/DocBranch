@@ -15,11 +15,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@types/react-dnd": "^2.0.36",
     "autoprefixer": "^10.4.16",
     "dotenv": "^17.2.3",
     "lucide-react": "^0.548.0",
     "openai": "^6.2.0",
     "react": "^19.1.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.0",
     "react-resizable-panels": "^3.0.6",
     "react-router-dom": "^7.9.4",
