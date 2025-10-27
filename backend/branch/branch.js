@@ -22,7 +22,7 @@ class BranchNode {
 
 class BranchGraph {
   constructor() {
-    this.nodes = new Map(); // id -> BranchNode
+    this.nodes = new Map();
   }
 
   createNode(id, resume = {}) {

@@ -4,7 +4,6 @@ const { BranchGraph } = require('./branch');
 
 function demo() {
 
-  // branch demo with 3 example resumes.
   const r1 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'resume-generator', 'allenzheng-resume.json'), 'utf8'));
   const r2 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'resume-generator', 'allenzheng-resume2.json'), 'utf8'));
   const r3 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'resume-generator', 'allenzheng-resume3.json'), 'utf8'));
@@ -12,12 +11,10 @@ function demo() {
   const g = BranchGraph.fromResumes([r1, r2, r3]);
 
   console.log('\nGraph serialized (nodes):');
-  //console.log(JSON.stringify(g.toJSON(), null, 2));
+  console.log(JSON.stringify(g.toJSON(), null, 2));
 
-  // list node ids
   console.log('\nNode ids in graph:', Array.from(g.nodes.keys()));
 
-  // Traverse forward from first resume id
   const startId = r1.metadata.resume_info.resume_id;
   console.log(`\nTraverse forward from ${startId}:`, g.traverseForward(startId).map(n => n.id));
 
@@ -28,7 +25,6 @@ function demo() {
 
   console.log('\nDetect cycles:' , g.detectCycles());
 
-  // Demonstrate linking new node programmatically
   const extra = JSON.parse(JSON.stringify(r3));
   extra.metadata.resume_info.resume_id = '000004';
   g.createNode('000004', extra);
