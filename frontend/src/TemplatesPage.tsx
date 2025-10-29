@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-function TemplatesPage() {
+function TemplatePage() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-blue-600 mb-4">Resume Templates</h2>
@@ -14,4 +14,4 @@ function TemplatesPage() {
   );
 }
 
-export default TemplatesPage;
+export default TemplatePage;
