@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { ResumeEditor } from './Components/ResumeEditor';
+import { BackToHome } from './Components'; //add this button not sure where 
 
 const ComparePage = () => {
   const [activeTab, setActiveTab] = useState('comments');

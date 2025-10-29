@@ -5,7 +5,7 @@ import './index.css'
 import HomePage from './HomePage';
 import ComparePage from './ComparePage'
 import BranchPage from './BranchPage';
-import TemplatesPage from './TemplatesPage';
+import TemplatesPage from './TemplatePage';
 
 // Use HashRouter for Electron compatibility
 const router = createHashRouter([
@@ -22,7 +22,7 @@ const router = createHashRouter([
     element: <BranchPage />,
   }, 
   {
-    path: '/TemplatesPage', // Added the new route
+    path: '/TemplatesPage', // new route 
     element: <TemplatesPage />,
   }
 ]);
