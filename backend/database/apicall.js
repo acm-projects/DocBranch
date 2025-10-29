@@ -12,13 +12,30 @@ const {
 } = require('./dynamo');
 const swaggerUI = require('swagger-ui-express');
 const YAML = require('yamljs');
-const swaggerDocument = YAML.load('./swagger.yaml');
+const fs = require('fs');
+const path = require('path');
+
+// load swagger.yaml if present (resolve relative to this file)
+const swaggerPath = path.resolve(__dirname, 'swagger.yaml');
+let swaggerDocument = null;
+if (fs.existsSync(swaggerPath)) {
+  try {
+    swaggerDocument = YAML.load(swaggerPath);
+  } catch (e) {
+    console.warn('Failed to load swagger.yaml:', e && e.message);
+  }
+} else {
+  console.warn('swagger.yaml not found at', swaggerPath);
+}
+
 const app = express();
 app.use(express.json());
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+if (swaggerDocument) {
+  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+}
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('DocBranch API is running. Visit /api-docs for API documentation.');
 });
 
 app.get('/resumes', async (req, res) => {
@@ -26,7 +43,7 @@ app.get('/resumes', async (req, res) => {
     const resumes = await getResumes();
     res.json(resumes);
   } catch (error) {
-    console.error(err);
+    console.error(error);
     res.status(500).json({err: 'Something went wrong'});
   }
 });

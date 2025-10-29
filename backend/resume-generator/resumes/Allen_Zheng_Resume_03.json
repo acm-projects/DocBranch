@@ -1,0 +1,154 @@
+{
+  "resume": {
+    "personal_information": {
+      "name": "Allen Zheng",
+      "phone": "636-290-0762",
+      "email": "allenzhengadmissions@gmail.com",
+      "address": "",
+      "links": [
+        {
+          "linkedin": "linkedin.com/in/allen-zheng05"
+        },
+        {
+          "github": "github.com/AllenZheng-05"
+        }
+      ]
+    },
+    "education": [
+      {
+        "institution": "The University of Texas at Dallas",
+        "location": "Richardson, TX",
+        "majors": [
+          "Bachelor of Science in Computer Science",
+          "Bachelor of Arts in Mathematics"
+        ],
+        "minors": [],
+        "duration": "Aug. 2024 \u2013 May 2028",
+        "GPA": "3.912 / 4.000",
+        "description": [
+          "National Merit Scholars Program",
+          "Computing Scholars Honors Program",
+          "Hobson Wildenthal Honors College"
+        ]
+      }
+    ],
+    "experience": [],
+    "projects": [
+      {
+        "name": "Candidate Compass",
+        "technologies": [
+          "Swift",
+          "XCode",
+          "NewsAPI"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "iOS app for election and candidate information"
+        ]
+      },
+      {
+        "name": "CourseFlow",
+        "technologies": [
+          "React",
+          "TypeScript",
+          "Firebase"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "Interactive course scheduling app"
+        ]
+      }
+    ],
+    "volunteer_experience": [],
+    "activities": [],
+    "skills": {
+      "programming_languages": [
+        "Java",
+        "Python"
+      ],
+      "frameworks": [],
+      "developer_tools": [],
+      "libraries": [],
+      "languages": [
+        "English",
+        "Mandarin Chinese",
+        "Japanese"
+      ]
+    }
+  },
+  "metadata": {
+    "resume_info": {
+      "user_id": "000002",
+      "resume_id": "000003",
+      "resume_creation_date": "2024-02-14",
+      "filename": "Allen_Zheng_Resume_03.pdf",
+      "template_used": "jakes_resume",
+      "section_order": [
+        "personal_information",
+        "education",
+        "projects",
+        "experience",
+        "skills"
+      ]
+    },
+    "branch_info": {
+      "parent_resume_id": [
+        "000002"
+      ],
+      "children_resume_ids": [
+        "000004"
+      ],
+      "created_date": "2024-01-15T10:30:00Z",
+      "last_modified": "2024-02-14T10:30:00Z"
+    },
+    "commit_info": {
+      "number_of_commits": 3,
+      "commits": [
+        {
+          "commit_id": "commit_001",
+          "timestamp": "2024-01-25T10:30:00Z",
+          "message": "Revision 1 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_002",
+          "timestamp": "2024-02-04T10:30:00Z",
+          "message": "Revision 2 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_003",
+          "timestamp": "2024-02-14T10:30:00Z",
+          "message": "Revision 3 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        }
+      ]
+    }
+  }
+}

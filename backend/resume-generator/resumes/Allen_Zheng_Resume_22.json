@@ -1,0 +1,521 @@
+{
+  "resume": {
+    "personal_information": {
+      "name": "Allen Zheng",
+      "phone": "636-290-0762",
+      "email": "allenzhengadmissions@gmail.com",
+      "address": "",
+      "links": [
+        {
+          "linkedin": "linkedin.com/in/allen-zheng05"
+        },
+        {
+          "github": "github.com/AllenZheng-05"
+        }
+      ]
+    },
+    "education": [
+      {
+        "institution": "The University of Texas at Dallas",
+        "location": "Richardson, TX",
+        "majors": [
+          "Bachelor of Science in Computer Science",
+          "Bachelor of Arts in Mathematics"
+        ],
+        "minors": [],
+        "duration": "Aug. 2024 \u2013 May 2028",
+        "GPA": "3.912 / 4.000",
+        "description": [
+          "National Merit Scholars Program",
+          "Computing Scholars Honors Program",
+          "Hobson Wildenthal Honors College"
+        ]
+      }
+    ],
+    "experience": [
+      {
+        "role": "Full Stack Developer",
+        "organization": "Startup Launchpad",
+        "duration": "Feb. 2027 \u2013 Present",
+        "description": [
+          "Worked on core development tasks and collaborated with teams."
+        ]
+      },
+      {
+        "role": "Teaching Assistant",
+        "organization": "UTD CS Department",
+        "duration": "Aug. 2025 \u2013 Dec. 2025",
+        "description": [
+          "Worked on core development tasks and collaborated with teams."
+        ]
+      },
+      {
+        "role": "Frontend Developer",
+        "organization": "Tech Innovators Inc.",
+        "duration": "Jan. 2026 \u2013 May 2026",
+        "description": [
+          "Worked on core development tasks and collaborated with teams."
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "Forkast",
+        "technologies": [
+          "Python",
+          "Flask",
+          "React"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "AI-powered nutrition tracking Web App"
+        ]
+      },
+      {
+        "name": "DocBranch",
+        "technologies": [
+          "AWS S3",
+          "JavaScript",
+          "React",
+          "Electron"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "Desktop app resume editor and version control system"
+        ]
+      },
+      {
+        "name": "WanderLogic",
+        "technologies": [
+          "Prolog",
+          "Python",
+          "GoogleAPI"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "Logic programming-based travel planning website"
+        ]
+      },
+      {
+        "name": "DataView360",
+        "technologies": [
+          "Python",
+          "FastAPI",
+          "Recharts"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "Data analytics dashboard for academic data"
+        ]
+      },
+      {
+        "name": "CourseFlow",
+        "technologies": [
+          "React",
+          "TypeScript",
+          "Firebase"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "Interactive course scheduling app"
+        ]
+      },
+      {
+        "name": "Nebula Connect",
+        "technologies": [
+          "Node.js",
+          "AWS Lambda",
+          "DynamoDB"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "Cloud service integration dashboard"
+        ]
+      },
+      {
+        "name": "Candidate Compass",
+        "technologies": [
+          "Swift",
+          "XCode",
+          "NewsAPI"
+        ],
+        "duration": "2025 \u2013 Present",
+        "role": "Developer",
+        "description": [
+          "iOS app for election and candidate information"
+        ]
+      }
+    ],
+    "volunteer_experience": [],
+    "activities": [],
+    "skills": {
+      "programming_languages": [
+        "Java",
+        "Python",
+        "JavaScript",
+        "React",
+        "TypeScript",
+        "Node.js",
+        "C++",
+        "Flask",
+        "Swift",
+        "Prolog",
+        "AWS",
+        "Docker"
+      ],
+      "frameworks": [],
+      "developer_tools": [],
+      "libraries": [],
+      "languages": [
+        "English",
+        "Mandarin Chinese",
+        "Japanese"
+      ]
+    }
+  },
+  "metadata": {
+    "resume_info": {
+      "user_id": "000002",
+      "resume_id": "000022",
+      "resume_creation_date": "2024-08-22",
+      "filename": "Allen_Zheng_Resume_22.pdf",
+      "template_used": "jakes_resume",
+      "section_order": [
+        "personal_information",
+        "education",
+        "projects",
+        "experience",
+        "skills"
+      ]
+    },
+    "branch_info": {
+      "parent_resume_id": [
+        "000021"
+      ],
+      "children_resume_ids": [
+        "000023"
+      ],
+      "created_date": "2024-01-15T10:30:00Z",
+      "last_modified": "2024-08-22T10:30:00Z"
+    },
+    "commit_info": {
+      "number_of_commits": 22,
+      "commits": [
+        {
+          "commit_id": "commit_001",
+          "timestamp": "2024-01-25T10:30:00Z",
+          "message": "Revision 1 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_002",
+          "timestamp": "2024-02-04T10:30:00Z",
+          "message": "Revision 2 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_003",
+          "timestamp": "2024-02-14T10:30:00Z",
+          "message": "Revision 3 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_004",
+          "timestamp": "2024-02-24T10:30:00Z",
+          "message": "Revision 4 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_005",
+          "timestamp": "2024-03-05T10:30:00Z",
+          "message": "Revision 5 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_006",
+          "timestamp": "2024-03-15T10:30:00Z",
+          "message": "Revision 6 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_007",
+          "timestamp": "2024-03-25T10:30:00Z",
+          "message": "Revision 7 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_008",
+          "timestamp": "2024-04-04T10:30:00Z",
+          "message": "Revision 8 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_009",
+          "timestamp": "2024-04-14T10:30:00Z",
+          "message": "Revision 9 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_010",
+          "timestamp": "2024-04-24T10:30:00Z",
+          "message": "Revision 10 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_011",
+          "timestamp": "2024-05-04T10:30:00Z",
+          "message": "Revision 11 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_012",
+          "timestamp": "2024-05-14T10:30:00Z",
+          "message": "Revision 12 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_013",
+          "timestamp": "2024-05-24T10:30:00Z",
+          "message": "Revision 13 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_014",
+          "timestamp": "2024-06-03T10:30:00Z",
+          "message": "Revision 14 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_015",
+          "timestamp": "2024-06-13T10:30:00Z",
+          "message": "Revision 15 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_016",
+          "timestamp": "2024-06-23T10:30:00Z",
+          "message": "Revision 16 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_017",
+          "timestamp": "2024-07-03T10:30:00Z",
+          "message": "Revision 17 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_018",
+          "timestamp": "2024-07-13T10:30:00Z",
+          "message": "Revision 18 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_019",
+          "timestamp": "2024-07-23T10:30:00Z",
+          "message": "Revision 19 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_020",
+          "timestamp": "2024-08-02T10:30:00Z",
+          "message": "Revision 20 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_021",
+          "timestamp": "2024-08-12T10:30:00Z",
+          "message": "Revision 21 update",
+          "changes_summary": {
+            "added_sections": [
+              "experience"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        },
+        {
+          "commit_id": "commit_022",
+          "timestamp": "2024-08-22T10:30:00Z",
+          "message": "Revision 22 update",
+          "changes_summary": {
+            "added_sections": [
+              "projects"
+            ],
+            "modified_sections": [
+              "skills"
+            ],
+            "removed_sections": []
+          }
+        }
+      ]
+    }
+  }
+}
