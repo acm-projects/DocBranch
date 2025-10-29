@@ -33,7 +33,7 @@ export function AddResumeButton({ onClick }: AddResumeButtonProps) {
       }}
     >
       <Plus size={18} />
-      Add New Resume
+      Upload Resume
     </button>
   );
 }

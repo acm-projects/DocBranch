@@ -18,7 +18,7 @@ function TemplatePage() {
       name: 'Modern Professional', 
       thumbnail: '', 
       category: 'Professional',
-      description: 'Clean and professional design for corporate roles',
+      description: 'Clean Design for Corporate Roles',
       lastEdited: '2024-01-15'
     },
     { 
@@ -26,7 +26,7 @@ function TemplatePage() {
       name: 'Creative', 
       thumbnail: '', 
       category: 'Creative',
-      description: 'Modern design for creative industries',
+      description: 'Creative Outline for Design Positions',
       lastEdited: '2024-01-10'
     },
     { 
@@ -34,7 +34,7 @@ function TemplatePage() {
       name: 'Minimalist', 
       thumbnail: '', 
       category: 'Minimal',
-      description: 'Simple and elegant design',
+      description: 'Minimal format and a sleek visual',
       lastEdited: '2024-01-08'
     },
     { 
@@ -42,8 +42,8 @@ function TemplatePage() {
       name: 'Executive', 
       thumbnail: '', 
       category: 'Professional',
-      description: 'Executive-level resume template',
-      lastEdited: '2024-01-12'
+      description: 'Executive resume template',
+      lastEdited: '2024-10-10'
     },
   ]);
 
@@ -90,6 +90,8 @@ function TemplatePage() {
         margin: '0 auto'
       }}>
         <Header />
+
+        <BackToHome />
         
         {/* Templates Section very top */}
         <TemplatesSection 
@@ -119,7 +121,6 @@ function TemplatePage() {
           onAddResume={handleAddResume}
         />
 
-        <BackToHome />
       </div>
     </div>
   );
