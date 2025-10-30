@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { ResumeEditor } from './Components/ResumeEditor';
+import PdfViewer from "./PdfViewer";
 
 const ComparePage = () => {
   const [activeTab, setActiveTab] = useState('comments');
@@ -256,7 +257,7 @@ const ComparePage = () => {
           style={{
             width: '3px',
             height: '40px',
-            backgroundColor: '#d1d5db',
+            backgroundColor: '#d1d5db', //resize handel between the recents
             borderRadius: '2px'
           }}
         ></div>
@@ -293,7 +294,7 @@ const ComparePage = () => {
               textAlign: 'center',
               fontSize: '0.875rem',
               fontWeight: '500',
-              color: '#374151',
+              color: '#513739',
               marginBottom: '1rem',
               flexShrink: 0
             }}
@@ -301,20 +302,26 @@ const ComparePage = () => {
             Current Resume
           </h3>
 
-          <div
-            style={{
-              flex: 1,
-              backgroundColor: '#f9fafb',
-              borderRadius: '0.5rem',
-              marginBottom: '1rem',
-              overflowY: 'auto',
-              minHeight: 0
-            }}
-          ></div>
+          
+          <div    //this is where resume should show pdf
+           style={{
+          flex: 1,
+          backgroundColor: '#fbf9fa',
+           borderRadius: '0.5rem',
+           marginBottom: '1rem',
+           overflowY: 'auto',
+           minHeight: 0,
+           display: 'flex',
+           justifyContent: 'center',
+          alignItems: 'center'
+        }}
+>
+         <PdfViewer />
+        </div>
 
           <div
             style={{
-              borderTop: '1px solid #e5e7eb',
+              borderTop: '1px solid #e5e7eb', //horizontal line the seperates the comments and resume
               height: '8px',
               cursor: 'ns-resize',
               position: 'relative',
@@ -326,7 +333,7 @@ const ComparePage = () => {
             }}
             onMouseDown={handleCommentResize}
           >
-            <div
+            <div //this div is for the drag line above comments
               style={{
                 width: '40px',
                 height: '3px',
@@ -436,7 +443,7 @@ const ComparePage = () => {
             overflow: 'hidden'
           }}
         >
-          //resumeEditor goes here 
+          
           <ResumeEditor></ResumeEditor>
         </div>
       </div>

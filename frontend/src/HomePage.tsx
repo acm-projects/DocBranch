@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 
+
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -20,6 +21,13 @@ const HomePage = () => {
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
         >
           Go to Branch Page <br></br>
+        </Link>
+
+        <Link
+          to="/TemplatesPage"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
+          Go to Templates Page <br></br>
         </Link>
 
       </div>
