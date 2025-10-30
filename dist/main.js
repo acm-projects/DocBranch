@@ -42,14 +42,14 @@ app.whenReady().then(() => {
 });
 // IPC handlers
 ipcMain.handle("load-pdf", async (_, filePath) => {
-    console.log("📄 IPC load-pdf called with:", filePath);
+    console.log(" IPC load-pdf called with:", filePath);
     const exists = fs.existsSync(filePath);
-    console.log("✅ File exists?", exists);
+    console.log(" File exists?", exists);
     if (!exists) {
         throw new Error("File not found: " + filePath);
     }
     const data = fs.readFileSync(filePath);
-    console.log("📦 Read bytes:", data.length);
+    console.log("Read bytes:", data.length);
     return data.toString("base64");
 });
 app.on("window-all-closed", () => {

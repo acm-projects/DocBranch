@@ -303,22 +303,21 @@ const ComparePage = () => {
           </h3>
 
           
-          <div    //this is where resume should show pdf
-           style={{
-          flex: 1,
-          backgroundColor: '#fbf9fa',
-           borderRadius: '0.5rem',
-           marginBottom: '1rem',
-           overflowY: 'auto',
-           minHeight: 0,
-           display: 'flex',
-           justifyContent: 'center',
-          alignItems: 'center'
-        }}
+          <div 
+  style={{
+    flex: 1,
+    backgroundColor: '#fbf9fa',
+    borderRadius: '0.5rem',
+    marginBottom: '1rem',
+    overflow: 'hidden',
+    minHeight: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative', // Added this
+  }}
 >
-         <PdfViewer />
-        </div>
-
+  <PdfViewer/>
+</div>
           <div
             style={{
               borderTop: '1px solid #e5e7eb', //horizontal line the seperates the comments and resume

@@ -1,129 +1,93 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function PdfViewer() {
+export default function SimplePdfViewer({ filePath }: { filePath?: string }) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Path to your test file — update when needed
-  const localFilePath = "C:\\Users\\tausi\\Downloads\\ecs1100.pdf";
-
-  // Store the current blob URL for cleanup
-  const blobUrlRef = useRef<string | null>(null);
+  const pdfFilePath = filePath || "C:\\users\\tausi\\Downloads\\ecs1100.pdf";
 
   useEffect(() => {
-    let mounted = true;
-
     const loadPdf = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log("[PdfViewer] requesting load-pdf for:", localFilePath);
 
-        if (!window || !window.electron || !window.electron.ipcRenderer) {
-          throw new Error("window.electron.ipcRenderer is not available (preload missing)");
-        }
-
-        const base64Data: string = await window.electron.ipcRenderer.invoke("load-pdf", localFilePath);
-        console.log("[PdfViewer] received base64 length:", base64Data?.length ?? "undefined");
-
-        if (!base64Data) throw new Error("Received empty PDF data");
-
-        // convert base64 -> Uint8Array
+        const base64Data = await window.electron.ipcRenderer.invoke("load-pdf", pdfFilePath);
+        
+        // Convert base64 to binary
         const binaryString = atob(base64Data);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-
-        const pdfBlob = new Blob([bytes], { type: "application/pdf" });
+        
+        // Create blob and URL
+        const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(pdfBlob);
-
-        // revoke old blob URL if exists
-        if (blobUrlRef.current) {
-          try {
-            URL.revokeObjectURL(blobUrlRef.current);
-          } catch {
-            /* ignore */
-          }
-        }
-
-        blobUrlRef.current = url;
-
-        if (mounted) {
-          setPdfUrl(url);
-          setIsLoading(false);
-          console.log("[PdfViewer] blob url created and set");
-        } else {
-          URL.revokeObjectURL(url);
-        }
-      } catch (err) {
-        console.error("[PdfViewer] failed to load PDF:", err);
-        if (mounted) {
-          setError("Failed to load PDF: " + ((err as Error).message ?? String(err)));
-          setIsLoading(false);
-        }
+        setPdfUrl(url);
+        console.log("PDF URL created successfully");
+        
+      } catch (error) {
+        console.error("Failed to load PDF:", error);
+        setError("Failed to load PDF: " + (error as Error).message);
+      } finally {
+        setIsLoading(false);
       }
     };
-
+    
     loadPdf();
 
     return () => {
-      mounted = false;
-      if (blobUrlRef.current) {
-        try {
-          URL.revokeObjectURL(blobUrlRef.current);
-        } catch {
-          /* ignore */
-        }
-        blobUrlRef.current = null;
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
       }
     };
-  }, []);
-
-  const containerStyle: React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "stretch",
-    justifyContent: "center",
-    background: "#fbf9fa",
-    borderRadius: 8,
-    overflow: "hidden",
-  };
+  }, [pdfFilePath]);
 
   if (isLoading) {
     return (
-      <div style={containerStyle}>
-        <div style={{ margin: "auto", fontSize: 16 }}>Loading PDF...</div>
+      <div className="flex items-center justify-center h-full w-full">
+        <div className="text-lg">Loading PDF...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={containerStyle}>
-        <div style={{ margin: "auto", color: "red", textAlign: "center" }}>{error}</div>
+      <div className="flex items-center justify-center h-full w-full">
+        <div className="text-red-500 text-center">
+          <div className="text-lg font-semibold">Error</div>
+          <div>{error}</div>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div style={containerStyle}>
-      {pdfUrl ? (
-        <iframe
-          src={`${pdfUrl}#zoom=55`} // Default zoom level (like pressing "+" once)
-          title="PDF Viewer"
-          style={{
-            width: "100%",
-            height: "100%",
-            border: "none",
-            backgroundColor: "#fff",
-          }}
-        />
-      ) : (
-        <div style={{ margin: "auto" }}>No PDF</div>
-      )}
-    </div>
-  );
+ return (
+  <div 
+    className="w-full h-full bg-gray-50" 
+    style={{ 
+      display: 'flex', 
+      flex: 1,
+      overflow: 'auto', // Add scrollbar
+    }}
+  >
+    {pdfUrl && (
+      <iframe 
+        src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} // Changed to FitH so content flows vertically
+        className="w-full border-0"
+        title="PDF Viewer"
+        style={{
+          width: '150%',
+          height: 'max-content', // Changed from 100% to allow natural height
+          minHeight: '100%', // Ensures it's at least full height
+          border: 'none',
+          zoom: "100%",
+          display: 'block',
+        }}
+      />
+    )}
+  </div>
+);
 }
