@@ -4,7 +4,7 @@
 
 class BranchNode {
   // Each node stores the full resume object (the parsed JSON).
-  // id should be metadata.resume_info.resume_id
+  // id should be the resume's top-level `resume_id` (legacy: metadata.resume_info.resume_id)
   constructor(id, resume = {}) {
     if (!id) throw new Error('BranchNode requires an id');
     this.id = id;
@@ -188,13 +188,13 @@ class BranchGraph {
   }
 
   // Build graph from one or more resume JSON objects. Each resume object should contain
-  // metadata.resume_info.resume_id and metadata.branch_info.parent_resume_id / children_resume_ids
+  // a top-level resume_id and metadata.branch_info.parent_resume_id / children_resume_ids
   static fromResumes(resumeObjs = []) {
     const g = new BranchGraph();
     // First pass: create nodes
     for (const r of resumeObjs) {
       try {
-        const id = r.metadata && r.metadata.resume_info && r.metadata.resume_info.resume_id;
+        const id = r.resume_id;
         if (!id) continue;
         g.createNode(id, r);
       } catch (e) {
@@ -203,7 +203,7 @@ class BranchGraph {
     }
     // Second pass: connect edges using branch_info
     for (const r of resumeObjs) {
-      const id = r.metadata && r.metadata.resume_info && r.metadata.resume_info.resume_id;
+      const id = r.resume_id;
       if (!id) continue;
       const branchInfo = r.metadata && r.metadata.branch_info;
       if (!branchInfo) continue;

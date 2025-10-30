@@ -1,10 +1,25 @@
-const { uploadFileToS3, downloadFileFromS3 } = require('./s3');
+const {uploadFileToS3, downloadFileFromS3} = require('./s3');
 require('dotenv').config();
 
+// AWS SDK v3 (modular) - use the Document client wrapper for convenient marshalling
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, QueryCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  ScanCommand,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  DeleteCommand
+} = require('@aws-sdk/lib-dynamodb');
 
-const ddbClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION });
+// Create v3 clients
+const ddbClient = new DynamoDBClient({
+  region: process.env.AWS_DEFAULT_REGION || 'us-east-2',
+  credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  } : undefined
+});
 const dynamoClient = DynamoDBDocumentClient.from(ddbClient);
 const TABLE_NAME = "DocBranch";
 const PROFILES = "DocBranch_profiles";
@@ -96,33 +111,38 @@ const getProfiles = async () => {
   return profiles;
 }
 
-const addOrUpdateResume = async (resume) => {
-  if (!resume || !resume.user_id || !resume.resume_id) {
-    throw new Error('Resume must include user_id and resume_id');
+const addOrUpdateResume = async (resumeDocument) => {
+  if (!resumeDocument) {
+    throw new Error('Resume document is required');
+  }
+
+  // Now require top-level keys
+  if (!resumeDocument.user_id || !resumeDocument.resume_id) {
+    throw new Error('Resume must include user_id and resume_id as top-level attributes');
   }
 
   const param = {
     TableName: TABLE_NAME,
-    Item: resume
+    Item: resumeDocument
   };
   //console.log("Resume added/updated:", resume);
-  await addOrUpdateProfile(resume);
+  await addOrUpdateProfile(resumeDocument.resume, resumeDocument.user_id);
 
   // ALSO ADD TO S3 AS JSON FILE
-  await uploadFileToS3(JSON.stringify(resume), "docbranchtestbucket", `resumes/${resume.user_id}/${resume.resume_id}.json`, "application/json");
-  
+  await uploadFileToS3(JSON.stringify(resumeDocument), "docbranchtestbucket", `resumes/${resumeDocument.user_id}/${resumeDocument.resume_id}.json`, "application/json");
+
   return await dynamoClient.send(new PutCommand(param));
 }
 
-const addOrUpdateProfile = async (profile) => {
-  if (!profile || !profile.user_id) {
+const addOrUpdateProfile = async (profile, user_id) => {
+  if (!profile || !user_id) {
     throw new Error('Profile must include a user_id');
   }
 
   // Fetch existing profile by user_id (use get since user_id is the key)
   const getParams = {
     TableName: PROFILES,
-    Key: { user_id: profile.user_id }
+    Key: { user_id: user_id }
   };
   const existingRes = await dynamoClient.send(new GetCommand(getParams));
   const existing = existingRes && existingRes.Item ? existingRes.Item : {};
@@ -218,37 +238,37 @@ const newresume = {
   // name: 'John Doe'
 }
 
-//  Sample / test runner: only execute when this file is run directly (not when required)
-if (require.main === module) {
-  (async () => {
-    try {
-      console.log(JSON.stringify(await getProfiles(), null, 2));
-      console.log('Adding/updating profile with user_id 1');
-      await addOrUpdateProfile(newresume);
-      //console.log(JSON.stringify(await getProfileByUser('1'), null, 2));
-      //console.log('\n\n');
-      console.log(JSON.stringify(await getProfiles(), null, 2));
-      // console.log('Deleting profile with user_id 1');
-      // await deleteProfileById('1');
-      // console.log(JSON.stringify(await getProfiles(), null, 2));
-    } catch (err) {
-      console.error('Error running dynamo.js test runner:', err);
-    }
-  })();
-}
-
+// Sample / test runner: only execute when this file is run directly (not when required)
 // if (require.main === module) {
 //   (async () => {
 //     try {
-//       await addOrUpdateResume(newresume);
-//       console.log("Returned: ", JSON.stringify(await getResumesByUser("1"), null, 2));
-
-//       await downloadFileFromS3("docbranchtestbucket", `resumes/1/1.json`, "./downloaded_resume_1_1.json");
+//       console.log(JSON.stringify(await getProfiles(), null, 2));
+//       console.log('Adding/updating profile with user_id 1');
+//       await addOrUpdateProfile(newresume);
+//       //console.log(JSON.stringify(await getProfileByUser('1'), null, 2));
+//       //console.log('\n\n');
+//       console.log(JSON.stringify(await getProfiles(), null, 2));
+//       // console.log('Deleting profile with user_id 1');
+//       // await deleteProfileById('1');
+//       // console.log(JSON.stringify(await getProfiles(), null, 2));
 //     } catch (err) {
 //       console.error('Error running dynamo.js test runner:', err);
 //     }
 //   })();
 // }
+
+if (require.main === module) {
+  (async () => {
+    try {
+      await addOrUpdateResume(newresume);
+      console.log("Returned: ", JSON.stringify(await getResumesByUser("1"), null, 2));
+
+      await downloadFileFromS3("docbranchtestbucket", `resumes/1/1.json`, "./downloaded_resume_1_1.json");
+    } catch (err) {
+      console.error('Error running dynamo.js test runner:', err);
+    }
+  })();
+}
 
 
 module.exports = {

@@ -15,10 +15,10 @@ function demo() {
 
   console.log('\nNode ids in graph:', Array.from(g.nodes.keys()));
 
-  const startId = r1.metadata.resume_info.resume_id;
+  const startId = r1.resume_id;
   console.log(`\nTraverse forward from ${startId}:`, g.traverseForward(startId).map(n => n.id));
 
-  const endId = r3.metadata.resume_info.resume_id;
+  const endId = r3.resume_id;
   console.log(`\nTraverse backward from ${endId}:`, g.traverseBackward(endId).map(n => n.id));
 
   console.log('\nFind path between resumes:', g.findPath(startId, endId));
@@ -26,7 +26,7 @@ function demo() {
   console.log('\nDetect cycles:' , g.detectCycles());
 
   const extra = JSON.parse(JSON.stringify(r3));
-  extra.metadata.resume_info.resume_id = '000004';
+  extra.resume_id = '000004';
   g.createNode('000004', extra);
   g.link(endId, '000004');
   console.log('\nAfter adding 000004 and linking from', endId, '-> 000004');

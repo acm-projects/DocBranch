@@ -1,4 +1,6 @@
 {
+  "user_id": "000002",
+  "resume_id": "000001",
   "resume":
   {
     "personal_information": {
@@ -123,11 +125,9 @@
       "languages": ["English", "Mandarin Chinese", "Japanese"]
     }
   },
-  "metadata":
+    "metadata":
   {
     "resume_info": {
-      "user_id": "000002",
-      "resume_id": "000001",
       "resume_creation_date": "2025-10-14",
       "filename": "Allen_Zheng_Resume.pdf",
       "template_used": "jakes_resume",

@@ -44,7 +44,7 @@ app.get('/resumes', async (req, res) => {
     res.json(resumes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -54,7 +54,7 @@ app.get('/profiles', async (req, res) => {
     res.json(profiles);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -65,7 +65,7 @@ app.get('/resumes/:userid', async (req, res) => {
     res.json(resumes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -76,7 +76,7 @@ app.get('/profiles/:userid', async (req, res) => {
     res.json(profiles);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -88,7 +88,7 @@ app.get('/resumes/:userid/:resumeid', async (req, res) => {
     res.json(resumes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -99,7 +99,7 @@ app.post('/resumes', async (req, res) => {
     res.json(newResume);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -110,22 +110,24 @@ app.post('/profiles', async (req, res) => {
     res.json(newProfile);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
 app.put('/resumes/:userid/:resumeid', async (req, res) => {
-  const resume = req.body;
+  const resume = req.body || {};
   const userid = req.params.userid;
   const resumeid = req.params.resumeid;
+  // New schema: user_id and resume_id are top-level fields.
   resume.user_id = userid;
   resume.resume_id = resumeid;
+
   try {
     const newResume = await addOrUpdateResume(resume);
     res.json(newResume);
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -136,7 +138,7 @@ app.delete('/resumes/:userid/:resumeid', async (req, res) => {
     res.json(await deleteResumeById(userid, resumeid));
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
@@ -146,7 +148,7 @@ app.delete('/profiles/:userid', async (req, res) => {
     res.json(await deleteProfileById(userid));
   } catch (error) {
     console.error(error);
-    res.status(500).json({err: 'Something went wrong'});
+    res.status(500).json({err: `${error.message}`});
   }
 });
 
