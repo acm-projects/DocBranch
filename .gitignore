@@ -4,3 +4,4 @@ backend/database/*.jpg
 backend/resume-generator/*.pdf
 backend/resume-generator/resumes/
 backend/branch/demo.js
+frontend/
