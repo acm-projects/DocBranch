@@ -5,7 +5,7 @@ export default function SimplePdfViewer({ filePath }: { filePath?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const pdfFilePath = filePath || "C:\\users\\tausi\\Downloads\\ecs1100.pdf";
+  const pdfFilePath = filePath || "C:\\users\\tausi\\Downloads\\Kida Khanooni (3).pdf";
 
   useEffect(() => {
     const loadPdf = async () => {

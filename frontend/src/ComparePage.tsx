@@ -1,6 +1,5 @@
-import React from 'react';
-import { useState } from 'react';
-import { Lightbulb } from 'lucide-react';
+import React, { useState } from 'react';
+import { Lightbulb, Menu, Search } from 'lucide-react';
 import { ResumeEditor } from './Components/ResumeEditor';
 import PdfViewer from "./PdfViewer";
 
@@ -15,6 +14,7 @@ const ComparePage = () => {
   const [middleLeftWidth, setMiddleLeftWidth] = useState(50);
   const [rightWidth, setRightWidth] = useState(15);
   const [rightTab, setRightTab] = useState('ai-insights');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCommentResize = (e: { preventDefault: () => void; clientY: any; }) => {
     e.preventDefault();
@@ -131,59 +131,91 @@ const ComparePage = () => {
           overflow: 'hidden'
         }}
       >
-        <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
+        <div
+          style={{
+            marginBottom: '1rem',
+            flexShrink: 0
+          }}
+        >
+          {/* Header with Hamburger + Text */}
           <div
             style={{
-              width: '2rem',
-              height: '2rem',
-              backgroundColor: '#f3f4f6',
-              borderRadius: '0.5rem',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '1.5rem',
-              cursor: 'pointer'
+              gap: '0.75rem',
+              marginBottom: '1rem'
             }}
           >
             <div
               style={{
-                width: '1.25rem',
-                height: '0.125rem',
-                backgroundColor: '#374151',
-                position: 'relative'
+                width: '2rem',
+                height: '2rem',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0
               }}
             >
-              <div
-                style={{
-                  width: '1.25rem',
-                  height: '0.125rem',
-                  backgroundColor: '#374151',
-                  position: 'absolute',
-                  top: '-0.375rem'
-                }}
-              ></div>
-              <div
-                style={{
-                  width: '1.25rem',
-                  height: '0.125rem',
-                  backgroundColor: '#374151',
-                  position: 'absolute',
-                  top: '0.375rem'
-                }}
-              ></div>
+              <Menu size={20} color="#374151" />
             </div>
+
+            <h2
+              style={{
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: '#111827',
+                margin: 0,
+                lineHeight: 1,
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}
+            >
+              Recent Resumes
+            </h2>
           </div>
 
-          <h2
+          {/* Apple-style Search Bar */}
+          <div
             style={{
-              fontSize: '1.125rem',
-              fontWeight: '600',
-              color: '#111827',
+              position: 'relative',
               marginBottom: '1rem'
             }}
           >
-            Recent Resumes
-          </h2>
+            <Search
+              size={16}
+              style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#9ca3af',
+                pointerEvents: 'none'
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem 0.5rem 2.5rem',
+                backgroundColor: '#f3f4f6',
+                border: 'none',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'background-color 0.15s ease'
+              }}
+              onFocus={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+              onBlur={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            />
+          </div>
         </div>
 
         <div
@@ -226,14 +258,23 @@ const ComparePage = () => {
                     color: '#111827',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                 >
                   {resume.name}
                 </span>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>...</div>
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#6b7280',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                }}>...</div>
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: '#6b7280',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}>
                 2 days ago
               </div>
             </div>
@@ -257,7 +298,7 @@ const ComparePage = () => {
           style={{
             width: '3px',
             height: '40px',
-            backgroundColor: '#d1d5db', //resize handel between the recents
+            backgroundColor: '#d1d5db',
             borderRadius: '2px'
           }}
         ></div>
@@ -274,7 +315,7 @@ const ComparePage = () => {
         }}
       >
         {/* Current Resume Panel */}
-        { <div
+        <div
           style={{
             width: `${middleLeftWidth}%`,
             backgroundColor: 'white',
@@ -296,31 +337,32 @@ const ComparePage = () => {
               fontWeight: '500',
               color: '#513739',
               marginBottom: '1rem',
-              flexShrink: 0
+              flexShrink: 0,
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}
           >
             Current Resume
           </h3>
 
-          
           <div 
-  style={{
-    flex: 1,
-    backgroundColor: '#fbf9fa',
-    borderRadius: '0.5rem',
-    marginBottom: '1rem',
-    overflow: 'hidden',
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative', // Added this
-  }}
->
-  <PdfViewer/>
-</div>
+            style={{
+              flex: 1,
+              backgroundColor: '#fbf9fa',
+              borderRadius: '0.5rem',
+              marginBottom: '1rem',
+              overflow: 'hidden',
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative',
+            }}
+          >
+            <PdfViewer/>
+          </div>
+
           <div
             style={{
-              borderTop: '1px solid #e5e7eb', //horizontal line the seperates the comments and resume
+              borderTop: '1px solid #e5e7eb',
               height: '8px',
               cursor: 'ns-resize',
               position: 'relative',
@@ -332,7 +374,7 @@ const ComparePage = () => {
             }}
             onMouseDown={handleCommentResize}
           >
-            <div //this div is for the drag line above comments
+            <div
               style={{
                 width: '40px',
                 height: '3px',
@@ -363,7 +405,8 @@ const ComparePage = () => {
                   activeTab === 'comments' ? '#10b981' : 'transparent',
                 color: activeTab === 'comments' ? 'white' : '#6b7280',
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             >
               Comments
@@ -380,14 +423,16 @@ const ComparePage = () => {
                   activeTab === 'job-description' ? '#10b981' : 'transparent',
                 color: activeTab === 'job-description' ? 'white' : '#6b7280',
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             >
               Job Description
             </button>
           </div>
 
-          <div className='hide-scrollbar'
+          <div
+            className='hide-scrollbar'
             style={{
               backgroundColor: '#f9fafb',
               borderRadius: '0.5rem',
@@ -399,13 +444,13 @@ const ComparePage = () => {
               display: commentBoxHeight === 0 ? 'none' : 'block'
             }}
           >
-            {activeTab === 'comments' && <div className='hide-scrollbar'>Comments section</div>}
-            {activeTab === 'job-description' && <div className='hide-scrollbar'>Job Description</div>}
+            {activeTab === 'comments' && <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Comments section</div>}
+            {activeTab === 'job-description' && <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Job Description</div>}
           </div>
-        </div> }
+        </div>
 
         {/* Resize Handle 2 */}
-        { <div
+        <div
           style={{
             width: '8px',
             cursor: 'ew-resize',
@@ -424,10 +469,11 @@ const ComparePage = () => {
               borderRadius: '2px'
             }}
           ></div>
-        </div> }
+        </div>
 
         {/* Generated Resume Panel */}
-        <div className='hide-scrollbar'
+        <div
+          className='hide-scrollbar'
           style={{
             flex: 1,
             backgroundColor: 'white',
@@ -442,8 +488,7 @@ const ComparePage = () => {
             overflow: 'hidden'
           }}
         >
-          
-          <ResumeEditor></ResumeEditor>
+          <ResumeEditor />
         </div>
       </div>
 
@@ -508,7 +553,8 @@ const ComparePage = () => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.375rem'
+              gap: '0.375rem',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}
           >
             <Lightbulb
@@ -532,7 +578,8 @@ const ComparePage = () => {
                 rightTab === 'job-description' ? '#10b981' : 'transparent',
               color: rightTab === 'job-description' ? 'white' : '#6b7280',
               border: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }}
           >
             Job Description
@@ -548,14 +595,25 @@ const ComparePage = () => {
         >
           {rightTab === 'ai-insights' && (
             <div>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
+              <p style={{ 
+                fontSize: '0.875rem', 
+                color: '#6b7280', 
+                marginBottom: '1rem', 
+                textAlign: 'center',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}>
                 AI-generated insights will appear here based on your resume and job description.
               </p>
             </div>
           )}
           {rightTab === 'job-description' && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center' }}>
+              <p style={{ 
+                fontSize: '0.875rem', 
+                color: '#6b7280', 
+                textAlign: 'center',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}>
                 Add a job description to get AI-powered insights and recommendations.
               </p>
               <button
@@ -567,7 +625,8 @@ const ComparePage = () => {
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
               >
                 Add Job Description
