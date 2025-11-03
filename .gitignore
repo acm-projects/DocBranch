@@ -5,3 +5,6 @@ backend/resume-generator/*.pdf
 backend/resume-generator/resumes/
 backend/branch/demo.js
 frontend/
+*.jpg
+frontend/electron/node_modules
+frontend/.vite

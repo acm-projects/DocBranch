@@ -1,9 +1,47 @@
 {
+  "name": "docbranch",
+  "version": "1.0.0",
+  "description": "DocBranch 📄🌿",
+  "main": "main.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
+    "dev:electron": "cross-env NODE_ENV=development tsc && electron .",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:electron",
+    "build:electron": "tsc",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cross-env NODE_ENV=production electron .",
+    "type-check": "tsc --noEmit"
+  },
   "dependencies": {
+    "autoprefixer": "^10.4.16",
     "dotenv": "^17.2.3",
-    "openai": "^6.2.0"
+    "openai": "^6.2.0",
+    "lucide-react": "^0.548.0",
+    "pdfjs-dist": "^5.4.296",
+    "react": "^19.1.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^19.2.0",
+    "react-pdf": "^10.2.0",
+    "react-resizable-panels": "^3.0.6",
+    "react-router-dom": "^7.9.4",
+    "react-split-it": "^2.0.0",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
-    "tailwindcss": "^4.1.14"
+    "tailwindcss": "^3.4.0",
+    "@types/electron": "^1.4.38",
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^38.3.0",
+    "electron-builder": "^26.0.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "wait-on": "^9.0.1"
   }
 }
