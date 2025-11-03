@@ -118,7 +118,7 @@ app.put('/resumes/:userid/:resumeid', async (req, res) => {
   const resume = req.body || {};
   const userid = req.params.userid;
   const resumeid = req.params.resumeid;
-  // New schema: user_id and resume_id are top-level fields.
+  
   resume.user_id = userid;
   resume.resume_id = resumeid;
 
