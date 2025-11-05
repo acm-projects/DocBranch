@@ -423,6 +423,21 @@ class Resume {
     r.loadFromFile(jsonFilePath);
     return r.savePDF(outputFileName);
   }
+
+  /**
+   * Generate PDF directly from a parsed JSON object (not a file path).
+   * Accepts either { resume: { ... }, metadata: { ... } } or the resume object itself.
+   * @param {Object} jsonObject
+   * @param {string} outputFileName
+   */
+  static async fromObjectToPDF(jsonObject, outputFileName = 'resume.pdf') {
+    const payload = jsonObject || {};
+    const resumeData = payload.resume || payload;
+    const r = new Resume({ data: resumeData });
+    // preserve metadata if provided at top-level or in payload.resume
+    r.metadata = payload.metadata || (payload.resume && payload.resume.metadata) || null;
+    return r.savePDF(outputFileName);
+  }
 }
 
 module.exports = Resume;
