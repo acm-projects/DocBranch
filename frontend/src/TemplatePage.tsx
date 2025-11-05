@@ -3,8 +3,6 @@ import { Template, Resume } from './types/template';
 import { 
   TemplatesSection, 
   ResumesSection, 
-  ViewToggle, 
-  AddResumeButton, 
   Header, 
   BackToHome 
 } from './Components';
@@ -92,26 +90,12 @@ function TemplatePage() {
         <Header />
 
         <BackToHome />
-        
         {/* Templates Section very top */}
+        {/* 
         <TemplatesSection 
           templates={systemTemplates} 
           onTemplateClick={handleTemplateClick} 
-        />
-
-        {/* Action Bar */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px',
-          padding: '0 16px',
-          maxWidth: '1000px',
-          margin: '0 auto 32px'
-        }}>
-          <AddResumeButton onClick={handleAddResume} />
-          <ViewToggle isListView={isListView} onToggle={setIsListView} />
-        </div>
+        /> */}
 
         {/* Resumes Section below  */}
         <ResumesSection 
@@ -119,6 +103,7 @@ function TemplatePage() {
           isListView={isListView}
           onResumeClick={handleResumeClick}
           onAddResume={handleAddResume}
+          onViewToggle={setIsListView}
         />
 
       </div>

@@ -1,15 +1,18 @@
 import { Resume } from '../../types/template';
 import { ResumeCard } from './ResumeCard';
 import { ResumeListItem } from './ResumeListItem';
+import { ViewToggle } from '../ui/ViewToggle';
+import { AddResumeButton } from '../ui/AddResumeButton';
 
 interface ResumesSectionProps {
   resumes: Resume[];
   isListView: boolean;
   onResumeClick: (id: string) => void;
   onAddResume: () => void;
+  onViewToggle: (isList: boolean) => void;
 }
 
-export function ResumesSection({ resumes, isListView, onResumeClick, onAddResume }: ResumesSectionProps) {
+export function ResumesSection({ resumes, isListView, onResumeClick, onAddResume, onViewToggle }: ResumesSectionProps) {
   if (resumes.length === 0) {
     return (
       <div style={{
@@ -24,7 +27,10 @@ export function ResumesSection({ resumes, isListView, onResumeClick, onAddResume
           padding: '20px 24px',
           backgroundColor: '#f8fafc',
           borderBottom: '1px solid #f1f5f9',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}>
           <h3 style={{
             fontSize: '18px',
@@ -35,6 +41,10 @@ export function ResumesSection({ resumes, isListView, onResumeClick, onAddResume
           }}>
             My Resumes
           </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <AddResumeButton onClick={onAddResume} />
+            <ViewToggle isListView={isListView} onToggle={onViewToggle} />
+          </div>
         </div>
         <div style={{ padding: '24px' }}>
           <div style={{
@@ -96,7 +106,10 @@ export function ResumesSection({ resumes, isListView, onResumeClick, onAddResume
         padding: '20px 24px',
         backgroundColor: '#f8fafc',
         borderBottom: '1px solid #f1f5f9',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <h3 style={{
           fontSize: '18px',
@@ -107,6 +120,10 @@ export function ResumesSection({ resumes, isListView, onResumeClick, onAddResume
         }}>
           My Resumes
         </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <AddResumeButton onClick={onAddResume} />
+          <ViewToggle isListView={isListView} onToggle={onViewToggle} />
+        </div>
       </div>
 
       <div style={{ padding: '24px' }}>

@@ -23,7 +23,7 @@ const defaultSections: SectionData[] = [
   {
     id: 'personal',
     title: 'Personal Information',
-    isOpen: true,
+    isOpen: false,
     allowMultipleEntries: false,
     fields: [
       { id: 'name', label: 'Full Name', value: '', type: 'text' },
@@ -36,7 +36,7 @@ const defaultSections: SectionData[] = [
   {
     id: 'education',
     title: 'Education',
-    isOpen: true,
+    isOpen: false,
     allowMultipleEntries: true,
     fields: [
       { id: 'institution', label: 'Name of Institution', value: '', type: 'text' },
@@ -358,7 +358,7 @@ function ResumeSection({
                           minHeight: '60px',
                           fontFamily: 'inherit',
                           lineHeight: '1.4',
-                          boxSizing: 'border-box'
+                          boxSizing: 'border-box',
                         }}
                       />
                     ) : (
@@ -632,7 +632,7 @@ export function ResumeEditor() {
           fontSize: '12px',
           fontWeight: 500
         }}>
-          Drag sections to reorder
+          Build an customize your resume - Drag sections to reorder
         </p>
       </div>
 
