@@ -1,1 +1,5 @@
 *.env
+database/*.jpg
+resume-generator/generated-resumes/*.pdf
+resume-generator/resume_json_files/*.json
+branch/demo.js

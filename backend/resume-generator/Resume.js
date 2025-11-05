@@ -20,10 +20,11 @@ class Resume {
    */
   constructor({ data = null, fontsDir = path.resolve(__dirname, 'fonts'), pdfOptions = {} } = {}) {
     this.resume = data;
+    this.metadata = null;
     this.fontsDir = fontsDir;
     this.pdfOptions = Object.assign({ size: 'LETTER', margins: { top: 30, bottom: 30, left: 36, right: 36 } }, pdfOptions);
 
-    // layout constants (extracted from original function)
+    // layout constants 
     this.userNameFontSize = 24;
     this.smallTextFontSize = 10;
     this.positionTitleFontSize = 10;
@@ -37,6 +38,8 @@ class Resume {
     this.bulletIndent = 14 + this.indentSize;
     this.bulletTextIndent = this.bulletIndent + 4;
 
+    this.sectionOrder = ['education', 'experience', 'projects', 'activities', 'skills'];
+
     this.doc = null; // will hold PDFDocument instance
   }
 
@@ -45,6 +48,8 @@ class Resume {
     const content = fs.readFileSync(jsonFilePath, 'utf8');
     const parsed = JSON.parse(content);
     this.resume = parsed.resume || parsed;
+    // allow metadata either at top-level or inside the resume object
+    this.metadata = parsed.metadata || (parsed.resume && parsed.resume.metadata) || null;
     return this.resume;
   }
 
@@ -58,9 +63,8 @@ class Resume {
 
   /** Convenience: create and pipe a PDFDocument and render the resume.
    * @param {stream.Writable} outputStream - destination stream for PDF bytes
-   * @param {string[]} [sectionOrder] - array of section keys in the desired render order
    */
-  renderToStream(outputStream, sectionOrder) {
+  renderToStream(outputStream) {
     if (!this.resume) throw new Error('No resume data loaded.');
     this.doc = new PDFDocument(this.pdfOptions);
     this.registerFonts(this.doc);
@@ -84,23 +88,30 @@ class Resume {
     doc.font('CMUSerif').fontSize(this.smallTextFontSize)
       .text(contactArr.filter(Boolean).join(' | '), { align: 'center' });
 
-    // Render sections using helper methods in requested order
-    const defaultOrder = ['education', 'experience', 'projects', 'volunteer_experience', 'activities', 'skills'];
-    const order = Array.isArray(sectionOrder) && sectionOrder.length ? sectionOrder : defaultOrder;
+    // Render sections using helper methods in requested order; accept arbitrary section names.
+    // Use metadata.section_order when available (support metadata at root or inside resume),
+    // otherwise iterate over the keys of the resume object.
+    const metaSectionOrder = (this.metadata && this.metadata.resume_info && this.metadata.resume_info.section_order) ||
+      (resumeData.metadata && resumeData.metadata.resume_info && resumeData.metadata.resume_info.section_order) || null;
+
+    let order = null;
+    if (Array.isArray(metaSectionOrder) && metaSectionOrder.length > 0) {
+      order = metaSectionOrder;
+    } else {
+      order = Object.keys(resumeData || {});
+    }
 
     const rendererMap = {
       education: () => this._renderEducation(resumeData.education),
       experience: () => this._renderExperience(resumeData.experience),
       projects: () => this._renderProjects(resumeData.projects),
-      // accept both 'volunteer' and 'volunteer_experience'
-      volunteer: () => this._renderVolunteer(resumeData.volunteer_experience),
-      volunteer_experience: () => this._renderVolunteer(resumeData.volunteer_experience),
-      activities: () => this._renderActivities(resumeData.activities),
-      skills: () => this._renderSkills(resumeData.skills),
     };
 
     order.forEach(key => {
       const k = String(key || '').trim();
+      // skip personal_information (already printed) and internal keys
+      if (!k || k === 'personal_information' || k === 'metadata') return;
+
       const fn = rendererMap[k];
       if (typeof fn === 'function') {
         try {
@@ -111,7 +122,13 @@ class Resume {
           console.error(`Error rendering section ${k}:`, err && err.message);
         }
       } else {
-        // unknown section key: ignore
+        // unknown section key: render generically using the section key as title
+        try {
+          this._renderGenericSection(k, resumeData[k]);
+        } catch (err) {
+          /* eslint-disable no-console */
+          console.error(`Error rendering generic section ${k}:`, err && err.message);
+        }
       }
     });
 
@@ -122,12 +139,11 @@ class Resume {
 
   /** Save the resume PDF to disk. Returns a Promise that resolves when stream ends.
    * @param {string} [outputPath]
-   * @param {string[]} [sectionOrder]
    */
-  savePDF(outputPath = 'resume.pdf', sectionOrder) {
+  savePDF(outputPath = 'resume.pdf') {
     const resolved = path.resolve(__dirname, outputPath);
     const outStream = fs.createWriteStream(resolved);
-    const doc = this.renderToStream(outStream, sectionOrder);
+    const doc = this.renderToStream(outStream);
     return new Promise((resolve, reject) => {
       outStream.on('finish', () => resolve(resolved));
       outStream.on('error', reject);
@@ -156,10 +172,11 @@ class Resume {
         .text(`${edu.institution}, ${edu.location}`, { continued: true , indent: this.indentSize })
         .font('CMUSerif').fontSize(this.positionTitleFontSize)
         .text(`GPA: ${edu.GPA || ''}`, { align: 'right' });
+      //doc.moveDown(this.gapBetweenEachItem);
       doc.font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
         .text(`${(edu.majors && edu.majors.length) ? edu.majors.join(', ') : ''}${(edu.minors && edu.minors.length) ? ', Minor in ' + edu.minors.join(', ') : ''}`, { continued: true , indent: this.indentSize })
         .font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
-        .text(`${edu.duration || ''}`, { align: 'right' , indent: this.indentSize });
+        .text(`${(edu.start_date + ' - ' + edu.end_date) || edu.date || ''}`, { align: 'right' });
       doc.moveDown(this.gapBetweenEachItem);
 
       if (edu.description && Array.isArray(edu.description) && edu.description.length > 0) {
@@ -202,12 +219,18 @@ class Resume {
     const doc = this.doc;
     this._sectionHeader('PROJECTS');
     projects.forEach(project => {
+      // compute a safe date string: prefer start_date - end_date, else project.date, else empty
+      const start = (project.start_date || project.start || '').toString().trim();
+      const end = (project.end_date || project.end || '').toString().trim();
+      const dateStr = (start || end) ? (start + (end ? ' - ' + end : '')) : ((project.date || '').toString().trim() || '');
+
       doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
         .text(`${project.name} | `, { continued: true , indent: this.indentSize })
         .font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
         .text(`${(project.technologies || []).join(', ')}`, { continued: true , indent: this.indentSize })
         .font('CMUSerif').fontSize(this.smallTextFontSize)
-        .text(`${project.duration || ''}`, { align: 'right' , indent: this.indentSize });
+        .text(`${dateStr}`, { align: 'right' , indent: this.indentSize });
+      doc.moveDown(this.gapBetweenEachItem);
       if (project.description && Array.isArray(project.description) && project.description.length > 0) {
         project.description.forEach(d => {
           doc.font('CMUSerif').fontSize(this.smallTextFontSize)
@@ -219,59 +242,164 @@ class Resume {
     });
   }
 
-  _renderVolunteer(volunteer) {
-    if (!volunteer || !Array.isArray(volunteer) || volunteer.length === 0) return;
-    const doc = this.doc;
-    this._sectionHeader('VOLUNTEER EXPERIENCE');
-    volunteer.forEach(v => {
-      doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
-        .text(`${v.role}`, { continued: true , indent: this.indentSize })
-        .font('CMUSerif').fontSize(this.positionTitleFontSize)
-        .text(`${v.duration || ''}`, { align: 'right' , indent: this.indentSize });
-      if (v.description && Array.isArray(v.description) && v.description.length > 0) {
-        v.description.forEach(d => {
-          doc.font('CMUSerif').fontSize(this.smallTextFontSize)
-            .text(`• `, { indent: this.bulletIndent, continued: true })
-            .text(`${d}`, { indent: this.bulletTextIndent, lineGap: this.lineGapSize, indentAllLines: true });
-        });
-      }
-      doc.moveDown(this.gapBetweenEachItem);
-    });
+  // _renderVolunteer(volunteer) {
+  //   if (!volunteer || !Array.isArray(volunteer) || volunteer.length === 0) return;
+  //   const doc = this.doc;
+  //   this._sectionHeader('VOLUNTEER EXPERIENCE');
+  //   volunteer.forEach(v => {
+  //     doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
+  //       .text(`${v.role}`, { continued: true , indent: this.indentSize })
+  //       .font('CMUSerif').fontSize(this.positionTitleFontSize)
+  //       .text(`${v.duration || ''}`, { align: 'right' , indent: this.indentSize });
+  //     if (v.description && Array.isArray(v.description) && v.description.length > 0) {
+  //       v.description.forEach(d => {
+  //         doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+  //           .text(`• `, { indent: this.bulletIndent, continued: true })
+  //           .text(`${d}`, { indent: this.bulletTextIndent, lineGap: this.lineGapSize, indentAllLines: true });
+  //       });
+  //     }
+  //     doc.moveDown(this.gapBetweenEachItem);
+  //   });
+  // }
+
+  // _renderActivities(activities) {
+  //   if (!activities || !Array.isArray(activities) || activities.length === 0) return;
+  //   const doc = this.doc;
+  //   this._sectionHeader('ACTIVITIES');
+  //   activities.forEach(activity => {
+  //     doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
+  //       .text(`${activity.organization}`, { continued: true , indent: this.indentSize })
+  //       .font('CMUSerif').fontSize(this.positionTitleFontSize)
+  //       .text(`${activity.duration || ''}`, { align: 'right' , indent: this.indentSize });
+  //     if (activity.description && Array.isArray(activity.description) && activity.description.length > 0) {
+  //       activity.description.forEach(d => {
+  //         doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+  //           .text(`• `, { indent: this.bulletIndent, continued: true })
+  //           .text(`${d}`, { indent: this.bulletTextIndent, lineGap: this.lineGapSize, indentAllLines: true });
+  //       });
+  //     }
+  //     doc.moveDown(this.gapBetweenEachItem);
+  //   });
+  // }
+
+  // _renderSkills(skills) {
+  //   if (!skills || Object.keys(skills).length === 0) return;
+  //   const doc = this.doc;
+  //   this._sectionHeader('SKILLS');
+  //   Object.entries(skills).forEach(([label, items]) => {
+  //     if (items && items.length > 0) {
+  //       doc.font('CMUSerif-Bold').fontSize(this.smallTextFontSize)
+  //         .text(label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ':', { continued: true , indent: this.indentSize })
+  //         .font('CMUSerif').fontSize(this.smallTextFontSize)
+  //         .text(` ${items.join(', ')}`, { indent: this.indentSize });
+  //       doc.moveDown(this.gapBetweenEachItem);
+  //     }
+  //   });
+  // }
+
+  /**
+   * Convert a JSON section key into a human-friendly title.
+   * e.g. 'leadership_experience' -> 'Leadership Experience'
+   */
+  _formatSectionTitle(key) {
+    if (!key) return '';
+    return String(key).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  _renderActivities(activities) {
-    if (!activities || !Array.isArray(activities) || activities.length === 0) return;
+  /**
+   * Generic renderer for unknown section keys. Attempts to display arrays of objects,
+   * arrays of strings, or key->array mappings sensibly.
+   */
+  _renderGenericSection(key, data) {
+    if (!data) return;
     const doc = this.doc;
-    this._sectionHeader('ACTIVITIES');
-    activities.forEach(activity => {
-      doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
-        .text(`${activity.organization}`, { continued: true , indent: this.indentSize })
-        .font('CMUSerif').fontSize(this.positionTitleFontSize)
-        .text(`${activity.duration || ''}`, { align: 'right' , indent: this.indentSize });
-      if (activity.description && Array.isArray(activity.description) && activity.description.length > 0) {
-        activity.description.forEach(d => {
-          doc.font('CMUSerif').fontSize(this.smallTextFontSize)
-            .text(`• `, { indent: this.bulletIndent, continued: true })
-            .text(`${d}`, { indent: this.bulletTextIndent, lineGap: this.lineGapSize, indentAllLines: true });
-        });
-      }
-      doc.moveDown(this.gapBetweenEachItem);
-    });
-  }
+    this._sectionHeader(this._formatSectionTitle(key));
 
-  _renderSkills(skills) {
-    if (!skills || Object.keys(skills).length === 0) return;
-    const doc = this.doc;
-    this._sectionHeader('SKILLS');
-    Object.entries(skills).forEach(([label, items]) => {
-      if (items && items.length > 0) {
-        doc.font('CMUSerif-Bold').fontSize(this.smallTextFontSize)
-          .text(label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ':', { continued: true , indent: this.indentSize })
-          .font('CMUSerif').fontSize(this.smallTextFontSize)
-          .text(` ${items.join(', ')}`, { indent: this.indentSize });
-        doc.moveDown(this.gapBetweenEachItem);
+    if (Array.isArray(data)) {
+      if (data.length === 0) return;
+
+      // simple list of strings/numbers: skip null/undefined/blank items
+      if (typeof data[0] === 'string' || typeof data[0] === 'number') {
+        data.forEach(item => {
+          if (item === null || item === undefined) return; // skip empty
+          const s = String(item);
+          if (s.trim() === '') return; // skip whitespace-only
+          doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+             .text(s, { indent: this.indentSize });
+          doc.moveDown(this.gapBetweenEachItem);
+        });
+        return;
       }
-    });
+
+      // array of objects
+      data.forEach(item => {
+        if (!item || typeof item !== 'object') return;
+        // determine main/right fields more robustly
+        const main = (item.role || item.name || item.title || item.organization || item.institution || '').toString().trim();
+        const start = (item.start_date || item.start || '').toString().trim();
+        const end = (item.end_date || item.end || '').toString().trim();
+        const right = (start || end) ? (start + (end ? ' - ' + end : '')) : ((item.date || '').toString().trim());
+
+        let printedSomething = false;
+
+        if (main || right) {
+          doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
+            .text(`${main}`, { continued: true, indent: this.indentSize })
+            .font('CMUSerif').fontSize(this.positionTitleFontSize)
+            .text(`${right}`, { align: 'right', indent: this.indentSize });
+          printedSomething = true;
+        }
+
+        const secondary = (item.organization || item.institution || item.location || item.company || '').toString().trim();
+        if (secondary) {
+          doc.font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
+            .text(`${secondary}`, { indent: this.indentSize });
+          printedSomething = true;
+        }
+
+        // render any array properties as bullets, and plain strings as small text
+        Object.entries(item).forEach(([prop, val]) => {
+          if ([ 'role', 'name', 'title', 'organization', 'institution', 'location', 'duration', 'start_date', 'end_date', 'date', 'start', 'end' ].includes(prop)) return;
+          if (Array.isArray(val)) {
+            val.forEach(d => {
+              if (d === null || d === undefined) return;
+              const ds = String(d).trim();
+              if (ds === '') return;
+              doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+                .text(`• `, { indent: this.bulletIndent, continued: true })
+                .text(`${ds}`, { indent: this.bulletTextIndent, lineGap: this.lineGapSize, indentAllLines: true });
+              printedSomething = true;
+            });
+          } else if (typeof val === 'string' && val.trim()) {
+            doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+              .text(`${val}`, { indent: this.indentSize });
+            printedSomething = true;
+          }
+        });
+
+        if (printedSomething) doc.moveDown(this.gapBetweenEachItem);
+      });
+    } else if (typeof data === 'object') {
+      // object mapping like skills: { category: [items] }
+      Object.entries(data).forEach(([label, items]) => {
+        if (!items) return;
+        if (Array.isArray(items)) {
+          doc.font('CMUSerif-Bold').fontSize(this.smallTextFontSize)
+            .text(label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ':', { continued: true, indent: this.indentSize })
+            .font('CMUSerif').fontSize(this.smallTextFontSize)
+            .text(` ${items.join(', ')}`, { indent: this.indentSize });
+          doc.moveDown(this.gapBetweenEachItem);
+        } else if (typeof items === 'string') {
+          doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+            .text(`${label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${items}`, { indent: this.indentSize });
+          doc.moveDown(this.gapBetweenEachItem);
+        }
+      });
+    } else {
+      // primitive
+      doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+        .text(String(data), { indent: this.indentSize });
+    }
   }
 
   _smallCapitals(header, font, fontSize) {
@@ -286,18 +414,14 @@ class Resume {
 
   /** Convenience static helper: generate PDF from a json file path. */
   /**
-   * Generate PDF from a JSON file. Requires sectionOrder array to define render order.
+   * Generate PDF from a JSON file.
    * @param {string} jsonFilePath
    * @param {string} outputFileName
-   * @param {string[]} sectionOrder - ordered array of section keys (e.g. ['education','experience',...])
    */
-  static async fromFileToPDF(jsonFilePath, outputFileName = 'resume.pdf', sectionOrder) {
-    if (!Array.isArray(sectionOrder)) {
-      throw new Error('fromFileToPDF requires sectionOrder array as the third argument');
-    }
+  static async fromFileToPDF(jsonFilePath, outputFileName = 'resume.pdf') {
     const r = new Resume();
     r.loadFromFile(jsonFilePath);
-    return r.savePDF(outputFileName, sectionOrder);
+    return r.savePDF(outputFileName);
   }
 }
 
