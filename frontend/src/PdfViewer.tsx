@@ -5,7 +5,8 @@ export default function SimplePdfViewer({ filePath }: { filePath?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const pdfFilePath = filePath || "C:\\users\\tausi\\Downloads\\Kida Khanooni (3).pdf";
+  const pdfFilePath =
+    filePath || "C:\\Users\\Plasm\\Downloads\\Allen_Zheng_Resume.pdf";
 
   useEffect(() => {
     const loadPdf = async () => {
@@ -13,21 +14,23 @@ export default function SimplePdfViewer({ filePath }: { filePath?: string }) {
         setIsLoading(true);
         setError(null);
 
-        const base64Data = await window.electron.ipcRenderer.invoke("load-pdf", pdfFilePath);
-        
+        const base64Data = await window.electron.ipcRenderer.invoke(
+          "load-pdf",
+          pdfFilePath
+        );
+
         // Convert base64 to binary
         const binaryString = atob(base64Data);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-        
+
         // Create blob and URL
-        const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+        const pdfBlob = new Blob([bytes], { type: "application/pdf" });
         const url = URL.createObjectURL(pdfBlob);
         setPdfUrl(url);
         console.log("PDF URL created successfully");
-        
       } catch (error) {
         console.error("Failed to load PDF:", error);
         setError("Failed to load PDF: " + (error as Error).message);
@@ -35,7 +38,7 @@ export default function SimplePdfViewer({ filePath }: { filePath?: string }) {
         setIsLoading(false);
       }
     };
-    
+
     loadPdf();
 
     return () => {
@@ -64,30 +67,30 @@ export default function SimplePdfViewer({ filePath }: { filePath?: string }) {
     );
   }
 
- return (
-  <div 
-    className="w-full h-full bg-gray-50" 
-    style={{ 
-      display: 'flex', 
-      flex: 1,
-      overflow: 'auto', // Add scrollbar
-    }}
-  >
-    {pdfUrl && (
-      <iframe 
-        src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} // Changed to FitH so content flows vertically
-        className="w-full border-0"
-        title="PDF Viewer"
-        style={{
-          width: '150%',
-          height: 'max-content', // Changed from 100% to allow natural height
-          minHeight: '100%', // Ensures it's at least full height
-          border: 'none',
-          zoom: "100%",
-          display: 'block',
-        }}
-      />
-    )}
-  </div>
-);
+  return (
+    <div
+      className="w-full h-full bg-gray-50"
+      style={{
+        display: "flex",
+        flex: 1,
+        overflow: "auto", // Add scrollbar
+      }}
+    >
+      {pdfUrl && (
+        <iframe
+          src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} // Changed to FitH so content flows vertically
+          className="w-full border-0"
+          title="PDF Viewer"
+          style={{
+            width: "150%",
+            height: "max-content", // Changed from 100% to allow natural height
+            minHeight: "100%", // Ensures it's at least full height
+            border: "none",
+            zoom: "100%",
+            display: "block",
+          }}
+        />
+      )}
+    </div>
+  );
 }
