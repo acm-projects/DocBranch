@@ -6,6 +6,15 @@ const Resume = require('./Resume');
 const app = express();
 app.use(express.json({ limit: '5mb' }));
 
+// Allow simple CORS so the frontend (different origin/port) can call this endpoint
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 const OUT_DIR = path.resolve(__dirname, 'generated-resumes');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -17,7 +26,7 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 app.post('/generate-pdf', async (req, res) => {
   try {
 
-    const payload = req.body || {};
+    const payload = req.body.Item || {};
     const resumeObj = payload.resume || payload;
 
     if (!resumeObj || Object.keys(resumeObj).length === 0) {
