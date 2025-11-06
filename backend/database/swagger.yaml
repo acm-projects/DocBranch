@@ -1,0 +1,625 @@
+openapi: 3.0.0
+info:
+  title: DocBranch API
+  version: 1.0.0
+  description: |
+    API for managing resumes and profiles used by the DocBranch project.
+    Endpoints allow listing, retrieving, creating/updating and deleting resumes and profiles.
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+tags:
+  - name: Resumes
+    description: Operations related to resumes
+  - name: Profiles
+    description: Operations related to profiles
+paths:
+  #/:
+  #  get:
+  #    summary: Root
+  #    description: Returns a simple greeting.
+  #    responses:
+  #      "200":
+  #        description: OK
+  #        content:
+  #          text/plain:
+  #            schema:
+  #              type: string
+
+  /resumes:
+    get:
+      tags: [Resumes]
+      summary: List all resumes of all users
+      responses:
+        "200":
+          description: A list of resumes (DynamoDB scan result)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ResumeDocument"
+                  Count:
+                    type: integer
+                  ScannedCount:
+                    type: integer
+    post:
+      tags: [Resumes]
+      summary: Create or update a resume (resume.json must have user_id and resume_id)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeDocument"
+      responses:
+        "200":
+          description: Result of put operation (DynamoDB response)
+          #content:
+          #  application/json:
+          #    schema:
+          #      type: object
+          #      properties:
+          #        httpStatusCode:
+          #          type: integer
+          #        requestId:
+          #          type: string
+          #        attempts:
+          #          type: integer
+          #        totalRetryDelay:
+          #          type: integer
+
+  /resumes/{userid}:
+    get:
+      tags: [Resumes]
+      summary: List all resumes for a user
+      parameters:
+        - name: userid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Query results for the user's resumes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeDocument"
+
+  /resumes/{userid}/{resumeid}:
+    get:
+      tags: [Resumes]
+      summary: Get a specific resume by user and resume id
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/ResumeId"
+      responses:
+        "200":
+          description: Resume object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeDocument"
+    put:
+      tags: [Resumes]
+      summary: Update or create a resume (resume.json does not need to have user_id or resume_id / if resume.json has a user_id or resume_id, it will be overwritten by path parameters)
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/ResumeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeDocument"
+      responses:
+        "200":
+          description: Result of put operation
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      tags: [Resumes]
+      summary: Delete a resume
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/ResumeId"
+      responses:
+        "200":
+          description: Delete result (DynamoDB response)
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /profiles:
+    get:
+      tags: [Profiles]
+      summary: List all profiles
+      responses:
+        "200":
+          description: A list of profiles (DynamoDB scan result)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Profile"
+                  Count:
+                    type: integer
+                  ScannedCount:
+                    type: integer
+    post:
+      tags: [Profiles]
+      summary: Create or update a profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Profile"
+      responses:
+        "200":
+          description: Result of put operation
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /profiles/{userid}:
+    get:
+      tags: [Profiles]
+      summary: Get profile(s) by user id
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Query results for the user's profile
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      tags: [Profiles]
+      summary: Delete a profile by user id
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Delete result (DynamoDB response)
+          content:
+            application/json:
+              schema:
+                type: object
+
+components:
+  parameters:
+    UserId:
+      name: userid
+      in: path
+      required: true
+      schema:
+        type: string
+    ResumeId:
+      name: resumeid
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    PersonalInformation:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        links:
+          type: array
+          items:
+            type: object
+            link:
+              type: string
+
+    EducationItem:
+      type: object
+      properties:
+        institution:
+          type: string
+        location:
+          type: string
+        majors:
+          type: array
+          items:
+            type: string
+        minors:
+          type: array
+          items:
+            type: string
+        duration:
+          type: string
+        GPA:
+          type: string
+        description:
+          type: array
+          items:
+            type: string
+
+    ExperienceItem:
+      type: object
+      properties:
+        company:
+          type: string
+        role:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        description:
+          type: array
+          items:
+            type: string
+
+    ProjectItem:
+      type: object
+      properties:
+        name:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        duration:
+          type: string
+        role:
+          type: string
+        description:
+          type: array
+          items:
+            type: string
+
+    VolunteerItem:
+      type: object
+      properties:
+        role:
+          type: string
+        duration:
+          type: string
+        description:
+          type: array
+          items:
+            type: string
+
+    ActivityItem:
+      type: object
+      properties:
+        organization:
+          type: string
+        duration:
+          type: string
+        role:
+          type: string
+        description:
+          type: array
+          items:
+            type: string
+
+    SkillsObject:
+      type: object
+      properties:
+        programming_languages:
+          type: array
+          items:
+            type: string
+        frameworks:
+          type: array
+          items:
+            type: string
+        developer_tools:
+          type: array
+          items:
+            type: string
+        libraries:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+
+    ResumeObject:
+      type: object
+      properties:
+        personal_information:
+          $ref: "#/components/schemas/PersonalInformation"
+        education:
+          type: array
+          items:
+            $ref: "#/components/schemas/EducationItem"
+        experience:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceItem"
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectItem"
+        volunteer_experience:
+          type: array
+          items:
+            $ref: "#/components/schemas/VolunteerItem"
+        activities:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+        skills:
+          $ref: "#/components/schemas/SkillsObject"
+
+    ResumeInfo:
+      type: object
+      properties:
+        resume_creation_date:
+          type: string
+        filename:
+          type: string
+        template_used:
+          type: string
+        section_order:
+          type: array
+          items:
+            type: string
+
+    BranchInfo:
+      type: object
+      properties:
+        parent_resume_id:
+          type: array
+          items:
+            nullable: true
+            type: string
+        children_resume_ids:
+          type: array
+          items:
+            type: string
+        created_date:
+          type: string
+        last_modified:
+          type: string
+
+    ChangesSummary:
+      type: object
+      properties:
+        added_sections:
+          type: array
+          items:
+            type: string
+        modified_sections:
+          type: array
+          items:
+            type: string
+        removed_sections:
+          type: array
+          items:
+            type: string
+
+    CommitItem:
+      type: object
+      properties:
+        commit_id:
+          type: string
+        timestamp:
+          type: string
+        message:
+          type: string
+        changes_summary:
+          $ref: "#/components/schemas/ChangesSummary"
+
+    CommitInfo:
+      type: object
+      properties:
+        number_of_commits:
+          type: integer
+        commits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommitItem"
+
+    AIInsights:
+      type: object
+      properties:
+        generated_on:
+          type: string
+        strengths:
+          type: array
+          items:
+            type: string
+        improvement_suggestions:
+          type: array
+          items:
+            type: string
+        skill_gaps:
+          type: array
+          items:
+            type: string
+        recommended_keywords:
+          type: array
+          items:
+            type: string
+
+    UserComment:
+      type: object
+      properties:
+        comment_id:
+          type: string
+        timestamp:
+          type: string
+        user_id:
+          type: string
+        section:
+          type: string
+        comment_text:
+          type: string
+        resolved:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+
+    JobListing:
+      type: object
+      properties:
+        url:
+          type: string
+        role:
+          type: string
+        company:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        preferred_qualifications:
+          type: array
+          items:
+            type: string
+
+    TagsKeywords:
+      type: object
+      properties:
+        technical_skills:
+          type: array
+          items:
+            type: string
+        achievements:
+          type: array
+          items:
+            type: string
+        project_types:
+          type: array
+          items:
+            type: string
+        roles:
+          type: array
+          items:
+            type: string
+        education_level:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+
+    SearchOptimization:
+      type: object
+      properties:
+        boost_terms:
+          type: array
+          items:
+            type: string
+        custom_fields:
+          type: object
+          properties:
+            hackathon_count:
+              type: integer
+            project_count:
+              type: integer
+            programming_languages_count:
+              type: integer
+            has_open_source:
+              type: boolean
+            has_internship_experience:
+              type: boolean
+            has_leadership_roles:
+              type: boolean
+
+    SystemMetadata:
+      type: object
+      properties:
+        created_date:
+          type: string
+        last_modified:
+          type: string
+        file_size:
+          type: string
+        format:
+          type: string
+        backup_locations:
+          type: array
+          items:
+            type: string
+        integrity_check:
+          type: string
+
+    Metadata:
+      type: object
+      properties:
+        resume_info:
+          $ref: "#/components/schemas/ResumeInfo"
+        branch_info:
+          $ref: "#/components/schemas/BranchInfo"
+        commit_info:
+          $ref: "#/components/schemas/CommitInfo"
+        ai_insights:
+          $ref: "#/components/schemas/AIInsights"
+        user_comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserComment"
+        search:
+          type: object
+          properties:
+            job_listing:
+              $ref: "#/components/schemas/JobListing"
+            tags_keywords:
+              $ref: "#/components/schemas/TagsKeywords"
+            search_optimization:
+              $ref: "#/components/schemas/SearchOptimization"
+        system_metadata:
+          $ref: "#/components/schemas/SystemMetadata"
+
+    ResumeDocument:
+      type: object
+      properties:
+        user_id:
+          type: string
+        resume_id:
+          type: string
+        resume:
+          $ref: "#/components/schemas/ResumeObject"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+      required: [user_id, resume_id, resume, metadata]
+
+  responses:
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              err:
+                type: string

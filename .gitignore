@@ -1,3 +1,8 @@
-*.env
-*.jpg
 node_modules
+*.env
+backend/database/*.jpg
+backend/resume-generator/*.pdf
+backend/resume-generator/resume_json_files/*.json
+branch/demo.js
+frontend/electron/node_modules
+frontend/.vite
