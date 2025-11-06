@@ -25,8 +25,12 @@ export async function generateResumePdf(userId: string, resumeId: string): Promi
     if (Array.isArray(resumeObj) && resumeObj.length > 0) resumeObj = resumeObj[0];
 
     // 2) send to pdfEndpoint service which returns PDF bytes
-    const pdfEndpoint = 'http://localhost:3080/generate-pdf';
-    const pdfResp = await axios.post(pdfEndpoint, resumeObj, { responseType: 'arraybuffer', headers: { 'Content-Type': 'application/json' } });
+    // Prefer an explicit override via REACT_APP_PDF_ENDPOINT, else assume
+    // the PDF router is mounted on the main backend at /generate-pdf.
+    const defaultBackendBase = backend_api.defaults.baseURL || 'http://localhost:3000/';
+    const pdfBase = (process.env.REACT_APP_PDF_ENDPOINT && process.env.REACT_APP_PDF_ENDPOINT.trim()) ||
+      `${defaultBackendBase.replace(/\/$/, '')}/generate-pdf`;
+    const pdfResp = await axios.post(pdfBase, resumeObj, { responseType: 'arraybuffer', headers: { 'Content-Type': 'application/json' } });
 
     // 3) return as Blob for consumer to download or display
     return new Blob([pdfResp.data], { type: 'application/pdf' });

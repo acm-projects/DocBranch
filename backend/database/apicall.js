@@ -34,6 +34,20 @@ if (swaggerDocument) {
   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 }
 
+// Mount resume PDF generator (if available). This will allow the PDF endpoint
+// to live on the same server (http://localhost:3000/generate-pdf) instead of
+// running a separate process on port 3080.
+try {
+  // path: backend/database -> ../resume-generator/pdfEndpoint.js
+  const pdfRouter = require('../resume-generator/pdfEndpoint');
+  if (pdfRouter && typeof pdfRouter === 'function') {
+    app.use('/generate-pdf', pdfRouter);
+    console.log('Mounted resume PDF generator at /generate-pdf');
+  }
+} catch (e) {
+  console.warn('Could not mount resume PDF generator:', e && e.message);
+}
+
 app.get('/', (req, res) => {
   res.send('DocBranch API is running. Visit /api-docs for API documentation.');
 });
