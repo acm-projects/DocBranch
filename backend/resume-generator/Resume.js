@@ -38,8 +38,6 @@ class Resume {
     this.bulletIndent = 14 + this.indentSize;
     this.bulletTextIndent = this.bulletIndent + 4;
 
-    this.sectionOrder = ['education', 'experience', 'projects', 'activities', 'skills'];
-
     this.doc = null; // will hold PDFDocument instance
   }
 
@@ -91,12 +89,80 @@ class Resume {
     // Render sections using helper methods in requested order; accept arbitrary section names.
     // Use metadata.section_order when available (support metadata at root or inside resume),
     // otherwise iterate over the keys of the resume object.
-    const metaSectionOrder = (this.metadata && this.metadata.resume_info && this.metadata.resume_info.section_order) ||
-      (resumeData.metadata && resumeData.metadata.resume_info && resumeData.metadata.resume_info.section_order) || null;
+    // Accept section_order either under metadata.resume_info.section_order or metadata.section_order.
+    // Also accept metadata inside the resume object as a fallback.
+    const sectionOrder = (
+      (this.metadata && ((this.metadata.resume_info && this.metadata.resume_info.section_order) || this.metadata.section_order)) ||
+      (resumeData && resumeData.metadata && ((resumeData.metadata.resume_info && resumeData.metadata.resume_info.section_order) || resumeData.metadata.section_order)) ||
+      null
+    );
 
+    // Build an explicit rendering order. If metadata provides a section_order array,
+    // match each requested name to an actual key in the resume JSON. Matching is
+    // tolerant to spacing/underscores/casing (e.g. 'Work Experience' -> 'experience').
+    // Any keys not mentioned in the metadata order are appended after the ordered ones.
     let order = null;
-    if (Array.isArray(metaSectionOrder) && metaSectionOrder.length > 0) {
-      order = metaSectionOrder;
+    if (Array.isArray(sectionOrder) && sectionOrder.length > 0) {
+      // stronger normalization: strip ALL non-alphanumerics to avoid punctuation/spacing
+      const normalize = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const keys = Object.keys(resumeData || {});
+
+      // map normalized forms of keys to the actual key name (preserve first occurrence)
+      const normToKey = {};
+      keys.forEach(k => {
+        const nk = normalize(k);
+        if (!normToKey[nk]) normToKey[nk] = k;
+        // also map formatted section title to key (e.g., 'Leadership Experience' -> 'leadership_experience')
+        const fk = normalize(this._formatSectionTitle(k));
+        if (!normToKey[fk]) normToKey[fk] = k;
+      });
+
+      const added = new Set();
+      const ordered = [];
+
+      // make a stable list of normalized tokens for matching
+      const normKeys = Object.keys(normToKey);
+
+      sectionOrder.forEach(req => {
+        if (!req && req !== 0) return;
+        const reqNorm = normalize(req);
+
+        // 1) exact normalized match
+        let match = normToKey[reqNorm];
+
+        // 2) prefer candidates that start/end with reqNorm (more specific) — check longer tokens first
+        if (!match) {
+          const candidates = normKeys.slice().sort((a, b) => b.length - a.length);
+          const found = candidates.find(n => n === reqNorm || n.endsWith(reqNorm) || n.startsWith(reqNorm));
+          if (found) match = normToKey[found];
+        }
+
+        // 3) fallback: permissive substring match (least preferred)
+        if (!match) {
+          const found = normKeys.find(n => n.includes(reqNorm) || reqNorm.includes(n));
+          if (found) match = normToKey[found];
+        }
+
+        if (match) {
+          if (!added.has(match)) {
+            ordered.push(match);
+            added.add(match);
+          }
+        } else {
+          // helpful debug output when metadata entries don't match any key
+          /* eslint-disable no-console */
+          console.warn && console.warn(`Warning: metadata.section_order entry "${req}" did not match any resume section key.`);
+        }
+      });
+
+      // Append any remaining keys (preserve original key order), skipping internal keys
+      keys.forEach(k => {
+        if (added.has(k)) return;
+        if (k === 'personal_information' || k === 'metadata') return;
+        ordered.push(k);
+      });
+
+      order = ordered;
     } else {
       order = Object.keys(resumeData || {});
     }

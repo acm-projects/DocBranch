@@ -39,8 +39,10 @@ router.post('/', async (req, res) => {
     const filename = `resume-${Date.now()}-${Math.random().toString(36).slice(2,8)}.pdf`;
     const outPath = path.join(OUT_DIR, filename);
 
-    // Generate PDF to disk (reuse existing helper)
-    await Resume.fromObjectToPDF(resumeObj, outPath);
+  // Generate PDF to disk (reuse existing helper).
+  // Pass the original payload so metadata (e.g. metadata.resume_info.section_order)
+  // is preserved. Previously we passed only the resume object which dropped metadata.
+  await Resume.fromObjectToPDF(payload, outPath);
 
     // Stream as download, then unlink the temporary file
     res.download(outPath, filename, err => {
