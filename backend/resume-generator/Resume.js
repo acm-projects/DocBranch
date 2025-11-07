@@ -71,11 +71,28 @@ class Resume {
     const resumeData = this.resume;
     const doc = this.doc;
 
-    // Header: name and contact
+    // Header: name and top-right location/address on the same line
     const info = resumeData.personal_information || {};
-    doc.font('CMUSerif-Bold').fontSize(this.userNameFontSize)
-      .text(info.name || '', { align: 'center' });
 
+    // prefer explicit location, fall back to address
+    const headerRight = (info.location && info.location.toString().trim()) || (info.address && info.address.toString().trim()) || '';
+    const marginTop = doc.page.margins.top || 30;
+    const usableWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+    // We'll draw both name and location on the same Y (snap to the top margin).
+    const headerY = marginTop;
+
+    // Draw right-aligned small location at the top of the line
+    if (headerRight) {
+      doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+        .text(headerRight, doc.page.margins.left, headerY, { width: usableWidth, align: 'right' });
+    }
+
+    // Draw the name centered on the same Y. Using a larger font; letting PDFKit handle baseline differences.
+    doc.font('CMUSerif-Bold').fontSize(this.userNameFontSize)
+      .text(info.name || '', doc.page.margins.left, headerY, { width: usableWidth, align: 'center' });
+
+    // Contact row below the name
     const contactArr = [info.phone, info.email];
     if (info.links && Array.isArray(info.links)) {
       info.links.forEach(linkObj => {
@@ -83,19 +100,14 @@ class Resume {
         contactArr.push(linkObj[key]);
       });
     }
+    const contactY = headerY + this.userNameFontSize + 6;
     doc.font('CMUSerif').fontSize(this.smallTextFontSize)
-      .text(contactArr.filter(Boolean).join(' | '), { align: 'center' });
+      .text(contactArr.filter(Boolean).join(' | '), doc.page.margins.left, contactY, { width: usableWidth, align: 'center' });
 
     // Render sections using helper methods in requested order; accept arbitrary section names.
     // Use metadata.section_order when available (support metadata at root or inside resume),
     // otherwise iterate over the keys of the resume object.
-    // Accept section_order either under metadata.resume_info.section_order or metadata.section_order.
-    // Also accept metadata inside the resume object as a fallback.
-    const sectionOrder = (
-      (this.metadata && ((this.metadata.resume_info && this.metadata.resume_info.section_order) || this.metadata.section_order)) ||
-      (resumeData && resumeData.metadata && ((resumeData.metadata.resume_info && resumeData.metadata.resume_info.section_order) || resumeData.metadata.section_order)) ||
-      null
-    );
+    const sectionOrder = (this.metadata && this.metadata.resume_info && this.metadata.resume_info.section_order) || null;
 
     // Build an explicit rendering order. If metadata provides a section_order array,
     // match each requested name to an actual key in the resume JSON. Matching is
