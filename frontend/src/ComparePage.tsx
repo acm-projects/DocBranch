@@ -564,7 +564,7 @@ const ComparePage = () => {
             overflow: "hidden",
           }}
         >
-          <ResumeEditor />
+          <ResumeEditor userId="000000" resumeId="000005" />
         </div>
       </div>
 
