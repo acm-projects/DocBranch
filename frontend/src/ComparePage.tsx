@@ -27,7 +27,9 @@ const ComparePage = () => {
       setLoadingApi(true);
       setApiError(null);
       try {
-        const res = await backend_api.get("/resumes");
+        const res = await backend_api.post("/bedrock/query", {
+          query: "Give me a summary of Allen Zheng's professional experience.",
+        });
         if (!cancelled) setApiResult(res.data);
       } catch (err: any) {
         if (!cancelled) setApiError(err?.message || String(err));
