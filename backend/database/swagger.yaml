@@ -208,7 +208,7 @@ paths:
       summary: Query Bedrock knowledge base (Retrieve-and-Generate)
       description: |
         Run a RAG (retrieve-and-generate) query against the configured Bedrock knowledge base.
-        The request body must include a `query` string. Optional `options` may provide overrides such as kbId, region, inferenceProfileArn, numberOfResults, and generation parameters.
+        The request body must include a `query` string. Optional top-level fields `jobUrl` or `jobDescription` may be provided (or put them inside `options`) to supply a job posting which the model should use together with retrieved documents. Other `options` may provide overrides such as kbId, region, inferenceProfileArn, numberOfResults, and generation parameters.
       requestBody:
         required: true
         content:
@@ -219,11 +219,22 @@ paths:
                 query:
                   type: string
                   description: The user question or prompt to send to the knowledge base.
+                jobUrl:
+                  type: string
+                  description: Optional URL to a job posting; server will fetch and include its text in the prompt.
+                jobDescription:
+                  type: string
+                  description: Optional raw job description text to include in the prompt (use instead of jobUrl to skip fetching).
                 options:
                   type: object
-                  description: Optional overrides for the query (provider-specific).
+                  description: Optional overrides for the query (provider-specific). If `jobUrl`/`jobDescription` are present at the top-level they will be merged into `options` by the server.
                   additionalProperties: true
               required: [query]
+              example:
+                query: "Which projects should I include on my resume for this job?"
+                jobUrl: "https://example.com/job/12345"
+                options:
+                  numberOfResults: 5
       responses:
         "200":
           description: RAG result including generated text and optional citations
@@ -231,10 +242,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  response:
-                    type: object
-                    description: Full raw response from Bedrock client
+                description: Raw response returned from the Bedrock retrieve-and-generate call (shape depends on the Bedrock SDK/agent runtime).
 
 components:
   parameters:

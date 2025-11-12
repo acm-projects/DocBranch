@@ -58,8 +58,30 @@ app.post('/bedrock/query', async (req, res) => {
     if (!userText) {
       return res.status(400).json({ error: 'Missing `query` in request body. Use { query: "..." }' });
     }
+    // Merge options passed either at top-level or inside `options`.
+    const options = Object.assign({}, req.body.options || {});
 
-    const options = req.body.options || {};
+    // Accept convenience top-level fields jobUrl / jobDescription
+    if (req.body.jobUrl && typeof req.body.jobUrl === 'string') {
+      options.jobUrl = req.body.jobUrl;
+    }
+    if (req.body.jobDescription && typeof req.body.jobDescription === 'string') {
+      // Truncate long job descriptions to keep prompts reasonable
+      const MAX_JOB_DESC_CHARS = 8000;
+      options.jobDescription = req.body.jobDescription.length > MAX_JOB_DESC_CHARS
+        ? req.body.jobDescription.slice(0, MAX_JOB_DESC_CHARS) + '...'
+        : req.body.jobDescription;
+    }
+
+    // Basic validation for jobUrl (if present)
+    if (options.jobUrl) {
+      try {
+        new URL(options.jobUrl);
+      } catch (err) {
+        return res.status(400).json({ error: 'Invalid `jobUrl` provided' });
+      }
+    }
+
     const result = await queryKnowledgeBase(userText, options);
     res.json(result);
   } catch (error) {

@@ -28,7 +28,9 @@ const ComparePage = () => {
       setApiError(null);
       try {
         const res = await backend_api.post("/bedrock/query", {
-          query: "Give me a summary of Allen Zheng's professional experience.",
+          query: "Give me a summary of this job posting",
+          jobUrl:
+            "https://motorolasolutions.wd5.myworkdayjobs.com/en-US/Careers/job/Allen-TX-TX139/Software-Engineering-Intern---Summer-2026_R58226",
         });
         if (!cancelled) setApiResult(res.data);
       } catch (err: any) {
