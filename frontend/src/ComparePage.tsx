@@ -413,7 +413,7 @@ const ComparePage = () => {
               position: "relative",
             }}
           >
-            <PdfViewer userId={"0"} resumeId={"0"} />
+            <PdfViewer userId={"000000"} resumeId={"000005"} />
           </div>
 
           <div

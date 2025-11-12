@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
-import { Plus, ChevronDown, GripVertical, X, Edit, Save } from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { Plus, ChevronDown, GripVertical, X, Edit, Save, Download, RefreshCw } from "lucide-react";
+import axios from 'axios';
 
 // field interface
 export interface FieldData {
@@ -605,6 +606,182 @@ export function ResumeEditor() {
   const [sections, setSections] = useState<SectionData[]>(defaultSections);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeView, setActiveView] = useState<"edit" | "preview">("edit");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<any>(null);
+  const [selectedResumeIndex, setSelectedResumeIndex] = useState(0);
+
+  // Fetch resumes from backend
+  const fetchResumes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:3000/resumes');
+      console.log('Fetched resumes:', response.data);
+      setResumeData(response.data);
+      
+      if (response.data && response.data.Items && response.data.Items.length > 0) {
+        // Parse the JSON and populate the form fields with the first resume
+        parseResumeData(response.data.Items[0]);
+      }
+    } catch (err: any) {
+      console.error('Error fetching resumes:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to fetch resumes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Parse the resume JSON and populate the form fields
+  const parseResumeData = (resume: any) => {
+    if (!resume || !resume.resume) return;
+
+    const resumeContent = resume.resume;
+    
+    setSections(prevSections => {
+      return prevSections.map(section => {
+        const updatedFields = section.fields.map(field => {
+          let value = '';
+          
+          // Map backend fields to our form fields based on your JSON structure
+          switch (section.id) {
+            case 'personal':
+              const personalInfo = resumeContent.personal_information;
+              if (personalInfo) {
+                switch (field.id) {
+                  case 'name':
+                    value = personalInfo.name || '';
+                    break;
+                  case 'email':
+                    value = personalInfo.email || '';
+                    break;
+                  case 'phone':
+                    value = personalInfo.phone || '';
+                    break;
+                  case 'address':
+                    value = personalInfo.location || '';
+                    break;
+                  case 'linkedin':
+                    // Extract LinkedIn from links array
+                    const linkedinLink = personalInfo.links?.find((link: any) => link.linkedin);
+                    value = linkedinLink ? linkedinLink.linkedin : '';
+                    break;
+                }
+              }
+              break;
+              
+            case 'education':
+              // Handle education array - take the first entry
+              if (resumeContent.education && resumeContent.education.length > 0) {
+                const edu = resumeContent.education[0];
+                switch (field.id) {
+                  case 'institution':
+                    value = edu.institution || '';
+                    break;
+                  case 'degree':
+                    value = edu.majors ? edu.majors.join(', ') : '';
+                    break;
+                  case 'field':
+                    value = edu.majors ? edu.majors.join(', ') : '';
+                    break;
+                  case 'year':
+                    value = edu.end_date || '';
+                    break;
+                  case 'gpa':
+                    value = edu.GPA || '';
+                    break;
+                }
+              }
+              break;
+              
+            case 'experience':
+              // Handle experience array - take the first entry
+              if (resumeContent.leadership_experience && resumeContent.leadership_experience.length > 0) {
+                const exp = resumeContent.leadership_experience[0];
+                switch (field.id) {
+                  case 'position':
+                    value = exp.role || '';
+                    break;
+                  case 'company':
+                    value = exp.role || ''; // Using role as company for leadership
+                    break;
+                  case 'startDate':
+                    value = exp.start_date || '';
+                    break;
+                  case 'endDate':
+                    value = exp.end_date || '';
+                    break;
+                  case 'description':
+                    value = exp.description ? exp.description.join('. ') : '';
+                    break;
+                }
+              }
+              break;
+              
+            case 'skills':
+              const skills = resumeContent.skills;
+              if (skills) {
+                switch (field.id) {
+                  case 'technical':
+                    const techSkills = [
+                      ...(skills.programming_languages || []),
+                      ...(skills.frameworks || []),
+                      ...(skills.developer_tools || [])
+                    ];
+                    value = techSkills.join(', ');
+                    break;
+                  case 'soft':
+                    value = skills.languages ? skills.languages.join(', ') : '';
+                    break;
+                  case 'languages':
+                    value = skills.languages ? skills.languages.join(', ') : '';
+                    break;
+                }
+              }
+              break;
+
+            case 'organizations':
+              // Map leadership experience to organizations
+              if (resumeContent.leadership_experience && resumeContent.leadership_experience.length > 0) {
+                const org = resumeContent.leadership_experience[0];
+                switch (field.id) {
+                  case 'orgName':
+                    value = org.role || '';
+                    break;
+                  case 'role':
+                    value = org.role || '';
+                    break;
+                  case 'duration':
+                    value = `${org.start_date || ''} - ${org.end_date || ''}`;
+                    break;
+                  case 'activities':
+                    value = org.description ? org.description.join('. ') : '';
+                    break;
+                }
+              }
+              break;
+          }
+          
+          return { ...field, value };
+        });
+        
+        return { ...section, fields: updatedFields, isOpen: true };
+      });
+    });
+  };
+
+  // Handle resume selection change
+  const handleResumeChange = (index: number) => {
+    setSelectedResumeIndex(index);
+    if (resumeData && resumeData.Items && resumeData.Items[index]) {
+      parseResumeData(resumeData.Items[index]);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch resumes when component mounts
+    fetchResumes();
+  }, []);
 
   const toggleSection = (sectionId: string) => {
     setSections(
@@ -689,8 +866,66 @@ export function ResumeEditor() {
             fontWeight: 500,
           }}
         >
-          Build an customize your resume - Drag sections to reorder
+          Build and customize your resume - Drag sections to reorder
         </p>
+      </div>
+
+      {/* API Status and Resume Selector */}
+      <div style={{ marginBottom: "16px" }}>
+        {loading && (
+          <div style={{ color: "#3b82f6", fontSize: "13px", textAlign: "center" }}>
+            Loading resume data...
+          </div>
+        )}
+        {error && (
+          <div style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}>
+            Error: {error}
+          </div>
+        )}
+        {resumeData && resumeData.Items && (
+          <div style={{ marginBottom: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+              <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                Select Resume:
+              </label>
+              <select
+                value={selectedResumeIndex}
+                onChange={(e) => handleResumeChange(Number(e.target.value))}
+                style={{
+                  padding: "6px 10px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                  fontSize: "13px",
+                  backgroundColor: "white",
+                }}
+              >
+                {resumeData.Items.map((item: any, index: number) => (
+                  <option key={item.resume_id} value={index}>
+                    {item.resume.personal_information?.name || 'Unknown'} - {item.resume_id}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={fetchResumes}
+                style={{
+                  backgroundColor: "transparent",
+                  border: "1px solid #d1d5db",
+                  padding: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                title="Refresh data"
+              >
+                <RefreshCw size={14} />
+              </button>
+            </div>
+            <div style={{ color: "#10b981", fontSize: "12px", textAlign: "center", marginTop: "4px" }}>
+              Loaded {resumeData.Items.length} resume(s)
+            </div>
+          </div>
+        )}
       </div>
 
       <div
