@@ -65,11 +65,7 @@ async function queryKnowledgeBase(userText, options = {}) {
 
   const response = await client.send(command);
 
-  // Extract generated text and citations if present
-  const generatedText = response?.output?.text ?? response?.output?.[0]?.text ?? null;
-  const citations = response?.citations || response?.output?.citations || null;
-
-  return { rawResponse: response, generatedText, citations };
+  return response;
 }
 
 // Exports (support both default-style and named import patterns for consumers)

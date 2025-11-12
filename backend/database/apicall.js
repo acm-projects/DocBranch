@@ -14,6 +14,8 @@ const swaggerUI = require('swagger-ui-express');
 const YAML = require('yamljs');
 const fs = require('fs');
 const path = require('path');
+// Bedrock RAG query helper (CommonJS)
+const { queryKnowledgeBase } = require('./bedrockRAGsearch');
 
 // load swagger.yaml if present (resolve relative to this file)
 const swaggerPath = path.resolve(__dirname, 'swagger.yaml');
@@ -47,6 +49,24 @@ try {
 } catch (e) {
   console.warn('Could not mount resume PDF generator:', e && e.message);
 }
+
+// Bedrock RAG endpoint: POST /bedrock/query
+// Body: { query: string, options?: object }
+app.post('/bedrock/query', async (req, res) => {
+  try {
+    const userText = req.body && (req.body.query || req.body.text || req.body.prompt);
+    if (!userText) {
+      return res.status(400).json({ error: 'Missing `query` in request body. Use { query: "..." }' });
+    }
+
+    const options = req.body.options || {};
+    const result = await queryKnowledgeBase(userText, options);
+    res.json(result);
+  } catch (error) {
+    console.error('Bedrock query error:', error);
+    res.status(500).json({ error: error && error.message ? error.message : String(error) });
+  }
+});
 
 app.get('/', (req, res) => {
   res.send('DocBranch API is running. Visit /api-docs for API documentation.');
