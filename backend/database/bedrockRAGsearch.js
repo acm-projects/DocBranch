@@ -1,6 +1,6 @@
-import 'dotenv/config';
-import { fileURLToPath } from 'url';
-import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand } from "@aws-sdk/client-bedrock-agent-runtime";
+const dotenv = require('dotenv');
+const { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand } = require("@aws-sdk/client-bedrock-agent-runtime");
+dotenv.config();
 
 // Minimal, practical script to run a Retrieve-and-Generate (RAG) request against a Bedrock knowledge base
 // Usage: node bedrockRAGsearch.js "your question here"
@@ -11,7 +11,7 @@ import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand } from "@aws-sdk/
  * @param {object} [options] - Optional overrides: { kbId, region, inferenceProfileArn, modelArn, numberOfResults, overrideSearchType, maxTokens, temperature, enableReranking }
  * @returns {Promise<{rawResponse: object, generatedText: string|null, citations: array|null}>}
  */
-export async function queryKnowledgeBase(userText, options = {}) {
+async function queryKnowledgeBase(userText, options = {}) {
   const region = options.region || process.env.AWS_DEFAULT_REGION || "us-east-2";
   const kbId = options.kbId || process.env.AWS_BEDROCK_KB_ID;
 
@@ -72,11 +72,12 @@ export async function queryKnowledgeBase(userText, options = {}) {
   return { rawResponse: response, generatedText, citations };
 }
 
-// Default export
-export default queryKnowledgeBase;
+// Exports (support both default-style and named import patterns for consumers)
+module.exports = queryKnowledgeBase;
+module.exports.queryKnowledgeBase = queryKnowledgeBase;
 
 // If executed directly from the command line, run a quick query and print results
-if (typeof process !== 'undefined' && process.argv && process.argv.length > 2 && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (require.main === module && process.argv && process.argv.length > 2) {
   (async () => {
     try {
       const userText = process.argv.slice(2).join(' ');
