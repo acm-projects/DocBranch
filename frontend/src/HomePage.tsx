@@ -28,6 +28,23 @@ const HomePage = () => {
           >
             Go to Resume Templates <br></br>
           </Link>
+        
+
+        <Link
+            to="/LandingPage"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            Go to Landing Page <br></br>
+          </Link>
+
+        <Link
+            to="/HomePageMain"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            Go to Home Page <br></br>
+          </Link>
+
+
 
       </div>
     </div>
@@ -35,3 +52,7 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
+
+
+

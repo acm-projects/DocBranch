@@ -6,7 +6,8 @@ import HomePage from './HomePage';
 import ComparePage from './ComparePage'
 import BranchPage from './BranchPage';
 import TemplatesPage from './TemplatePage';
-
+import LandingPage from './LandingPage';
+import HomePageMain from './HomePageMain';
 // Use HashRouter for Electron compatibility
 const router = createHashRouter([
   {
@@ -24,7 +25,16 @@ const router = createHashRouter([
   {
     path: '/TemplatesPage', // new route 
     element: <TemplatesPage />,
+  },
+  {
+    path: '/LandingPage', // new route 
+    element: <LandingPage />,
+  },
+  {
+    path: '/HomePageMain', // new route
+    element: <HomePageMain />,
   }
+
 ]);
 
 const root = createRoot(document.getElementById('root')!);
