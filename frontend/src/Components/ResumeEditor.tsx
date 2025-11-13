@@ -24,93 +24,8 @@ interface ResumeEditorProps {
   resumeId: string;
 }
 
-// Default sections
-const defaultSections: SectionData[] = [
-  {
-    id: "personal",
-    title: "Personal Information",
-    isOpen: false,
-    allowMultipleEntries: false,
-    fields: [
-      { id: "name", label: "Full Name", value: "", type: "text" },
-      { id: "email", label: "Email", value: "", type: "email" },
-      { id: "phone", label: "Phone", value: "", type: "tel" },
-      { id: "address", label: "Address", value: "", type: "text" },
-      { id: "linkedin", label: "LinkedIn", value: "", type: "url" },
-    ],
-  },
-  {
-    id: "education",
-    title: "Education",
-    isOpen: false,
-    allowMultipleEntries: true,
-    fields: [
-      {
-        id: "institution",
-        label: "Name of Institution",
-        value: "",
-        type: "text",
-      },
-      { id: "degree", label: "Degree", value: "", type: "text" },
-      { id: "field", label: "Field of Study", value: "", type: "text" },
-      { id: "year", label: "Graduation Year", value: "", type: "text" },
-      { id: "gpa", label: "GPA", value: "", type: "text" },
-    ],
-  },
-  {
-    id: "experience",
-    title: "Experience",
-    isOpen: false,
-    allowMultipleEntries: true,
-    fields: [
-      { id: "position", label: "Position", value: "", type: "text" },
-      { id: "company", label: "Company", value: "", type: "text" },
-      { id: "startDate", label: "Start Date", value: "", type: "date" },
-      { id: "endDate", label: "End Date", value: "", type: "date" },
-      { id: "description", label: "Description", value: "", type: "textarea" },
-    ],
-  },
-  {
-    id: "skills",
-    title: "Skills",
-    isOpen: false,
-    allowMultipleEntries: false,
-    fields: [
-      {
-        id: "technical",
-        label: "Technical Skills",
-        value: "",
-        type: "textarea",
-      },
-      { id: "soft", label: "Soft Skills", value: "", type: "textarea" },
-      { id: "languages", label: "Languages", value: "", type: "text" },
-    ],
-  },
-  {
-    id: "organizations",
-    title: "Organizations",
-    isOpen: false,
-    allowMultipleEntries: true,
-    fields: [
-      { id: "orgName", label: "Organization Name", value: "", type: "text" },
-      { id: "role", label: "Role", value: "", type: "text" },
-      { id: "duration", label: "Duration", value: "", type: "text" },
-      { id: "activities", label: "Activities", value: "", type: "textarea" },
-    ],
-  },
-  {
-    id: "awards",
-    title: "Awards/Honors",
-    isOpen: false,
-    allowMultipleEntries: true,
-    fields: [
-      { id: "awardName", label: "Award Name", value: "", type: "text" },
-      { id: "issuer", label: "Issuer", value: "", type: "text" },
-      { id: "date", label: "Date", value: "", type: "date" },
-      { id: "description", label: "Description", value: "", type: "textarea" },
-    ],
-  },
-];
+// Default empty sections - will be populated dynamically
+const defaultSections: SectionData[] = [];
 
 const additionalSectionTemplates = [
   { title: "Projects", allowMultipleEntries: true },
@@ -263,6 +178,7 @@ function ResumeSection({
                           fontWeight: 600,
                           outline: "none",
                           backgroundColor: "white",
+                          color: "#000000",
                           fontFamily: "inherit",
                         }}
                         placeholder="Enter field name..."
@@ -655,137 +571,100 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     if (!resume || !resume.resume) return;
 
     const resumeContent = resume.resume;
-    
-    setSections(prevSections => {
-      return prevSections.map(section => {
-        const updatedFields = section.fields.map(field => {
-          let value = '';
-          
-          // Map backend fields to our form fields based on your JSON structure
-          switch (section.id) {
-            case 'personal':
-              const personalInfo = resumeContent.personal_information;
-              if (personalInfo) {
-                switch (field.id) {
-                  case 'name':
-                    value = personalInfo.name || '';
-                    break;
-                  case 'email':
-                    value = personalInfo.email || '';
-                    break;
-                  case 'phone':
-                    value = personalInfo.phone || '';
-                    break;
-                  case 'address':
-                    value = personalInfo.location || '';
-                    break;
-                  case 'linkedin':
-                    // Extract LinkedIn from links array
-                    const linkedinLink = personalInfo.links?.find((link: any) => link.linkedin);
-                    value = linkedinLink ? linkedinLink.linkedin : '';
-                    break;
-                }
-              }
-              break;
-              
-            case 'education':
-              // Handle education array - take the first entry
-              if (resumeContent.education && resumeContent.education.length > 0) {
-                const edu = resumeContent.education[0];
-                switch (field.id) {
-                  case 'institution':
-                    value = edu.institution || '';
-                    break;
-                  case 'degree':
-                    value = edu.majors ? edu.majors.join(', ') : '';
-                    break;
-                  case 'field':
-                    value = edu.majors ? edu.majors.join(', ') : '';
-                    break;
-                  case 'year':
-                    value = edu.end_date || '';
-                    break;
-                  case 'gpa':
-                    value = edu.GPA || '';
-                    break;
-                }
-              }
-              break;
-              
-            case 'experience':
-              // Handle projects as experience
-              if (resumeContent.projects && resumeContent.projects.length > 0) {
-                const project = resumeContent.projects[0];
-                switch (field.id) {
-                  case 'position':
-                    value = project.role || '';
-                    break;
-                  case 'company':
-                    value = project.name || '';
-                    break;
-                  case 'startDate':
-                    value = project.start_date || '';
-                    break;
-                  case 'endDate':
-                    value = project.end_date || '';
-                    break;
-                  case 'description':
-                    value = project.description ? project.description.join('. ') : '';
-                    break;
-                }
-              }
-              break;
-              
-            case 'skills':
-              const skills = resumeContent.skills;
-              if (skills) {
-                switch (field.id) {
-                  case 'technical':
-                    const techSkills = [
-                      ...(skills.programming_languages || []),
-                      ...(skills.frameworks || []),
-                      ...(skills.developer_tools || [])
-                    ];
-                    value = techSkills.join(', ');
-                    break;
-                  case 'soft':
-                    value = skills.languages ? skills.languages.join(', ') : '';
-                    break;
-                  case 'languages':
-                    value = skills.languages ? skills.languages.join(', ') : '';
-                    break;
-                }
-              }
-              break;
+    const dynamicSections: SectionData[] = [];
 
-            case 'organizations':
-              // Map leadership experience to organizations
-              if (resumeContent.leadership_experience && resumeContent.leadership_experience.length > 0) {
-                const org = resumeContent.leadership_experience[0];
-                switch (field.id) {
-                  case 'orgName':
-                    value = org.role || '';
-                    break;
-                  case 'role':
-                    value = org.role || '';
-                    break;
-                  case 'duration':
-                    value = `${org.start_date || ''} - ${org.end_date || ''}`;
-                    break;
-                  case 'activities':
-                    value = org.description ? org.description.join('. ') : '';
-                    break;
-                }
+    // Iterate through each section in the resume
+    Object.keys(resumeContent).forEach(sectionKey => {
+      const sectionData = resumeContent[sectionKey];
+      if (!sectionData) return;
+
+      const fields: FieldData[] = [];
+      const sectionTitle = sectionKey.replace(/_/g, ' ')
+                                    .replace(/\b\w/g, l => l.toUpperCase());
+
+      // Process the section data based on its type
+      if (Array.isArray(sectionData)) {
+        // Handle arrays (education, projects, leadership_experience)
+        if (sectionData.length > 0 && typeof sectionData[0] === 'object') {
+          // Array of objects - take first item
+          const firstItem = sectionData[0];
+          Object.keys(firstItem).forEach(fieldKey => {
+            const value = firstItem[fieldKey];
+            if (value !== null && value !== undefined) {
+              const fieldType = determineFieldType(fieldKey, value);
+              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
+              
+              fields.push({
+                id: `${sectionKey}-${fieldKey}`,
+                label: fieldKey.replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase()),
+                value: fieldValue,
+                type: fieldType
+              });
+            }
+          });
+        }
+      } else if (typeof sectionData === 'object') {
+        // Handle objects (personal_information, skills)
+        Object.keys(sectionData).forEach(fieldKey => {
+          const value = sectionData[fieldKey];
+          if (value !== null && value !== undefined) {
+            
+            // Special handling for nested structures
+            if (fieldKey === 'links' && Array.isArray(value)) {
+              // Handle links array specially
+              const linkedinLink = value.find((link: any) => link.linkedin);
+              if (linkedinLink) {
+                fields.push({
+                  id: `${sectionKey}-linkedin`,
+                  label: 'LinkedIn',
+                  value: linkedinLink.linkedin,
+                  type: 'url'
+                });
               }
-              break;
+            } else {
+              const fieldType = determineFieldType(fieldKey, value);
+              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
+              
+              fields.push({
+                id: `${sectionKey}-${fieldKey}`,
+                label: fieldKey.replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase()),
+                value: fieldValue,
+                type: fieldType
+              });
+            }
           }
-          
-          return { ...field, value };
         });
-        
-        return { ...section, fields: updatedFields, isOpen: true };
-      });
+      }
+
+      // Only add section if it has fields
+      if (fields.length > 0) {
+        dynamicSections.push({
+          id: sectionKey,
+          title: sectionTitle,
+          fields: fields,
+          isOpen: true,
+          allowMultipleEntries: Array.isArray(sectionData) && sectionData.length > 1
+        });
+      }
     });
+
+    // Update sections with dynamically created ones
+    setSections(dynamicSections);
+  };
+
+  // Helper function to determine field type
+  const determineFieldType = (key: string, value: any): "text" | "textarea" | "date" | "email" | "tel" | "url" => {
+    const keyLower = key.toLowerCase();
+    
+    if (keyLower.includes('email')) return 'email';
+    if (keyLower.includes('phone')) return 'tel';
+    if (keyLower.includes('linkedin') || keyLower.includes('url') || keyLower.includes('link')) return 'url';
+    if (keyLower.includes('date')) return 'date';
+    if (keyLower.includes('description') || Array.isArray(value) || 
+        (typeof value === 'string' && value.length > 50)) return 'textarea';
+    return 'text';
   };
 
   useEffect(() => {
@@ -882,6 +761,20 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
         </p>
       </div>
 
+      {/* API Status */}
+      <div style={{ marginBottom: "16px" }}>
+        {loading && (
+          <div style={{ color: "#3b82f6", fontSize: "13px", textAlign: "center" }}>
+            Loading resume data...
+          </div>
+        )}
+        {error && (
+          <div style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}>
+            Error: {error}
+          </div>
+        )}
+
+      </div>
 
       <div
         style={{
@@ -997,6 +890,7 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               </>
             )}
           </div>
+
         </div>
 
         <div
@@ -1060,22 +954,28 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       >
         {activeView === "edit" ? (
           <div>
-            {sections.map((section, index) => (
-              <DraggableResumeSection
-                key={section.id}
-                id={section.id}
-                index={index}
-                title={section.title}
-                fields={section.fields}
-                onFieldsChange={(fields) =>
-                  updateSectionFields(section.id, fields)
-                }
-                isOpen={section.isOpen}
-                onToggle={() => toggleSection(section.id)}
-                allowMultipleEntries={section.allowMultipleEntries}
-                moveSection={moveSection}
-              />
-            ))}
+            {sections.length > 0 ? (
+              sections.map((section, index) => (
+                <DraggableResumeSection
+                  key={section.id}
+                  id={section.id}
+                  index={index}
+                  title={section.title}
+                  fields={section.fields}
+                  onFieldsChange={(fields) =>
+                    updateSectionFields(section.id, fields)
+                  }
+                  isOpen={section.isOpen}
+                  onToggle={() => toggleSection(section.id)}
+                  allowMultipleEntries={section.allowMultipleEntries}
+                  moveSection={moveSection}
+                />
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+                {loading ? "Loading resume data..." : "No resume data found"}
+              </div>
+            )}
           </div>
         ) : (
           <div
