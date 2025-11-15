@@ -671,51 +671,6 @@ const ComparePage = () => {
             minHeight: 0,
           }}
         >
-          {rightTab === "ai-insights" && (
-            <div>
-              {/* Fetch and show /resumes from backend */}
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  marginBottom: "1rem",
-                  textAlign: "center",
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}
-              >
-                {loadingApi && <div>Loading resumes...</div>}
-                {apiError && (
-                  <div style={{ color: "#dc2626" }}>Error: {apiError}</div>
-                )}
-                {!loadingApi && !apiError && apiResult && (
-                  <div style={{ textAlign: "left" }}>
-                    <strong>GET /resumes response:</strong>
-                    <pre
-                      style={{
-                        background: "#f3f4f6",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        overflowX: "auto",
-                        color: "#111827",
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      {typeof apiResult === "string"
-                        ? apiResult
-                        : JSON.stringify(apiResult, null, 2)}
-                    </pre>
-                  </div>
-                )}
-                {!loadingApi && !apiError && !apiResult && (
-                  <div>
-                    AI-generated insights will appear here based on your resume
-                    and job description.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
           {rightTab === "job-description" && (
             <div
               style={{
