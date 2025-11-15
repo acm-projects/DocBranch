@@ -8,6 +8,8 @@ import BranchPage from './BranchPage';
 import TemplatesPage from './TemplatePage';
 import LandingPage from './LandingPage';
 import HomePageMain from './HomePageMain';
+import { CreatePage } from './CreatePage';
+import TemplatePage from './TemplatePage';
 // Use HashRouter for Electron compatibility
 const router = createHashRouter([
   {
@@ -33,7 +35,17 @@ const router = createHashRouter([
   {
     path: '/HomePageMain', // new route
     element: <HomePageMain />,
+  },
+  {
+    path: '/CreatePage', // new route
+    element: <CreatePage />,
+  },
+  {
+    path: '/TemplatePage', // new route
+    element: <TemplatePage />,
   }
+
+
 
 ]);
 

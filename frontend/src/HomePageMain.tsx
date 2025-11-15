@@ -1,117 +1,72 @@
-import { useState } from "react";
-import {
-  Search,
-  ArrowRight,
-  GitMerge,
-  Edit3,
-} from "lucide-react";
-import Sidebar from "./Sidebar";
+import React from 'react';
+import { GitBranch, FileText, History } from 'lucide-react';
 
-
-export default function HomePageMain() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-
+const DocBranchLanding = () => {
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-50 to-pink-50">
-      {/* Sidebar */}
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+    <div className="min-h-screen bg-white border">
+      {/* Header */}
+      <div className="text-center pt-16 pb-12 px-8">
+        <h1 className="text-5xl md:text-6xl font-bold mb-6">
+          Welcome to <span className="text-emerald-500">DocBranch</span>!
+        </h1>
+        <p className="text-gray-600 text-lg md:text-xl">
+          Create, manage, and version control your professional resumes with
+          <br />
+          powerful branching capabilities
+        </p>
+      </div>
 
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto p-8">
-          {/* Welcome Header */}
-          <h1 className="text-5xl font-bold mb-6">
-            Welcome to, <span className="text-green-600">DocBranch</span>
-          </h1>
-
-
-
-          {/* Recents Section */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-lg font-semibold">Create, manage, and version control your professional resumes with powerful branching capabilities</h2>
+      {/* What We Do Section */}
+      <div className="pb-16 px-8 md:px-16 lg:px-24">
+        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12">What We Do</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          {/* Document Branching Card */}
+          <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-8 text-center hover:shadow-lg transition-shadow">
+            <div className="flex justify-center mb-4">
+              <GitBranch className="w-10 h-10 text-emerald-600" />
             </div>
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-lg font-semibold">What We Do</h2>
-            </div>
-
+            <h3 className="font-semibold text-xl mb-4 text-gray-800">Document Branching</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Create multiple branches for Git-like branching for different opportunities
+            </p>
           </div>
 
+          {/* Professional Templates Card */}
+          <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-8 text-center hover:shadow-lg transition-shadow">
+            <div className="flex justify-center mb-4">
+              <FileText className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="font-semibold text-xl mb-4 text-gray-800">Professional Templates</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Access expertly designed templates that make your documents stand out
+            </p>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Make Branch */}
-            <button className="bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 p-6 rounded-2xl border-2 border-green-600 transition-all hover:shadow-lg text-left group">
-              <div className="flex items-start gap-3 mb-4">
-                <GitMerge size={24} className="text-green-700" />
-                <div>
-                  <h3 className="font-semibold text-gray-800">Document Branching</h3>
-                  <p className="text-sm text-gray-600">
-                    Create multiple branches for Git-like branching for different opportunities
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
-                <span>Get Started</span>
-                <ArrowRight
-                  size={16}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
-              </div>
-            </button>
-
-
-            {/* Edit Branch */}
-            <button className="bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 p-6 rounded-2xl border-2 border-green-600 transition-all hover:shadow-lg text-left group">
-              <div className="flex items-start gap-3 mb-4">
-                <Edit3 size={24} className="text-green-700" />
-                <div>
-                  <h3 className="font-semibold text-gray-800"> Professional Templates</h3>
-                  <p className="text-sm text-gray-600">
-                    Access expertly designed templates that make your documents stand out
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
-                <span>Go Home</span>
-                <ArrowRight
-                  size={16}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
-              </div>
-            </button>
-            
-            {/* Version Tracking */}
-            <button className="bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 p-6 rounded-2xl border-2 border-green-600 transition-all hover:shadow-lg text-left group">
-              <div className="flex items-start gap-3 mb-4">
-                <Edit3 size={24} className="text-green-700" />
-                <div>
-                  <h3 className="font-semibold text-gray-800"> Professional Templates</h3>
-                  <p className="text-sm text-gray-600">
-                    Access expertly designed templates that make your documents stand out
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
-                <span>Go Home</span>
-                <ArrowRight
-                  size={16}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
-              </div>
-            </button>
-
-
+          {/* Version Tracking Card */}
+          <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-8 text-center hover:shadow-lg transition-shadow">
+            <div className="flex justify-center mb-4">
+              <History className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="font-semibold text-xl mb-4 text-gray-800">Version Tracking</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Never lose progress. Track all changes and revert to any previous version
+            </p>
           </div>
         </div>
-      </main>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 items-center">
+          <button className="w-full sm:w-auto px-12 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-colors">
+            Log-In
+          </button>
+          <button className="w-full sm:w-auto px-12 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-colors">
+            Continue as Guest
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
-
+export default DocBranchLanding;

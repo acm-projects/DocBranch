@@ -118,10 +118,12 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { icon: <Upload size={20} />, label: "Upload Resume", path: "/upload" },
     { icon: <FileText size={20} />, label: "Make Resume", path: "/ComparePage" },
     { icon: <GitBranch size={20} />, label: "View Branches", path: "/BranchPage" },
+    { icon: <FileText size = {20} />, label: "Template Page", path: "/TemplatesPage" },
+
   ];
 
   const topItems = [
-    { icon: <User size={20} />, label: "Profile", path: "/profile" },
+    { icon: <User size={20} />, label: "Profile", path: "/CreatePage" },
     { icon: <Settings size={20} />, label: "Settings", path: "/settings" },
   ];
 
@@ -166,7 +168,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             onClick={() => handleNavigation(item.path)}
             className={`${itemClass} ${
               collapsed ? "justify-center p-3" : "gap-3 px-3 py-2"
-            } ${isActive(item.path) ? "bg-green-100 text-green-700" : ""}`}
+            } ${isActive(item.path) ? "bg-green-100 text-green-600" : ""}`}
           >
             {item.icon}
             {!collapsed && (
@@ -182,7 +184,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             onClick={() => handleNavigation(item.path)}
             className={`${itemClass} ${
               collapsed ? "justify-center p-3" : "gap-3 px-3 py-2"
-            } ${isActive(item.path) ? "bg-green-100 text-green-700" : ""}`}
+            } ${isActive(item.path) ? "bg-green-100 text-green-600" : ""}`}
           >
             {item.icon}
             {!collapsed && (
