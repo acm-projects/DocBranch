@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
   return (
@@ -9,7 +8,6 @@ const HomePage = () => {
         <p className="text-lg text-gray-600 mb-6">Welcome to the home page!</p>
         <Link
           to="/ComparePage"
-
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
         >
           Go to Compare Page <br></br>
@@ -23,36 +21,28 @@ const HomePage = () => {
         </Link>
 
         <Link
-            to="/TemplatesPage"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            Go to Resume Templates <br></br>
-          </Link>
-        
+          to="/TemplatesPage"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
+          Go to Resume Templates <br></br>
+        </Link>
 
         <Link
-            to="/LandingPage"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            Go to Landing Page <br></br>
-          </Link>
+          to="/LandingPage"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
+          Go to Landing Page <br></br>
+        </Link>
 
         <Link
-            to="/HomePageMain"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            Go to Home Page <br></br>
-          </Link>
-
-
-
+          to="/HomePageMain"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
+          Go to Home Page <br></br>
+        </Link>
       </div>
     </div>
   );
 };
 
 export default HomePage;
-
-
-
-

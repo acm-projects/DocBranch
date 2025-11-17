@@ -18,7 +18,7 @@ interface SectionData {
   allowMultipleEntries: boolean;
 }
 
-// Default sections 
+// Default sections
 const defaultSections: SectionData[] = [
   {
     id: 'personal',
@@ -26,12 +26,12 @@ const defaultSections: SectionData[] = [
     isOpen: false,
     allowMultipleEntries: false,
     fields: [
-      { id: 'name', label: 'Full Name', value: '', type: 'text' },
-      { id: 'email', label: 'Email', value: '', type: 'email' },
-      { id: 'phone', label: 'Phone', value: '', type: 'tel' },
-      { id: 'address', label: 'Address', value: '', type: 'text' },
-      { id: 'linkedin', label: 'LinkedIn', value: '', type: 'url' },
-    ]
+      { id: "name", label: "Full Name", value: "", type: "text" },
+      { id: "email", label: "Email", value: "", type: "email" },
+      { id: "phone", label: "Phone", value: "", type: "tel" },
+      { id: "address", label: "Address", value: "", type: "text" },
+      { id: "linkedin", label: "LinkedIn", value: "", type: "url" },
+    ],
   },
   {
     id: 'education',
@@ -39,74 +39,84 @@ const defaultSections: SectionData[] = [
     isOpen: false,
     allowMultipleEntries: true,
     fields: [
-      { id: 'institution', label: 'Name of Institution', value: '', type: 'text' },
-      { id: 'degree', label: 'Degree', value: '', type: 'text' },
-      { id: 'field', label: 'Field of Study', value: '', type: 'text' },
-      { id: 'year', label: 'Graduation Year', value: '', type: 'text' },
-      { id: 'gpa', label: 'GPA', value: '', type: 'text' },
-    ]
+      {
+        id: "institution",
+        label: "Name of Institution",
+        value: "",
+        type: "text",
+      },
+      { id: "degree", label: "Degree", value: "", type: "text" },
+      { id: "field", label: "Field of Study", value: "", type: "text" },
+      { id: "year", label: "Graduation Year", value: "", type: "text" },
+      { id: "gpa", label: "GPA", value: "", type: "text" },
+    ],
   },
   {
-    id: 'experience',
-    title: 'Experience',
+    id: "experience",
+    title: "Experience",
     isOpen: false,
     allowMultipleEntries: true,
     fields: [
-      { id: 'position', label: 'Position', value: '', type: 'text' },
-      { id: 'company', label: 'Company', value: '', type: 'text' },
-      { id: 'startDate', label: 'Start Date', value: '', type: 'date' },
-      { id: 'endDate', label: 'End Date', value: '', type: 'date' },
-      { id: 'description', label: 'Description', value: '', type: 'textarea' },
-    ]
+      { id: "position", label: "Position", value: "", type: "text" },
+      { id: "company", label: "Company", value: "", type: "text" },
+      { id: "startDate", label: "Start Date", value: "", type: "date" },
+      { id: "endDate", label: "End Date", value: "", type: "date" },
+      { id: "description", label: "Description", value: "", type: "textarea" },
+    ],
   },
   {
-    id: 'skills',
-    title: 'Skills',
+    id: "skills",
+    title: "Skills",
     isOpen: false,
     allowMultipleEntries: false,
     fields: [
-      { id: 'technical', label: 'Technical Skills', value: '', type: 'textarea' },
-      { id: 'soft', label: 'Soft Skills', value: '', type: 'textarea' },
-      { id: 'languages', label: 'Languages', value: '', type: 'text' },
-    ]
+      {
+        id: "technical",
+        label: "Technical Skills",
+        value: "",
+        type: "textarea",
+      },
+      { id: "soft", label: "Soft Skills", value: "", type: "textarea" },
+      { id: "languages", label: "Languages", value: "", type: "text" },
+    ],
   },
   {
-    id: 'organizations',
-    title: 'Organizations',
+    id: "organizations",
+    title: "Organizations",
     isOpen: false,
     allowMultipleEntries: true,
     fields: [
-      { id: 'orgName', label: 'Organization Name', value: '', type: 'text' },
-      { id: 'role', label: 'Role', value: '', type: 'text' },
-      { id: 'duration', label: 'Duration', value: '', type: 'text' },
-      { id: 'activities', label: 'Activities', value: '', type: 'textarea' },
-    ]
+      { id: "orgName", label: "Organization Name", value: "", type: "text" },
+      { id: "role", label: "Role", value: "", type: "text" },
+      { id: "duration", label: "Duration", value: "", type: "text" },
+      { id: "activities", label: "Activities", value: "", type: "textarea" },
+    ],
   },
   {
-    id: 'awards',
-    title: 'Awards/Honors',
+    id: "awards",
+    title: "Awards/Honors",
     isOpen: false,
     allowMultipleEntries: true,
     fields: [
-      { id: 'awardName', label: 'Award Name', value: '', type: 'text' },
-      { id: 'issuer', label: 'Issuer', value: '', type: 'text' },
-      { id: 'date', label: 'Date', value: '', type: 'date' },
-      { id: 'description', label: 'Description', value: '', type: 'textarea' },
-    ]
-  }
+      { id: "awardName", label: "Award Name", value: "", type: "text" },
+      { id: "issuer", label: "Issuer", value: "", type: "text" },
+      { id: "date", label: "Date", value: "", type: "date" },
+      { id: "description", label: "Description", value: "", type: "textarea" },
+    ],
+  },
 ];
 
 const additionalSectionTemplates = [
-  { title: 'Projects', allowMultipleEntries: true },
-  { title: 'Certifications', allowMultipleEntries: true },
-  { title: 'Publications', allowMultipleEntries: true },
-  { title: 'Volunteer Work', allowMultipleEntries: true },
-  { title: 'References', allowMultipleEntries: true },
-  { title: 'Summary', allowMultipleEntries: false },
-  { title: 'Interests', allowMultipleEntries: false },
+  { title: "Projects", allowMultipleEntries: true },
+  { title: "Certifications", allowMultipleEntries: true },
+  { title: "Publications", allowMultipleEntries: true },
+  { title: "Volunteer Work", allowMultipleEntries: true },
+  { title: "References", allowMultipleEntries: true },
+  { title: "Summary", allowMultipleEntries: false },
+  { title: "Interests", allowMultipleEntries: false },
 ];
 
-// Resume Section Component 
+// Resume Section Component
 interface ResumeSectionProps {
   title: string;
   fields: FieldData[];
@@ -124,6 +134,8 @@ function ResumeSection({
 }: ResumeSectionProps) {
   const [hoveredField, setHoveredField] = useState<string | null>(null);
 
+  const [hoveredField, setHoveredField] = useState<string | null>(null);
+
   const addField = () => {
     const newField: FieldData = {
       id: `field-${Date.now()}-${Math.random()}`,
@@ -136,14 +148,14 @@ function ResumeSection({
   };
 
   const updateField = (fieldId: string, updates: Partial<FieldData>) => {
-    const newFields = fields.map(field => 
+    const newFields = fields.map((field) =>
       field.id === fieldId ? { ...field, ...updates } : field
     );
     onFieldsChange(newFields);
   };
 
   const removeField = (fieldId: string) => {
-    const newFields = fields.filter(field => field.id !== fieldId);
+    const newFields = fields.filter((field) => field.id !== fieldId);
     onFieldsChange(newFields);
   };
 
@@ -186,8 +198,8 @@ function ResumeSection({
             alignItems: 'start'
           }}>
             {fields.map((field) => (
-              <div 
-                key={field.id} 
+              <div
+                key={field.id}
                 style={{
                   gridColumn: field.type === 'textarea' ? '1 / -1' : 'auto',
                   border: '2px solid #e5e7eb',
@@ -197,6 +209,8 @@ function ResumeSection({
                   width: '100%',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                 }}
+                onMouseEnter={() => setHoveredField(field.id)}
+                onMouseLeave={() => setHoveredField(null)}
                 onMouseEnter={() => setHoveredField(field.id)}
                 onMouseLeave={() => setHoveredField(null)}
               >
@@ -565,19 +579,21 @@ export function ResumeEditor() {
   const [activeView, setActiveView] = useState<'edit' | 'preview'>('edit');
 
   const toggleSection = (sectionId: string) => {
-    setSections(sections.map(section => 
-      section.id === sectionId 
-        ? { ...section, isOpen: !section.isOpen }
-        : section
-    ));
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, isOpen: !section.isOpen }
+          : section
+      )
+    );
   };
 
   const updateSectionFields = (sectionId: string, fields: FieldData[]) => {
-    setSections(sections.map(section => 
-      section.id === sectionId 
-        ? { ...section, fields }
-        : section
-    ));
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId ? { ...section, fields } : section
+      )
+    );
   };
 
   const addSection = (title: string, allowMultipleEntries: boolean) => {
@@ -587,11 +603,17 @@ export function ResumeEditor() {
       isOpen: true,
       allowMultipleEntries,
       fields: [
-        { id: `field-${Date.now()}`, label: 'Title', value: '', type: 'text' },
-        { id: `field-${Date.now()}-2`, label: 'Description', value: '', type: 'textarea' },
-      ]
+        { id: `field-${Date.now()}`, label: "Title", value: "", type: "text" },
+        {
+          id: `field-${Date.now()}-2`,
+          label: "Description",
+          value: "",
+          type: "textarea",
+        },
+      ],
     };
     setSections([...sections, newSection]);
+    setDropdownOpen(false);
     setDropdownOpen(false);
   };
 
@@ -751,7 +773,7 @@ export function ResumeEditor() {
           border: '1px solid #e2e8f0'
         }}>
           <button
-            onClick={() => setActiveView('edit')}
+            onClick={() => setActiveView("edit")}
             style={{
               padding: '6px 14px',
               borderRadius: '4px',
@@ -767,7 +789,7 @@ export function ResumeEditor() {
             Edit
           </button>
           <button
-            onClick={() => setActiveView('preview')}
+            onClick={() => setActiveView("preview")}
             style={{
               padding: '6px 14px',
               borderRadius: '4px',
@@ -823,7 +845,9 @@ export function ResumeEditor() {
         )}
       </div>
     </div>
+    </div>
   );
 }
+
 
 export default ResumeEditor;

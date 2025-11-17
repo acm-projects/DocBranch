@@ -1,0 +1,12 @@
+{
+  "name": "resume-generator",
+  "version": "1.0.0",
+  "main": "jsonToPDFDemo.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^38.2.2",
+    "pdfkit": "^0.17.2"
+  }
+}
