@@ -1,1 +1,5 @@
 *.env
+branch/demo.js
+database/demo-s3.js
+resume-generator/generated-resumes/*.pdf
+resume-generator/resume_json_files/*.json
