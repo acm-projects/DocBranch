@@ -83,7 +83,11 @@ app.post('/bedrock/query', async (req, res) => {
     }
 
     const result = await queryKnowledgeBase(userText, options);
-    res.json(result);
+    res.json({
+      generatedText: result.generatedText ?? (result?.response?.output?.text ?? null),
+      citations: result.citations ?? null,
+      raw: result.raw ?? result.response ?? result
+    });
   } catch (error) {
     console.error('Bedrock query error:', error);
     res.status(500).json({ error: error && error.message ? error.message : String(error) });

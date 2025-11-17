@@ -137,8 +137,23 @@ async function queryKnowledgeBase(userText, options = {}) {
   const command = new RetrieveAndGenerateCommand(input);
 
   const response = await client.send(command);
+  console.log('Bedrock raw response:', JSON.stringify(response, null, 2));
 
-  return {response, jobUrl: options.jobUrl || null, jobDescription: jobDescriptionText || null};
+  const generatedText =
+    response?.output?.text ??
+    response?.output?.[0]?.text ??
+    response?.output?.[0]?.content?.[0]?.text ??
+    response?.output?.[0]?.content ??
+    response?.output ??
+    null;
+
+  const citations =
+    response?.citations ??
+    response?.output?.citations ??
+    response?.output?.[0]?.citations ??
+    [];
+
+  return { raw: response, generatedText, citations, jobUrl: options.jobUrl || null, jobDescription: jobDescriptionText || null };
 }
 
 // Exports (support both default-style and named import patterns for consumers)

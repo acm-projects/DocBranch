@@ -27,12 +27,19 @@ const ComparePage = () => {
       setLoadingApi(true);
       setApiError(null);
       try {
-        const res = await backend_api.post("/bedrock/query", {
-          query: "Give me a summary of this job posting",
-          jobUrl:
-            "https://motorolasolutions.wd5.myworkdayjobs.com/en-US/Careers/job/Allen-TX-TX139/Software-Engineering-Intern---Summer-2026_R58226",
-        });
-        if (!cancelled) setApiResult(res.data);
+        const query =
+          "Generate a new resume json file using the data in Allen Zheng's resumes that would be best to apply to this job posting. Do not give anything in the output besides the text that makes up the json file";
+        const jobUrl =
+          "https://motorolasolutions.wd5.myworkdayjobs.com/en-US/Careers/job/Allen-TX-TX139/Software-Engineering-Intern---Summer-2026_R58226";
+        const res = await backend_api.post("/bedrock/query", { query, jobUrl });
+        const generated = res;
+        //res.data.generatedText ?? res.data.response?.output?.text ?? null;
+        if (generated) {
+          setApiResult(generated);
+        } else {
+          setApiError("No generated text returned by backend");
+        }
+        // if (!cancelled) setApiResult(res.data.response.output.text);
       } catch (err: any) {
         if (!cancelled) setApiError(err?.message || String(err));
       } finally {
@@ -688,13 +695,13 @@ const ComparePage = () => {
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 }}
               >
-                {loadingApi && <div>Loading resumes...</div>}
+                {loadingApi && <div>Loading generated resume...</div>}
                 {apiError && (
                   <div style={{ color: "#dc2626" }}>Error: {apiError}</div>
                 )}
                 {!loadingApi && !apiError && apiResult && (
                   <div style={{ textAlign: "left" }}>
-                    <strong>GET /resumes response:</strong>
+                    <strong>Generated Resume:</strong>
                     <pre
                       style={{
                         background: "#f3f4f6",
@@ -705,9 +712,14 @@ const ComparePage = () => {
                         fontSize: "0.8125rem",
                       }}
                     >
-                      {typeof apiResult === "string"
-                        ? apiResult
-                        : JSON.stringify(apiResult, null, 2)}
+                      {
+                        // typeof apiResult === "string" ? (
+                        //   apiResult
+                        // ) : (
+                        //   <PdfViewer resumeObj={JSON.parse(apiResult)} />
+                        // )
+                      }
+                      {JSON.stringify(apiResult, null, 2)}
                     </pre>
                   </div>
                 )}
