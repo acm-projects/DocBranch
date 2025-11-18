@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Lightbulb, Menu, Search } from "lucide-react";
+import { Lightbulb, Menu, Search, X } from "lucide-react";
 import { ResumeEditor } from "./Components/ResumeEditor";
 import PdfViewer from "./PdfViewer";
 import backend_api from "./services/testapi";
@@ -19,6 +19,10 @@ const ComparePage = () => {
   const [apiResult, setApiResult] = useState<any>(null);
   const [loadingApi, setLoadingApi] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [jobModalContent, setJobModalContent] = useState<string | null>(null);
+  const [savedJobDescription, setSavedJobDescription] = useState("");
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<string>("");
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     if (rightTab !== "ai-insights") return;
@@ -40,6 +44,42 @@ const ComparePage = () => {
       cancelled = true;
     };
   }, [rightTab]);
+
+  const handleAIAnalysis = async () => {
+  if (!savedJobDescription) {
+    alert('Please add a job description first');
+    return;
+  }
+
+  setAnalyzing(true);
+  setAiAnalysisResult("");
+  setApiError(null);
+
+  try {
+    // Get resume data from backend
+    const resumeResponse = await backend_api.get('/resumes/000000/000005');
+    const resumeData = resumeResponse.data;
+    console.log('Resume data received:', resumeData);
+
+    // Use Axios to call backend API instead of Electron IPC
+    const response = await backend_api.post('/analyze-resume', {
+      resumeData: resumeData,
+      jobDescription: savedJobDescription
+    });
+
+    if (response.data.success) {
+      setAiAnalysisResult(response.data.result);
+    } else {
+      setApiError(response.data.error || "Analysis failed");
+    }
+  } catch (error: any) {
+    console.error('AI analysis failed:', error);
+    const errorMessage = error.response?.data?.error || error.message || 'Failed to analyze resume - please try again';
+    setApiError(errorMessage);
+  } finally {
+    setAnalyzing(false);
+  }
+};
 
   const handleCommentResize = (e: {
     preventDefault: () => void;
@@ -143,6 +183,25 @@ const ComparePage = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
+  const handleJobSubmit = () => {
+    if (jobModalContent && jobModalContent.trim()) {
+      setSavedJobDescription(jobModalContent);
+      setJobModalContent(null);
+    }
+  };
+
+  const handleEditJob = () => {
+    setJobModalContent(savedJobDescription);
+  };
+
+  const handleAddJob = () => {
+    setJobModalContent("");
+  };
+
+  const handleCloseModal = () => {
+    setJobModalContent(null);
+  };
+
   const middleTotal = 100 - leftWidth - rightWidth;
 
   return (
@@ -177,7 +236,6 @@ const ComparePage = () => {
             flexShrink: 0,
           }}
         >
-          {/* Header with Hamburger + Text */}
           <div
             style={{
               display: "flex",
@@ -217,7 +275,6 @@ const ComparePage = () => {
             </h2>
           </div>
 
-          {/* Apple-style Search Bar */}
           <div
             style={{
               position: "relative",
@@ -680,38 +737,361 @@ const ComparePage = () => {
                 gap: "1rem",
               }}
             >
-              <p
+              {!savedJobDescription ? (
+                <>
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "#6b7280",
+                      textAlign: "center",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    Add a job description to get AI-powered insights and
+                    recommendations.
+                  </p>
+                  <button
+                    onClick={handleAddJob}
+                    style={{
+                      backgroundColor: "#10b981",
+                      color: "white",
+                      padding: "0.625rem 1.5rem",
+                      borderRadius: "0.5rem",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    Add Job Description
+                  </button>
+                </>
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: "#f9fafb",
+                      borderRadius: "0.5rem",
+                      padding: "1rem",
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                      lineHeight: "1.5",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    {savedJobDescription}
+                  </div>
+                  <button
+                    onClick={handleEditJob}
+                    style={{
+                      backgroundColor: "transparent",
+                      color: "#10b981",
+                      padding: "0.5rem 1rem",
+                      borderRadius: "0.5rem",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      border: "1px solid #10b981",
+                      cursor: "pointer",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f0fdf4";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {rightTab === "ai-insights" && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+                height: "100%",
+              }}
+            >
+              <div
                 style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  alignItems: "center",
+                }}
+              >
+                <button
+                  onClick={handleAIAnalysis}
+                  disabled={!savedJobDescription || analyzing}
+                  style={{
+                    backgroundColor: savedJobDescription ? "#10b981" : "#9ca3af",
+                    color: "white",
+                    padding: "0.625rem 1.5rem",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    border: "none",
+                    cursor: savedJobDescription && !analyzing ? "pointer" : "not-allowed",
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    width: "100%",
+                    maxWidth: "200px",
+                  }}
+                >
+                  {analyzing ? "Analyzing..." : "Get AI Insights"}
+                </button>
+
+                {!savedJobDescription && (
+                  <p
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#6b7280",
+                      textAlign: "center",
+                      fontStyle: "italic",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    Add a job description first to get AI insights
+                  </p>
+                )}
+              </div>
+
+              {aiAnalysisResult && (
+                <div
+                  style={{
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "0.5rem",
+                    padding: "1rem",
+                    fontSize: "0.875rem",
+                    color: "#374151",
+                    lineHeight: "1.5",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    overflowY: "auto",
+                    flex: 1,
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    border: "1px solid #e5e7eb",
+                  }}
+                >
+                  {aiAnalysisResult}
+                </div>
+              )}
+
+              {apiError && (
+                <div
+                  style={{
+                    backgroundColor: "#fef2f2",
+                    borderRadius: "0.5rem",
+                    padding: "1rem",
+                    fontSize: "0.875rem",
+                    color: "#dc2626",
+                    lineHeight: "1.5",
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    border: "1px solid #fecaca",
+                  }}
+                >
+                  Error: {apiError}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Job Description Modal */}
+      {jobModalContent !== null && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={handleCloseModal}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "1rem",
+              padding: "2rem",
+              maxWidth: "500px",
+              width: "90%",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: "600",
+                  color: "#111827",
+                  margin: 0,
                   fontFamily:
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 }}
               >
-                Add a job description to get AI-powered insights and
-                recommendations.
-              </p>
+                {savedJobDescription ? "Edit Job Description" : "Add Job Description"}
+              </h3>
               <button
+                onClick={handleCloseModal}
                 style={{
-                  backgroundColor: "#10b981",
-                  color: "white",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "0.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "0.375rem",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f3f4f6")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <X size={20} color="#6b7280" />
+              </button>
+            </div>
+
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "#6b7280",
+                marginBottom: "1.5rem",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              }}
+            >
+              Paste job description or job URL
+            </p>
+
+            <textarea
+              value={jobModalContent}
+              onChange={(e) => setJobModalContent(e.target.value)}
+              placeholder="Paste job description text or URL here..."
+              style={{
+                width: "100%",
+                minHeight: "200px",
+                padding: "0.75rem",
+                borderRadius: "0.5rem",
+                border: "1px solid #d1d5db",
+                fontSize: "0.875rem",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                resize: "vertical",
+                outline: "none",
+                boxSizing: "border-box",
+                backgroundColor: "#d5f8e2",
+                color: "#064e3b",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#10b981";
+                e.currentTarget.style.backgroundColor = "#dcfce7";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "#d1d5db";
+                e.currentTarget.style.backgroundColor = "#f0fdf4";
+              }}
+            />
+
+            <div
+              style={{
+                display: "flex",
+                gap: "0.75rem",
+                marginTop: "1.5rem",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={handleCloseModal}
+                style={{
+                  padding: "0.625rem 1.5rem",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  border: "1px solid #d1d5db",
+                  backgroundColor: "white",
+                  color: "#374151",
+                  cursor: "pointer",
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f9fafb")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "white")
+                }
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleJobSubmit}
+                style={{
                   padding: "0.625rem 1.5rem",
                   borderRadius: "0.5rem",
                   fontSize: "0.875rem",
                   fontWeight: "500",
                   border: "none",
+                  backgroundColor: "#10b981",
+                  color: "white",
                   cursor: "pointer",
                   fontFamily:
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#059669")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#10b981")
+                }
               >
-                Add Job Description
+                Submit
               </button>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

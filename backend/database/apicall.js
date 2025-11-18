@@ -94,6 +94,35 @@ app.get('/profiles/:userid', async (req, res) => {
   }
 });
 
+//ai insight
+
+const { analyzeResumeWithData } = require('../ai-insight.js');
+
+// route to apicall.js
+app.post('/analyze-resume', async (req, res) => {
+  try {
+    const { resumeData, jobDescription } = req.body;
+    
+    console.log('Received analysis request');
+    console.log('Resume data keys:', Object.keys(resumeData || {}));
+    
+    const analysisResult = await analyzeResumeWithData(resumeData, jobDescription);
+    
+    res.json({
+      success: true,
+      result: analysisResult
+    });
+  } catch (error) {
+    console.error('Analysis endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Analysis failed'
+    });
+  }
+});
+
+
+
 app.get('/resumes/:userid/:resumeid', async (req, res) => {
   const userid = req.params.userid;
   const resumeid = req.params.resumeid;
