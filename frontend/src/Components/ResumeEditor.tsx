@@ -1357,7 +1357,8 @@ export function ResumeEditor() {
               padding: "8px",
               borderRadius: "8px",
               border: "1px solid #e5e7eb",
-              minHeight: "100%",
+              /* Allow the flex parent to control height */
+              minHeight: 0,
               display: "flex",
               flexDirection: "column",
             }}
@@ -1366,16 +1367,17 @@ export function ResumeEditor() {
               style={{
                 flex: 1,
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                /* Stretch the child vertically so PdfViewer can fill */
+                alignItems: "stretch",
+                justifyContent: "stretch",
                 textAlign: "center",
                 color: "#6b7280",
-                padding: "40px 20px",
+                padding: "4px 2px",
                 boxSizing: "border-box",
-                minHeight: "100%",
+                minHeight: 0,
               }}
             >
-              <div style={{ width: "100%" }}>
+              <div style={{ width: "100%", height: "100%" }}>
                 <PdfViewer resumeObj={buildResume()} />
               </div>
             </div>
