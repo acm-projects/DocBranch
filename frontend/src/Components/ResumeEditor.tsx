@@ -1,12 +1,21 @@
 import React, { useState, useCallback } from "react";
 import { Plus, ChevronDown, GripVertical, X, Edit, Save } from "lucide-react";
+import PdfViewer from ".././PdfViewer";
 
 // field interface
 export interface FieldData {
   id: string;
   label: string;
   value: string;
-  type: "text" | "textarea" | "date" | "email" | "tel" | "url";
+  type:
+    | "text"
+    | "textarea"
+    | "date"
+    | "email"
+    | "tel"
+    | "url"
+    | "links"
+    | "list";
   isEditing?: boolean;
 }
 
@@ -30,7 +39,7 @@ const defaultSections: SectionData[] = [
       { id: "email", label: "Email", value: "", type: "email" },
       { id: "phone", label: "Phone", value: "", type: "tel" },
       { id: "address", label: "Address", value: "", type: "text" },
-      { id: "linkedin", label: "LinkedIn", value: "", type: "url" },
+      { id: "links", label: "Links", value: "[]", type: "links" },
     ],
   },
   {
@@ -41,14 +50,17 @@ const defaultSections: SectionData[] = [
     fields: [
       {
         id: "institution",
-        label: "Name of Institution",
+        label: "Institution",
         value: "",
         type: "text",
       },
-      { id: "degree", label: "Degree", value: "", type: "text" },
-      { id: "field", label: "Field of Study", value: "", type: "text" },
-      { id: "year", label: "Graduation Year", value: "", type: "text" },
-      { id: "gpa", label: "GPA", value: "", type: "text" },
+      { id: "location", label: "Location", value: "", type: "text" },
+      { id: "majors", label: "Majors", value: "[]", type: "list" },
+      { id: "minors", label: "Minors", value: "[]", type: "list" },
+      { id: "start_date", label: "Start Date", value: "", type: "text" },
+      { id: "end_date", label: "End Date", value: "", type: "text" },
+      { id: "GPA", label: "GPA", value: "", type: "text" },
+      { id: "description", label: "Description", value: "[]", type: "list" },
     ],
   },
   {
@@ -62,6 +74,20 @@ const defaultSections: SectionData[] = [
       { id: "startDate", label: "Start Date", value: "", type: "date" },
       { id: "endDate", label: "End Date", value: "", type: "date" },
       { id: "description", label: "Description", value: "", type: "textarea" },
+    ],
+  },
+  {
+    id: "projects",
+    title: "Projects",
+    isOpen: false,
+    allowMultipleEntries: true,
+    fields: [
+      { id: "project_name", label: "Name", value: "", type: "text" },
+      { id: "technologies", label: "Technologies", value: "[]", type: "list" },
+      { id: "start_date", label: "Start Date", value: "", type: "date" },
+      { id: "end_date", label: "End Date", value: "", type: "date" },
+      { id: "role", label: "Role", value: "", type: "text" },
+      { id: "description", label: "Description", value: "[]", type: "list" },
     ],
   },
   {
@@ -88,7 +114,8 @@ const defaultSections: SectionData[] = [
     fields: [
       { id: "orgName", label: "Organization Name", value: "", type: "text" },
       { id: "role", label: "Role", value: "", type: "text" },
-      { id: "duration", label: "Duration", value: "", type: "text" },
+      { id: "start_date", label: "Start Date", value: "", type: "date" },
+      { id: "end_date", label: "End Date", value: "", type: "date" },
       { id: "activities", label: "Activities", value: "", type: "textarea" },
     ],
   },
@@ -118,7 +145,6 @@ const additionalSectionTemplates = [
 
 // Resume Section Component
 interface ResumeSectionProps {
-  title: string;
   fields: FieldData[];
   onFieldsChange: (fields: FieldData[]) => void;
   isOpen?: boolean;
@@ -126,11 +152,10 @@ interface ResumeSectionProps {
 }
 
 function ResumeSection({
-  title,
   fields,
   onFieldsChange,
   isOpen = false,
-  allowMultipleEntries = false,
+  allowMultipleEntries: _allowMultipleEntries = false,
 }: ResumeSectionProps) {
   const [hoveredField, setHoveredField] = useState<string | null>(null);
 
@@ -370,7 +395,203 @@ function ResumeSection({
                       backgroundColor: "#ffffff",
                     }}
                   >
-                    {field.type === "textarea" ? (
+                    {field.type === "list" ? (
+                      (() => {
+                        const parsed: string[] = (() => {
+                          try {
+                            return JSON.parse(field.value || "[]");
+                          } catch {
+                            return [];
+                          }
+                        })();
+
+                        return (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 8,
+                            }}
+                          >
+                            {parsed.map((item, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  display: "flex",
+                                  gap: 8,
+                                  alignItems: "center",
+                                }}
+                              >
+                                <input
+                                  placeholder={field.label}
+                                  value={item ?? ""}
+                                  onChange={(e) => {
+                                    const copy = parsed.slice();
+                                    copy[idx] = e.target.value;
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 10px",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                  }}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const copy = parsed.slice();
+                                    copy.splice(idx, 1);
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    backgroundColor: "#ef4444",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "6px 8px",
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <div>
+                              <button
+                                onClick={() => {
+                                  const copy = parsed.slice();
+                                  copy.push("");
+                                  updateField(field.id, {
+                                    value: JSON.stringify(copy),
+                                  });
+                                }}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 6,
+                                  border: "1px dashed #cbd5e1",
+                                  background: "transparent",
+                                }}
+                              >
+                                + Add Item
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : field.type === "links" ? (
+                      (() => {
+                        const parsed: Array<{ label?: string; url?: string }> =
+                          (() => {
+                            try {
+                              return JSON.parse(field.value || "[]");
+                            } catch {
+                              return [];
+                            }
+                          })();
+
+                        return (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 8,
+                            }}
+                          >
+                            {parsed.map((lnk, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  display: "flex",
+                                  gap: 8,
+                                  alignItems: "center",
+                                }}
+                              >
+                                <input
+                                  placeholder="Label (e.g. LinkedIn)"
+                                  value={lnk.label ?? ""}
+                                  onChange={(e) => {
+                                    const copy = parsed.slice();
+                                    copy[idx] = {
+                                      ...(copy[idx] ?? {}),
+                                      label: e.target.value,
+                                    };
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 10px",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                  }}
+                                />
+                                <input
+                                  placeholder="URL"
+                                  value={lnk.url ?? ""}
+                                  onChange={(e) => {
+                                    const copy = parsed.slice();
+                                    copy[idx] = {
+                                      ...(copy[idx] ?? {}),
+                                      url: e.target.value,
+                                    };
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    flex: 2,
+                                    padding: "8px 10px",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                  }}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const copy = parsed.slice();
+                                    copy.splice(idx, 1);
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    backgroundColor: "#ef4444",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "6px 8px",
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <div>
+                              <button
+                                onClick={() => {
+                                  const copy = parsed.slice();
+                                  copy.push({ label: "", url: "" });
+                                  updateField(field.id, {
+                                    value: JSON.stringify(copy),
+                                  });
+                                }}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 6,
+                                  border: "1px dashed #cbd5e1",
+                                  background: "transparent",
+                                }}
+                              >
+                                + Add Link
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : field.type === "textarea" ? (
                       <textarea
                         placeholder={`Enter ${field.label.toLowerCase()}...`}
                         value={field.value}
@@ -467,7 +688,7 @@ interface DraggableSectionProps {
 }
 
 function DraggableResumeSection({
-  id,
+  id: _id,
   index,
   title,
   fields,
@@ -588,7 +809,6 @@ function DraggableResumeSection({
             }}
           >
             <ResumeSection
-              title={title}
               fields={fields}
               onFieldsChange={onFieldsChange}
               isOpen={isOpen}
@@ -654,6 +874,215 @@ export function ResumeEditor() {
       return newSections;
     });
   }, []);
+
+  // Build a resume object from the editor `sections` state.
+  const buildResume = () => {
+    const resume: any = {};
+
+    sections.forEach((section) => {
+      // PERSONAL
+      if (section.id === "personal") {
+        const pi: any = {};
+        section.fields.forEach((f) => {
+          if (f.id === "links") {
+            try {
+              const raw = JSON.parse(f.value || "[]");
+              const normalized = Array.isArray(raw)
+                ? raw.map((item: any) => {
+                    if (
+                      item &&
+                      typeof item === "object" &&
+                      ("label" in item || "url" in item)
+                    ) {
+                      const label = (item.label ?? "").toString();
+                      const key = label
+                        .toLowerCase()
+                        .replace(/\s+/g, "")
+                        .replace(/[^a-z0-9]/g, "");
+                      return { [key || "link"]: item.url ?? "" };
+                    }
+                    return item;
+                  })
+                : [];
+              pi.links = normalized;
+            } catch {
+              pi.links = [];
+            }
+          } else if (f.id === "name") {
+            pi.name = f.value;
+          } else if (f.id === "phone") {
+            pi.phone = f.value;
+          } else if (f.id === "email") {
+            pi.email = f.value;
+          } else if (f.id === "address" || f.id === "location") {
+            pi.location = f.value;
+          } else {
+            pi[f.id] = f.value;
+          }
+        });
+
+        resume.personal_information = pi;
+
+        // PROJECTS (each section treated as one project entry)
+      } else if (section.id === "projects") {
+        const proj: any = {};
+        let hasProjData = false;
+        section.fields.forEach((f) => {
+          if (f.type === "list") {
+            try {
+              const arr = JSON.parse(f.value || "[]");
+              if (
+                Array.isArray(arr) &&
+                arr.some((v: any) => {
+                  if (v == null) return false;
+                  if (typeof v === "string") return v.trim() !== "";
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return !!String(v).trim();
+                })
+              ) {
+                hasProjData = true;
+              }
+              proj[f.id === "project_name" ? "name" : f.id] = arr;
+            } catch {
+              proj[f.id === "project_name" ? "name" : f.id] = [];
+            }
+          } else {
+            const key = f.id === "project_name" ? "name" : f.id;
+            if (typeof f.value === "string" && f.value.trim())
+              hasProjData = true;
+            proj[key] = f.value;
+          }
+        });
+
+        if (hasProjData) {
+          resume.projects = resume.projects || [];
+          resume.projects.push(proj);
+        }
+
+        // EDUCATION
+      } else if (section.id === "education") {
+        const ed: any = {};
+        let hasEduData = false;
+        section.fields.forEach((f) => {
+          if (f.type === "list") {
+            try {
+              const arr = JSON.parse(f.value || "[]");
+              if (
+                Array.isArray(arr) &&
+                arr.some((v: any) => {
+                  if (v == null) return false;
+                  if (typeof v === "string") return v.trim() !== "";
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return !!String(v).trim();
+                })
+              ) {
+                hasEduData = true;
+              }
+              ed[f.id] = arr;
+            } catch {
+              ed[f.id] = [];
+            }
+          } else {
+            if (typeof f.value === "string" && f.value.trim())
+              hasEduData = true;
+            ed[f.id] = f.value;
+          }
+        });
+
+        if (hasEduData) {
+          resume.education = resume.education || [];
+          resume.education.push(ed);
+        }
+
+        // SKILLS (special mapping)
+      } else if (section.id === "skills") {
+        const skillsObj: any = {};
+        section.fields.forEach((f) => {
+          if (f.id === "technical") {
+            skillsObj.programming_languages = f.value
+              ? f.value
+                  .split(/,|\n/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+          } else if (f.id === "soft") {
+            skillsObj.soft_skills = f.value
+              ? f.value
+                  .split(/,|\n/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+          } else if (f.id === "languages") {
+            skillsObj.languages = f.value
+              ? f.value
+                  .split(/,|\n/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+          }
+        });
+
+        const hasSkills =
+          (skillsObj.programming_languages &&
+            skillsObj.programming_languages.length > 0) ||
+          (skillsObj.soft_skills && skillsObj.soft_skills.length > 0) ||
+          (skillsObj.languages && skillsObj.languages.length > 0);
+
+        if (hasSkills) resume.skills = skillsObj;
+
+        // GENERIC / OTHER SECTIONS
+      } else {
+        const obj: any = {};
+        let hasObjData = false;
+        section.fields.forEach((f) => {
+          if (f.type === "list") {
+            try {
+              const arr = JSON.parse(f.value || "[]");
+              if (
+                Array.isArray(arr) &&
+                arr.some((v: any) => {
+                  if (v == null) return false;
+                  if (typeof v === "string") return v.trim() !== "";
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return !!String(v).trim();
+                })
+              ) {
+                hasObjData = true;
+              }
+              obj[f.id] = arr;
+            } catch {
+              obj[f.id] = [];
+            }
+          } else {
+            obj[f.id] = f.value;
+            if (typeof f.value === "string" && f.value.trim())
+              hasObjData = true;
+          }
+        });
+
+        if (hasObjData) {
+          resume[section.id] = resume[section.id] || [];
+          resume[section.id].push(obj);
+        }
+      }
+    });
+
+    // Return the envelope. Do not force-create empty arrays/objects for sections;
+    // only sections that had data are present on `resume`.
+    return {
+      user_id: "0",
+      resume_id: "0",
+      resume,
+      metadata: {
+        resume_info: {
+          resume_creation_date: new Date().toISOString(),
+          filename: "generated_resume.json",
+          template_used: "",
+          section_order: sections.map((s) => s.id),
+        },
+      },
+    };
+  };
 
   return (
     <div
@@ -725,6 +1154,41 @@ export function ResumeEditor() {
             <Plus size={14} />
             Add Section
           </button>
+
+          {/* <button
+            onClick={async () => {
+              const payload = buildResume();
+              try {
+                const savedPath = await (
+                  window as any
+                ).electron.ipcRenderer.invoke("save-resume", {
+                  resumeObj: payload,
+                  filename: `resume_${Date.now()}.json`,
+                });
+                // eslint-disable-next-line no-alert
+                alert(`Saved resume JSON to ${savedPath}`);
+              } catch (err: any) {
+                // eslint-disable-next-line no-alert
+                alert(
+                  "Failed to save resume JSON: " +
+                    (err && err.message ? err.message : String(err))
+                );
+              }
+            }}
+            style={{
+              marginLeft: "8px",
+              background: "#1f2937",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
+          >
+            Save JSON
+          </button> */}
 
           {dropdownOpen && (
             <>
@@ -890,22 +1354,30 @@ export function ResumeEditor() {
           <div
             style={{
               backgroundColor: "white",
-              padding: "24px",
+              padding: "8px",
               borderRadius: "8px",
               border: "1px solid #e5e7eb",
               minHeight: "100%",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <div
               style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 textAlign: "center",
                 color: "#6b7280",
                 padding: "40px 20px",
+                boxSizing: "border-box",
+                minHeight: "100%",
               }}
             >
-              <p style={{ fontSize: "14px", margin: 0 }}>
-                Preview functionality coming soon...
-              </p>
+              <div style={{ width: "100%" }}>
+                <PdfViewer resumeObj={buildResume()} />
+              </div>
             </div>
           </div>
         )}
