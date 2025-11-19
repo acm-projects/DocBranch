@@ -229,7 +229,7 @@ const ComparePage = () => {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       {/* Left Navigation */}
-      {!sidebarCollapsed && (
+      {/* {!sidebarCollapsed && (
         <div
           style={{
             width: `${leftWidth}%`,
@@ -414,7 +414,21 @@ const ComparePage = () => {
             ))}
           </div>
         </div>
-      )}
+        <div
+          style={{
+            fontSize: "0.75rem",
+            color: "#6b7280",
+            fontFamily:
+              '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          2 days ago
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
       {/* Resize Handle 1 */}
       <div

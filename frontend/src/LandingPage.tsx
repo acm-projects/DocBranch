@@ -115,7 +115,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
-                <span>Go Home</span>
+                <span>Get Started</span>
                 <ArrowRight
                   size={16}
                   className="group-hover:translate-x-1 transition-transform"

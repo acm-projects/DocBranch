@@ -41,8 +41,5 @@ const HomePage = () => {
           Go to Home Page <br></br>
         </Link>
       </div>
-    </div>
-  );
-};
 
 export default HomePage;
