@@ -18,7 +18,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const menuItems = [
     { icon: <Upload size={20} />, label: "Upload Resume" },
     { icon: <FileText size={20} />, label: "Make Resume" },
-    // { icon: <GitBranch size={20} />, label: "View Branches" },
+    { icon: <GitBranch size={20} />, label: "View Branches" },
     { icon: <FileText size = {20} />, label: "Template Page" },
     
   ];
