@@ -1,10 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Upload,
   FileText,
   GitBranch,
   User,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Files,
@@ -24,7 +22,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     // { icon: <Upload size={20} />, label: "Upload Resume", path: "/upload" },
     { icon: <FilePlus size={20} />, label: "Create Resume", path: "/CreatePage" },
     { icon: <Files size={20} />, label: "Compare Resumes", path: "/ComparePage" },
-    { icon: <FileText size = {20} />, label: "Templates", path: "/TemplatePage" },
+    { icon: <FileText size = {20} />, label: "Directory", path: "/TemplatePage" },
     { icon: <GitBranch size={20} />, label: "View Branches", path: "/BranchPage" },
 
   ];
