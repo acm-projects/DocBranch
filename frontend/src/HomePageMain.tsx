@@ -1,7 +1,10 @@
 import React from 'react';
 import { GitBranch, FileText, History } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const DocBranchLanding = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-white border">
       {/* Header */}
@@ -57,12 +60,71 @@ const DocBranchLanding = () => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 items-center">
-          <button className="w-full sm:w-auto px-12 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-colors">
+          {/* <button className="w-full sm:w-auto px-12 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-colors">
             Log-In
-          </button>
-          <button className="w-full sm:w-auto px-12 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-colors">
+          </button> */}
+            <button 
+              onClick={() => navigate("/LandingPage")}
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '20px 40px',
+                borderRadius: '40px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+              }}
+            >
+              Log in
+            </button>
+
+          {/* <button className="w-full sm:w-auto px-12 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-colors">
             Continue as Guest
-          </button>
+          </button> */}
+                      <button 
+              onClick={() => navigate("/LandingPage")}
+              style={{
+                background: 'white',
+                color: '#10b981)',
+                border: '2px solid #10b981',
+                padding: '20px 40px',
+                borderRadius: '40px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+              }}
+            >
+              Continue as Guest
+            </button>
+
+
         </div>
       </div>
     </div>

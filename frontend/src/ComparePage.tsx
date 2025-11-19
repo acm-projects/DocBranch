@@ -165,7 +165,7 @@ const ComparePage = () => {
       />
 
       {/* Left Navigation */}
-      {!sidebarCollapsed && (
+      {/* {!sidebarCollapsed && (
         <div
           style={{
             width: `${leftWidth}%`,
@@ -349,8 +349,147 @@ const ComparePage = () => {
             </div>
           ))}
         </div>
+        </div> */}
+        {/* Left Navigation */}
+<div
+  style={{
+    width: sidebarCollapsed ? "15%" : `${leftWidth}%`,
+    backgroundColor: "white",
+    padding: "1.5rem",
+    display: "flex",
+    flexDirection: "column",
+    borderRadius: "1rem",
+    minWidth: "150px",
+    boxSizing: "border-box",
+    overflow: "hidden",
+    transition: "width 0.2s ease",
+  }}
+>
+  {/* Collapse toggle always visible */}
+  <div
+    style={{
+      marginBottom: "1rem",
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      gap: "0.75rem",
+    }}
+  >
+    <div
+      onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+      style={{
+        width: "2rem",
+        height: "2rem",
+        backgroundColor: "#f3f4f6",
+        borderRadius: "0.5rem",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        flexShrink: 0,
+        transition: "background-color 0.2s ease",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e5e7eb")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+    >
+      <Menu size={20} color="#374151" />
+    </div>
+
+    {!sidebarCollapsed && (
+      <h2
+        style={{
+          fontSize: "1.125rem",
+          fontWeight: "600",
+          color: "#111827",
+          margin: 0,
+          lineHeight: 1,
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          /* adding changes */
+          transition: "opacity 0.2s ease, width 0.2s ease",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          textOverflow: "ellipsis",
+          opacity: sidebarCollapsed ? 0.5 : 1, // fade when collapsed
+          width: sidebarCollapsed ? "4rem" : "auto", // shrink when collapsed
+
+        }}
+      >
+        Recent Resumes
+      </h2>
+    )}
+  </div>
+
+  {/* Recent Resumes section - always visible */}
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "0.5rem",
+      flex: 1,
+      overflowY: "auto",
+    }}
+  >
+    {resumes.map((resume) => (
+      <div
+        key={resume.id}
+        style={{
+          padding: "0.75rem",
+          borderRadius: "0.5rem",
+          cursor: "pointer",
+          backgroundColor: "#f3f4f6",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e5e7eb")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "0.25rem",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "0.875rem",
+              fontWeight: "500",
+              color: "#111827",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
+          >
+            {resume.name}
+          </span>
+          <div
+            style={{
+              fontSize: "0.75rem",
+              color: "#6b7280",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
+          >
+            ...
+          </div>
         </div>
-      )}
+        <div
+          style={{
+            fontSize: "0.75rem",
+            color: "#6b7280",
+            fontFamily:
+              '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          2 days ago
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
       {/* Resize Handle 1 */}
       <div
@@ -1020,3 +1159,4 @@ const ComparePage = () => {
 };
 
 export default ComparePage;
+

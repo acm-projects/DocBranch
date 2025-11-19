@@ -1,15 +1,15 @@
-import { StrictMode } from 'react'
+import { Profiler, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import './index.css'
 import HomePage from './HomePage';
 import ComparePage from './ComparePage'
 import BranchPage from './BranchPage';
-import TemplatesPage from './TemplatePage';
 import LandingPage from './LandingPage';
 import HomePageMain from './HomePageMain';
-import { CreatePage } from './CreatePage';
+import {CreatePage} from './CreatePage';
 import TemplatePage from './TemplatePage';
+import Profile from './Profile';
 // Use HashRouter for Electron compatibility
 const router = createHashRouter([
   {
@@ -25,10 +25,6 @@ const router = createHashRouter([
     element: <BranchPage />,
   }, 
   {
-    path: '/TemplatesPage', // new route 
-    element: <TemplatesPage />,
-  },
-  {
     path: '/LandingPage', // new route 
     element: <LandingPage />,
   },
@@ -43,7 +39,13 @@ const router = createHashRouter([
   {
     path: '/TemplatePage', // new route
     element: <TemplatePage />,
+  },
+  {
+    path: '/Profile', // new route
+    element: <Profile />,
   }
+
+  
 
 
 
