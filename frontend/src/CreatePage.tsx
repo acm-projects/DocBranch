@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Checkbox } from './Components/ui/checkbox';
 //import { Label } from './Components/ui/label';
 //import { Badge } from './Components/ui/badge';
+import Sidebar from "./Sidebar";
 
 interface SectionItem {
   id: string;
@@ -94,6 +95,8 @@ interface Template {
 export function CreatePage() {
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
+  // Sidebar collapse state for Sidebar component
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sections, setSections] = useState<ResumeSection[]>([
     {
       id: 'section-1',
@@ -550,6 +553,9 @@ export function CreatePage() {
           gap: '24px',
           alignItems: 'start'
         }}>
+
+             {/* Sidebar Component */}
+          <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
           {/* Template Selector - Left Sidebar */}
           <div>
             <div style={{
