@@ -1,13 +1,12 @@
-import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { app, BrowserWindow, ipcMain, protocol } from "electron";
+import * as path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isDev = process.env.NODE_ENV === 'development';
-
+const isDev = process.env.NODE_ENV === "development";
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow(): void {
@@ -17,36 +16,69 @@ function createWindow(): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-    }
+      preload: path.join(__dirname, "preload.js"),
+      webSecurity: false, // Add this for development
+    },
   });
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL("http://localhost:5173");
     mainWindow.webContents.openDevTools();
   } else {
-    // Since main.ts is in root DocBranch folder, frontend is in same directory
-    const buildPath = path.join(__dirname, 'frontend/dist/index.html');
-    console.log('Loading from:', buildPath);
-    console.log('File exists:', fs.existsSync(buildPath));
+    const buildPath = path.join(__dirname, "frontend/dist/index.html");
     if (fs.existsSync(buildPath)) {
-      mainWindow.loadURL(`file://${buildPath}#/`);
+      mainWindow.loadURL(`file://${buildPath}`);
     } else {
-      console.error('Build file not found at:', buildPath);
+      console.error("Build file not found:", buildPath);
     }
   }
 }
 
-app.whenReady().then(createWindow);
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+// Register a protocol to serve PDF worker files
+app.whenReady().then(() => {
+  protocol.registerFileProtocol('pdf-worker', (request, callback) => {
+    const url = request.url.replace('pdf-worker://', '');
+    const workerPath = path.join(__dirname, '..', 'node_modules', 'pdfjs-dist', 'build', url);
+    callback(workerPath);
+  });
+  
+  createWindow();
 });
 
+// IPC handlers
+ipcMain.handle("load-pdf", async (_, filePath: string) => {
+  console.log(" IPC load-pdf called with:", filePath);
+  const exists = fs.existsSync(filePath);
+  console.log(" File exists?", exists);
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+  if (!exists) {
+    throw new Error("File not found: " + filePath);
+  }
+
+  const data = fs.readFileSync(filePath);
+  console.log("Read bytes:", data.length);
+  return data.toString("base64");
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
+
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+
+// Save resume JSON to disk
+ipcMain.handle("save-resume", async (_, { resumeObj, filename }: { resumeObj: any; filename?: string }) => {
+  try {
+    const outDir = path.join(__dirname, 'backend', 'resume-generator', 'resume_json_files');
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    const outFile = filename ? path.join(outDir, filename) : path.join(outDir, `resume_${Date.now()}.json`);
+    fs.writeFileSync(outFile, JSON.stringify(resumeObj, null, 2), 'utf8');
+    console.log('Saved resume JSON to', outFile);
+    return outFile;
+  } catch (err) {
+    console.error('Failed to save resume JSON:', err);
+    throw err;
   }
 });
