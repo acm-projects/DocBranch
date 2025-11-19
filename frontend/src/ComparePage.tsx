@@ -365,62 +365,29 @@ const ComparePage = () => {
     transition: "width 0.2s ease",
   }}
 >
-  {/* Collapse toggle always visible */}
+  {/* Header */}
   <div
     style={{
-      marginBottom: "1rem",
+      marginBottom: "1.5rem",
       flexShrink: 0,
-      display: "flex",
-      alignItems: "center",
-      gap: "0.75rem",
     }}
   >
-    <div
-      onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+    <h2
       style={{
-        width: "2rem",
-        height: "2rem",
-        backgroundColor: "#f3f4f6",
-        borderRadius: "0.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        flexShrink: 0,
-        transition: "background-color 0.2s ease",
+        fontSize: "1.125rem",
+        fontWeight: "600",
+        color: "#22C55E",
+        margin: 0,
+        lineHeight: 1,
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e5e7eb")}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
     >
-      <Menu size={20} color="#374151" />
-    </div>
-
-    {!sidebarCollapsed && (
-      <h2
-        style={{
-          fontSize: "1.125rem",
-          fontWeight: "600",
-          color: "#111827",
-          margin: 0,
-          lineHeight: 1,
-          fontFamily:
-            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          /* adding changes */
-          transition: "opacity 0.2s ease, width 0.2s ease",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
-          opacity: sidebarCollapsed ? 0.5 : 1, // fade when collapsed
-          width: sidebarCollapsed ? "4rem" : "auto", // shrink when collapsed
-
-        }}
-      >
-        Recent Resumes
-      </h2>
-    )}
+      Recent Resumes
+    </h2>
   </div>
 
-  {/* Recent Resumes section - always visible */}
+  {/* Recent Resumes section */}
   <div
     style={{
       display: "flex",
@@ -439,7 +406,7 @@ const ComparePage = () => {
           cursor: "pointer",
           backgroundColor: "#f3f4f6",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e5e7eb")}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#DCFCE7")}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
       >
         <div
