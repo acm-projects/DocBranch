@@ -40,17 +40,17 @@ async function analyzeResumeWithData(resumeData, jobDescriptionInput) {
           sourceType = 'plain text (URL failed)';
         }
       } else {
-        // Plain text job description
-        console.log('Detected plain text job description');
-        jobDescContent = {
-          company: "Provided Company",
-          title: "Provided Position",
-          responsibilities: [jobDescriptionInput],
-          requiredSkills: ["Extracted from description"],
-          eligibilityRequirements: ["Extracted from description"]
-        };
-        sourceType = 'plain text';
-      }
+  // Plain text job description
+  console.log('Detected plain text job description');
+  jobDescContent = {
+    company: "Target Company",
+    title: "Target Position", 
+    responsibilities: [jobDescriptionInput], 
+    requiredSkills: [], 
+    eligibilityRequirements: [] 
+  };
+  sourceType = 'plain text';
+}
     } else if (jobDescriptionInput && typeof jobDescriptionInput === 'object') {
       console.log('Detected structured job description object');
       jobDescContent = jobDescriptionInput;
@@ -75,6 +75,8 @@ async function analyzeResumeWithData(resumeData, jobDescriptionInput) {
 Analyze this resume JSON data against the job description and provide constructive feedback.
 
 JOB DESCRIPTION:
+${jobDescContent?.description || 'No job description provided'}
+
 Company: ${jobDescContent?.company || 'Not specified'}
 Title: ${jobDescContent?.title || 'Not specified'}
 Responsibilities: ${JSON.stringify(jobDescContent?.responsibilities || [], null, 2)}
