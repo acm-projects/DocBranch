@@ -1361,6 +1361,8 @@ export function ResumeEditor() {
               minHeight: 0,
               display: "flex",
               flexDirection: "column",
+              /* Ensure this box expands to fill the available vertical space */
+              flex: 1,
             }}
           >
             <div
@@ -1375,10 +1377,21 @@ export function ResumeEditor() {
                 padding: "4px 2px",
                 boxSizing: "border-box",
                 minHeight: 0,
+                overflow: "hidden",
               }}
             >
-              <div style={{ width: "100%", height: "100%" }}>
-                <PdfViewer resumeObj={buildResume()} />
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  flex: 1,
+                  minHeight: 0,
+                }}
+              >
+                <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
+                  <PdfViewer resumeObj={buildResume()} />
+                </div>
               </div>
             </div>
           </div>
