@@ -5,6 +5,7 @@ import PdfViewer from "./PdfViewer";
 import backend_api from "./services/testapi";
 
 const ComparePage = () => {
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("comments");
   const [resumes] = useState([
     { id: 1, name: "Kida_Khanooni" },
@@ -16,8 +17,7 @@ const ComparePage = () => {
   const [rightWidth, setRightWidth] = useState(15);
   const [rightTab, setRightTab] = useState("ai-insights");
   const [searchQuery, setSearchQuery] = useState("");
-  const [apiResult, setApiResult] = useState<any>(null);
-  const [loadingApi, setLoadingApi] = useState(false);
+  // Removed unused apiResult and loadingApi state
   const [apiError, setApiError] = useState<string | null>(null);
   const [jobModalContent, setJobModalContent] = useState<string | null>(null);
   const [savedJobDescription, setSavedJobDescription] = useState("");
@@ -25,25 +25,10 @@ const ComparePage = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [showCurrentResume, setShowCurrentResume] = useState(false);
 
+
   useEffect(() => {
-    if (rightTab !== "ai-insights") return;
-    let cancelled = false;
-    const fetchResumes = async () => {
-      setLoadingApi(true);
-      setApiError(null);
-      try {
-        const res = await backend_api.get("/resumes");
-        if (!cancelled) setApiResult(res.data);
-      } catch (err: any) {
-        if (!cancelled) setApiError(err?.message || String(err));
-      } finally {
-        if (!cancelled) setLoadingApi(false);
-      }
-    };
-    fetchResumes();
-    return () => {
-      cancelled = true;
-    };
+    // Removed fetchResumes logic and unused state
+    // If needed, add logic here for rightTab changes
   }, [rightTab]);
 
   const handleAIAnalysis = async () => {
@@ -80,63 +65,50 @@ const ComparePage = () => {
     }
   };
 
-  const handleCommentResize = (e: {
-    preventDefault: () => void;
-    clientY: any;
-  }) => {
+
+  
+  // --- Resize Handlers ---
+  const handleCommentResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const startY = e.clientY;
     const startHeight = commentBoxHeight;
-
-    const handleMouseMove = (moveEvent: { clientY: number }) => {
+    function handleMouseMove(moveEvent: MouseEvent) {
       const deltaY = -moveEvent.clientY + startY;
       const newHeight = Math.max(0, Math.min(startHeight + deltaY, 400));
       setCommentBoxHeight(newHeight);
-    };
-
-    const handleMouseUp = () => {
+    }
+    function handleMouseUp() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-    };
-
+    }
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleLeftResize = (e: {
-    preventDefault: () => void;
-    clientX: any;
-  }) => {
+  const handleLeftResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = leftWidth;
-
-    const handleMouseMove = (moveEvent: { clientX: number }) => {
+    function handleMouseMove(moveEvent: MouseEvent) {
       const containerWidth = window.innerWidth - 48;
       const deltaX = moveEvent.clientX - startX;
       const deltaPercent = (deltaX / containerWidth) * 100;
       const newWidth = Math.max(10, Math.min(startWidth + deltaPercent, 40));
       setLeftWidth(newWidth);
-    };
-
-    const handleMouseUp = () => {
+    }
+    function handleMouseUp() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-    };
-
+    }
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleMiddleResize = (e: {
-    preventDefault: () => void;
-    clientX: any;
-  }) => {
+  const handleMiddleResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = middleLeftWidth;
-
-    const handleMouseMove = (moveEvent: { clientX: number }) => {
+    function handleMouseMove(moveEvent: MouseEvent) {
       const containerWidth = window.innerWidth - 48;
       const middleTotal = 100 - leftWidth - rightWidth;
       const deltaX = moveEvent.clientX - startX;
@@ -146,38 +118,30 @@ const ComparePage = () => {
         Math.min(startWidth + (deltaPercent / middleTotal) * 100, 70)
       );
       setMiddleLeftWidth(newWidth);
-    };
-
-    const handleMouseUp = () => {
+    }
+    function handleMouseUp() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-    };
-
+    }
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleRightResize = (e: {
-    preventDefault: () => void;
-    clientX: any;
-  }) => {
+  const handleRightResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = rightWidth;
-
-    const handleMouseMove = (moveEvent: { clientX: number }) => {
+    function handleMouseMove(moveEvent: MouseEvent) {
       const containerWidth = window.innerWidth - 48;
       const deltaX = moveEvent.clientX - startX;
       const deltaPercent = (deltaX / containerWidth) * 100;
       const newWidth = Math.max(10, Math.min(startWidth - deltaPercent, 40));
       setRightWidth(newWidth);
-    };
-
-    const handleMouseUp = () => {
+    }
+    function handleMouseUp() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-    };
-
+    }
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
@@ -213,13 +177,75 @@ const ComparePage = () => {
         height: "100vh",
         backgroundColor: "#f3f4f6",
         display: "flex",
+        flexDirection: "column",
         gap: "0.5rem",
         padding: "1.5rem",
         overflow: "hidden",
         boxSizing: "border-box",
       }}
     >
-      {/* Left Navigation */}
+            {/* Top Search Bar - Centered and Shorter */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexShrink: 0,
+          marginBottom: "0.5rem",
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: "500px",
+          }}
+        >
+          <Search
+            size={18}
+            style={{
+              position: "absolute",
+              left: "1rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#9ca3af",
+              pointerEvents: "none",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search"
+            value={globalSearchQuery}
+            onChange={(e) => setGlobalSearchQuery(e.target.value)}
+            style={{
+              width: "100%",
+              paddingLeft: "2.75rem",
+              paddingRight: "1rem",
+              paddingTop: "0.625rem",
+              paddingBottom: "0.625rem",
+              backgroundColor: "#d1d5db",
+              border: "none",
+              borderRadius: "0.75rem",
+              fontSize: "0.875rem",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              color: "#111827",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.backgroundColor = "#c4c8cc";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.backgroundColor = "#d1d5db";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Main Flex Layout */}
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      {/* Left Navigation Sidebar Container */}
       <div
         style={{
           width: `${leftWidth}%`,
@@ -233,12 +259,14 @@ const ComparePage = () => {
           overflow: "hidden",
         }}
       >
+        {/* Header Section with Menu and Search */}
         <div
           style={{
             marginBottom: "1rem",
             flexShrink: 0,
           }}
         >
+          {/* Title and Menu Icon Row */}
           <div
             style={{
               display: "flex",
@@ -247,6 +275,7 @@ const ComparePage = () => {
               marginBottom: "1rem",
             }}
           >
+            {/* Menu Button */}
             <div
               style={{
                 width: "2rem",
@@ -263,6 +292,7 @@ const ComparePage = () => {
               <Menu size={20} color="#374151" />
             </div>
 
+            {/* Section Title */}
             <h2
               style={{
                 fontSize: "1.125rem",
@@ -278,6 +308,7 @@ const ComparePage = () => {
             </h2>
           </div>
 
+          {/* Search Input with Icon */}
           <div
             style={{
               position: "relative",
@@ -324,6 +355,7 @@ const ComparePage = () => {
           </div>
         </div>
 
+        {/* Scrollable Resume List */}
         <div
           style={{
             display: "flex",
@@ -333,6 +365,7 @@ const ComparePage = () => {
             overflowY: "auto",
           }}
         >
+          {/* Map through resumes array to create resume items */}
           {resumes.map((resume) => (
             <div
               key={resume.id}
@@ -350,6 +383,7 @@ const ComparePage = () => {
                 (e.currentTarget.style.backgroundColor = "#f3f4f6")
               }
             >
+              {/* Resume Item Header with Name and Options */}
               <div
                 style={{
                   display: "flex",
@@ -358,6 +392,7 @@ const ComparePage = () => {
                   marginBottom: "0.25rem",
                 }}
               >
+                {/* Resume Name */}
                 <span
                   style={{
                     fontSize: "0.875rem",
@@ -372,6 +407,7 @@ const ComparePage = () => {
                 >
                   {resume.name}
                 </span>
+                {/* Options Menu (three lines) */}
                 <div
                   style={{
                     fontSize: "0.75rem",
@@ -383,6 +419,7 @@ const ComparePage = () => {
                   ...
                 </div>
               </div>
+              {/* Last Modified Date */}
               <div
                 style={{
                   fontSize: "0.75rem",
@@ -470,7 +507,7 @@ const ComparePage = () => {
                   Current Resume
                 </h3>
                 <button
-                  onClick={() => setShowCurrentResume(false)}
+                  onClick={() => setShowCurrentResume(false)}  //hides the div !
                   style={{
                     backgroundColor: "#e5e7eb",
                     border: "none",
@@ -490,7 +527,7 @@ const ComparePage = () => {
                     (e.currentTarget.style.backgroundColor = "#e5e7eb")
                   }
                 >
-                  <X size={16} color="#6b7280" />
+                  <X size={16} color="#6b7280" /> 
                 </button>
               </div>
 
@@ -1131,6 +1168,7 @@ const ComparePage = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
