@@ -27,7 +27,6 @@ const ComparePage = () => {
   const [showCurrentResume, setShowCurrentResume] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-
   // useEffect(() => {
   //   // Removed fetchResumes logic and unused state
   //   // If needed, add logic here for rightTab changes
@@ -35,7 +34,7 @@ const ComparePage = () => {
 
   const handleAIAnalysis = async () => {
     if (!savedJobDescription) {
-      alert('Please add a job description first');
+      alert("Please add a job description first");
       return;
     }
 
@@ -44,13 +43,13 @@ const ComparePage = () => {
     setApiError(null);
 
     try {
-      const resumeResponse = await backend_api.get('/resumes/000000/000005');
+      const resumeResponse = await backend_api.get("/resumes/000000/000005");
       const resumeData = resumeResponse.data;
-      console.log('Resume data received:', resumeData);
+      console.log("Resume data received:", resumeData);
 
-      const response = await backend_api.post('/analyze-resume', {
+      const response = await backend_api.post("/analyze-resume", {
         resumeData: resumeData,
-        jobDescription: savedJobDescription
+        jobDescription: savedJobDescription,
       });
 
       if (response.data.success) {
@@ -59,18 +58,21 @@ const ComparePage = () => {
         setApiError(response.data.error || "Analysis failed");
       }
     } catch (error: any) {
-      console.error('AI analysis failed:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to analyze resume - please try again';
+      console.error("AI analysis failed:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to analyze resume - please try again";
       setApiError(errorMessage);
     } finally {
       setAnalyzing(false);
     }
   };
 
-
-  
   // --- Resize Handlers ---
-  const handleCommentResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleCommentResize = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     e.preventDefault();
     const startY = e.clientY;
     const startHeight = commentBoxHeight;
@@ -87,7 +89,9 @@ const ComparePage = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleLeftResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleLeftResize = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = leftWidth;
@@ -106,7 +110,9 @@ const ComparePage = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleMiddleResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMiddleResize = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = middleLeftWidth;
@@ -129,7 +135,9 @@ const ComparePage = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleRightResize = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleRightResize = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = rightWidth;
@@ -188,13 +196,71 @@ const ComparePage = () => {
         boxSizing: "border-box",
       }}
     >
-      {/* Sidebar Component */}
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
-      {/* Left Navigation */}
-      {/* {!sidebarCollapsed && (
+      {/* Top Search Bar - Centered and Shorter */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexShrink: 0,
+          marginBottom: "0.5rem",
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: "500px",
+          }}
+        >
+          <Search
+            size={18}
+            style={{
+              position: "absolute",
+              left: "1rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#9ca3af",
+              pointerEvents: "none",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search"
+            value={globalSearchQuery}
+            onChange={(e) => setGlobalSearchQuery(e.target.value)}
+            style={{
+              width: "100%",
+              paddingLeft: "2.75rem",
+              paddingRight: "1rem",
+              paddingTop: "0.625rem",
+              paddingBottom: "0.625rem",
+              backgroundColor: "#d1d5db",
+              border: "none",
+              borderRadius: "0.75rem",
+              fontSize: "0.875rem",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              color: "#111827",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.backgroundColor = "#c4c8cc";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.backgroundColor = "#d1d5db";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Main Flex Layout */}
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
         <div
           style={{
             width: `${leftWidth}%`,
@@ -208,12 +274,14 @@ const ComparePage = () => {
             overflow: "hidden",
           }}
         >
+          {/* Header Section with Menu and Search */}
           <div
             style={{
               marginBottom: "1rem",
               flexShrink: 0,
             }}
           >
+            {/* Title and Menu Icon Row */}
             <div
               style={{
                 display: "flex",
@@ -222,8 +290,8 @@ const ComparePage = () => {
                 marginBottom: "1rem",
               }}
             >
+              {/* Menu Button */}
               <div
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 style={{
                   width: "2rem",
                   height: "2rem",
@@ -234,7 +302,94 @@ const ComparePage = () => {
                   justifyContent: "center",
                   cursor: "pointer",
                   flexShrink: 0,
-                  transition: "background-color 0.2s ease",
+                }}
+              >
+                <Menu size={20} color="#374151" />
+              </div>
+
+              {/* Section Title */}
+              <h2
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#111827",
+                  margin: 0,
+                  lineHeight: 1,
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                }}
+              >
+                Recent Resumes
+              </h2>
+            </div>
+
+            {/* Search Input with Icon */}
+            <div
+              style={{
+                position: "relative",
+                marginBottom: "1rem",
+              }}
+            >
+              <Search
+                size={16}
+                style={{
+                  position: "absolute",
+                  left: "0.75rem",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#9ca3af",
+                  pointerEvents: "none",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.5rem 0.75rem 0.5rem 2.5rem",
+                  backgroundColor: "#f3f4f6",
+                  border: "none",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  color: "#111827",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  transition: "background-color 0.15s ease",
+                }}
+                onFocus={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#e5e7eb")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f3f4f6")
+                }
+              />
+            </div>
+          </div>
+
+          {/* Scrollable Resume List */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+              flex: 1,
+              overflowY: "auto",
+            }}
+          >
+            {/* Map through resumes array to create resume items */}
+            {resumes.map((resume) => (
+              <div
+                key={resume.id}
+                onClick={handleResumeClick}
+                style={{
+                  padding: "0.75rem",
+                  borderRadius: "0.5rem",
+                  cursor: "pointer",
+                  backgroundColor: "#f3f4f6",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.backgroundColor = "#e5e7eb")
@@ -243,118 +398,43 @@ const ComparePage = () => {
                   (e.currentTarget.style.backgroundColor = "#f3f4f6")
                 }
               >
-                <Menu size={20} color="#374151" />
-              </div>
-
-            <h2
-              style={{
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: "#111827",
-                margin: 0,
-                lineHeight: 1,
-                fontFamily:
-                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              }}
-            >
-              Recent Resumes
-            </h2>
-          </div>
-
-          {/* Apple-style Search Bar */}
-          {/* <div
-            style={{
-              position: "relative",
-              marginBottom: "1rem",
-            }}
-          >
-            <Search
-              size={16}
-              style={{
-                position: "absolute",
-                left: "0.75rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#9ca3af",
-                pointerEvents: "none",
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.5rem 0.75rem 0.5rem 2.5rem",
-                backgroundColor: "#f3f4f6",
-                border: "none",
-                borderRadius: "0.5rem",
-                fontSize: "0.875rem",
-                fontFamily:
-                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                color: "#111827",
-                outline: "none",
-                boxSizing: "border-box",
-                transition: "background-color 0.15s ease",
-              }}
-              onFocus={(e) =>
-                (e.currentTarget.style.backgroundColor = "#e5e7eb")
-              }
-              onBlur={(e) =>
-                (e.currentTarget.style.backgroundColor = "#f3f4f6")
-              }
-            />
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-            flex: 1,
-            overflowY: "auto",
-          }}
-        >
-          {resumes.map((resume) => (
-            <div
-              key={resume.id}
-              style={{
-                padding: "0.75rem",
-                borderRadius: "0.5rem",
-                cursor: "pointer",
-                backgroundColor: "#f3f4f6",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#e5e7eb")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#f3f4f6")
-              }
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "0.25rem",
-                }}
-              >
-                <span
+                {/* Resume Item Header with Name and Options */}
+                <div
                   style={{
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: "#111827",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    fontFamily:
-                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "0.25rem",
                   }}
                 >
-                  {resume.name}
-                </span>
+                  {/* Resume Name */}
+                  <span
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      color: "#111827",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    {resume.name}
+                  </span>
+                  {/* Options Menu (three lines) */}
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#6b7280",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    ...
+                  </div>
+                </div>
+                {/* Last Modified Date */}
                 <div
                   style={{
                     fontSize: "0.75rem",
@@ -363,846 +443,763 @@ const ComparePage = () => {
                       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   }}
                 >
-                  ...
+                  2 days ago
                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: "0.75rem",
-                  color: "#6b7280",
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}
-              >
-                2 days ago
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div> */}
 
-      {/* Resize Handle 1 */}
-      <div
-        style={{
-          width: "8px",
-          cursor: "ew-resize",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-        onMouseDown={handleLeftResize}
-      >
+        {/* Resize Handle 1 */}
         <div
           style={{
-            width: "3px",
-            height: "40px",
-            backgroundColor: "#d1d5db",
-            borderRadius: "2px",
+            width: "8px",
+            cursor: "ew-resize",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
           }}
-        ></div>
-      </div>
-
-      {/* Main Content Area */}
-      <div
-        style={{
-          width: `${middleTotal}%`,
-          display: "flex",
-          gap: "0.5rem",
-          minWidth: 0,
-          overflow: "hidden",
-        }}
-      >
-        {/* Current Resume Panel */}
-        {showCurrentResume && (
-          <>
-            <div
-              style={{
-                width: `${middleLeftWidth}%`,
-                backgroundColor: "white",
-                borderRadius: "1rem",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                padding: "1.5rem",
-                border: "2px solid #34d399",
-                display: "flex",
-                flexDirection: "column",
-                minWidth: "250px",
-                boxSizing: "border-box",
-                overflow: "hidden",
-              }}
-            >
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center",
-                marginBottom: "1rem",
-                flexShrink: 0,
-              }}>
-                <h3
-                  style={{
-                    textAlign: "center",
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: "#513739",
-                    margin: 0,
-                    flex: 1,
-                    fontFamily:
-                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  }}
-                >
-                  Current Resume
-                </h3>
-                <button
-                  onClick={() => setShowCurrentResume(false)}  //hides the div !
-                  style={{
-                    backgroundColor: "#e5e7eb",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "28px",
-                    height: "28px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "background-color 0.15s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#d1d5db")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#e5e7eb")
-                  }
-                >
-                  <X size={16} color="#6b7280" /> 
-                </button>
-              </div>
-
+          onMouseDown={handleLeftResize}
+        >
           <div
             style={{
-              flex: 1,
-              backgroundColor: "#fbf9fa",
-              borderRadius: "0.5rem",
-              marginBottom: "1rem",
-              overflow: "hidden",
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              position: "relative",
+              width: "3px",
+              height: "40px",
+              backgroundColor: "#d1d5db",
+              borderRadius: "2px",
             }}
-          >
-            <PdfViewer userId={"000000"} resumeId={"000005"} />
-          </div>
+          ></div>
+        </div>
 
+        {/* Main Content Area */}
+        <div
+          style={{
+            width: `${middleTotal}%`,
+            display: "flex",
+            gap: "0.5rem",
+            minWidth: 0,
+            overflow: "hidden",
+          }}
+        >
+          {/* Current Resume Panel */}
+          {showCurrentResume && (
+            <>
               <div
                 style={{
-                  borderTop: "1px solid #e5e7eb",
-                  height: "8px",
-                  cursor: "ns-resize",
-                  position: "relative",
+                  width: `${middleLeftWidth}%`,
+                  backgroundColor: "white",
+                  borderRadius: "1rem",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  padding: "1.5rem",
+                  border: "2px solid #34d399",
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "0.5rem",
-                  flexShrink: 0,
+                  flexDirection: "column",
+                  minWidth: "250px",
+                  boxSizing: "border-box",
+                  overflow: "hidden",
                 }}
-                onMouseDown={handleCommentResize}
               >
                 <div
                   style={{
-                    width: "40px",
-                    height: "3px",
-                    backgroundColor: "#d1d5db",
-                    borderRadius: "2px",
-                  }}
-                ></div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "0.5rem",
-                  marginBottom: "1rem",
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                  flexShrink: 0,
-                }}
-              >
-                <button
-                  onClick={() => setActiveTab("comments")}
-                  style={{
-                    padding: "0.5rem 1.25rem",
-                    borderRadius: activeTab === "comments" ? "1.25rem" : "0.375rem",
-                    fontSize: "0.8125rem",
-                    fontWeight: "500",
-                    backgroundColor:
-                      activeTab === "comments" ? "#10b981" : "transparent",
-                    color: activeTab === "comments" ? "white" : "#6b7280",
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily:
-                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "1rem",
+                    flexShrink: 0,
                   }}
                 >
-                  Comments
-                </button>
-                <button
-                  onClick={() => setActiveTab("job-description")}
-                  style={{
-                    padding: "0.5rem 1.25rem",
-                    borderRadius:
-                      activeTab === "job-description" ? "1.25rem" : "0.375rem",
-                    fontSize: "0.8125rem",
-                    fontWeight: "500",
-                    backgroundColor:
-                      activeTab === "job-description" ? "#10b981" : "transparent",
-                    color: activeTab === "job-description" ? "white" : "#6b7280",
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily:
-                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  }}
-                >
-                  Job Description
-                </button>
-              </div>
-
-              <div
-                className="hide-scrollbar"
-                style={{
-                  backgroundColor: "#f9fafb",
-                  borderRadius: "0.5rem",
-                  padding: "1rem",
-                  height: `${commentBoxHeight}px`,
-                  overflowY: "auto",
-                  minHeight: 0,
-                  flexShrink: 0,
-                  display: commentBoxHeight === 0 ? "none" : "block",
-                }}
-              >
-                {activeTab === "comments" && (
-                  <div
+                  <h3
                     style={{
+                      textAlign: "center",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      color: "#513739",
+                      margin: 0,
+                      flex: 1,
                       fontFamily:
                         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     }}
                   >
-                    Comments section
-                  </div>
-                )}
-                {activeTab === "job-description" && (
+                    Current Resume
+                  </h3>
+                  <button
+                    onClick={() => setShowCurrentResume(false)} //hides the div !
+                    style={{
+                      backgroundColor: "#e5e7eb",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: "28px",
+                      height: "28px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "background-color 0.15s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#d1d5db")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#e5e7eb")
+                    }
+                  >
+                    <X size={16} color="#6b7280" />
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#fbf9fa",
+                    borderRadius: "0.5rem",
+                    marginBottom: "1rem",
+                    overflow: "hidden",
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    position: "relative",
+                  }}
+                >
+                  <PdfViewer userId={"000000"} resumeId={"000005"} />
+                </div>
+
+                <div
+                  style={{
+                    borderTop: "1px solid #e5e7eb",
+                    height: "8px",
+                    cursor: "ns-resize",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "0.5rem",
+                    flexShrink: 0,
+                  }}
+                  onMouseDown={handleCommentResize}
+                >
                   <div
                     style={{
+                      width: "40px",
+                      height: "3px",
+                      backgroundColor: "#d1d5db",
+                      borderRadius: "2px",
+                    }}
+                  ></div>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    marginBottom: "1rem",
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                    flexShrink: 0,
+                  }}
+                >
+                  <button
+                    onClick={() => setActiveTab("comments")}
+                    style={{
+                      padding: "0.5rem 1.25rem",
+                      borderRadius:
+                        activeTab === "comments" ? "1.25rem" : "0.375rem",
+                      fontSize: "0.8125rem",
+                      fontWeight: "500",
+                      backgroundColor:
+                        activeTab === "comments" ? "#10b981" : "transparent",
+                      color: activeTab === "comments" ? "white" : "#6b7280",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    }}
+                  >
+                    Comments
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("job-description")}
+                    style={{
+                      padding: "0.5rem 1.25rem",
+                      borderRadius:
+                        activeTab === "job-description"
+                          ? "1.25rem"
+                          : "0.375rem",
+                      fontSize: "0.8125rem",
+                      fontWeight: "500",
+                      backgroundColor:
+                        activeTab === "job-description"
+                          ? "#10b981"
+                          : "transparent",
+                      color:
+                        activeTab === "job-description" ? "white" : "#6b7280",
+                      border: "none",
+                      cursor: "pointer",
                       fontFamily:
                         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     }}
                   >
                     Job Description
-                  </div>
-                )}
-              </div>
-            </div>
+                  </button>
+                </div>
 
-            {/* Resize Handle 2 */}
-            <div
-              style={{
-                width: "8px",
-                cursor: "ew-resize",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-              onMouseDown={handleMiddleResize}
-            >
+                <div
+                  className="hide-scrollbar"
+                  style={{
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "0.5rem",
+                    padding: "1rem",
+                    height: `${commentBoxHeight}px`,
+                    overflowY: "auto",
+                    minHeight: 0,
+                    flexShrink: 0,
+                    display: commentBoxHeight === 0 ? "none" : "block",
+                  }}
+                >
+                  {activeTab === "comments" && (
+                    <div
+                      style={{
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                    >
+                      Comments section
+                    </div>
+                  )}
+                  {activeTab === "job-description" && (
+                    <div
+                      style={{
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                    >
+                      Job Description
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Resize Handle 2 */}
               <div
                 style={{
-                  width: "3px",
-                  height: "40px",
-                  backgroundColor: "#d1d5db",
-                  borderRadius: "2px",
+                  width: "8px",
+                  cursor: "ew-resize",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
                 }}
-              ></div>
-            </div>
-          </>
-        )}
+                onMouseDown={handleMiddleResize}
+              >
+                <div
+                  style={{
+                    width: "3px",
+                    height: "40px",
+                    backgroundColor: "#d1d5db",
+                    borderRadius: "2px",
+                  }}
+                ></div>
+              </div>
+            </>
+          )}
 
-        {/* Generated Resume Panel */}
+          {/* Generated Resume Panel */}
+          <div
+            className="hide-scrollbar"
+            style={{
+              flex: 1,
+              backgroundColor: "white",
+              borderRadius: "1rem",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              padding: "1.5rem",
+              border: "2px solid #34d399",
+              display: "flex",
+              flexDirection: "column",
+              minWidth: "250px",
+              boxSizing: "border-box",
+              overflow: "hidden",
+            }}
+          >
+            <ResumeEditor userId="000000" resumeId="000005" />
+          </div>
+        </div>
+
+        {/* Resize Handle 3 */}
         <div
-          className="hide-scrollbar"
           style={{
-            flex: 1,
+            width: "8px",
+            cursor: "ew-resize",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+          onMouseDown={handleRightResize}
+        >
+          <div
+            style={{
+              width: "3px",
+              height: "40px",
+              backgroundColor: "#d1d5db",
+              borderRadius: "2px",
+            }}
+          ></div>
+        </div>
+
+        {/* AI Insights Sidebar */}
+        <div
+          style={{
+            width: `${rightWidth}%`,
             backgroundColor: "white",
             borderRadius: "1rem",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             padding: "1.5rem",
-            border: "2px solid #34d399",
-            display: "flex",
-            flexDirection: "column",
-            minWidth: "250px",
+            minWidth: "150px",
             boxSizing: "border-box",
             overflow: "hidden",
-          }}
-        >
-          <ResumeEditor userId="000000" resumeId="000005" />
-        </div>
-      </div>
-
-      {/* Resize Handle 3 */}
-      <div
-        style={{
-          width: "8px",
-          cursor: "ew-resize",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-        onMouseDown={handleRightResize}
-      >
-        <div
-          style={{
-            width: "3px",
-            height: "40px",
-            backgroundColor: "#d1d5db",
-            borderRadius: "2px",
-          }}
-        ></div>
-      </div>
-
-      {/* AI Insights Sidebar */}
-      <div
-        style={{
-          width: `${rightWidth}%`,
-          backgroundColor: "white",
-          borderRadius: "1rem",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          padding: "1.5rem",
-          minWidth: "150px",
-          boxSizing: "border-box",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          style={{
             display: "flex",
-            gap: "0.5rem",
-            marginBottom: "1rem",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            flexShrink: 0,
+            flexDirection: "column",
           }}
         >
-          <button
-            onClick={() => setRightTab("ai-insights")}
+          <div
             style={{
-              padding: "0.5rem 1rem",
-              borderRadius: rightTab === "ai-insights" ? "1.25rem" : "0.375rem",
-              fontSize: "0.8125rem",
-              fontWeight: "500",
-              backgroundColor:
-                rightTab === "ai-insights" ? "#10b981" : "transparent",
-              color: rightTab === "ai-insights" ? "white" : "#6b7280",
-              border: "none",
-              cursor: "pointer",
               display: "flex",
-              alignItems: "center",
-              gap: "0.375rem",
-              fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              gap: "0.5rem",
+              marginBottom: "1rem",
+              justifyContent: "center",
+              flexWrap: "wrap",
+              flexShrink: 0,
             }}
           >
-            <Lightbulb
+            <button
+              onClick={() => setRightTab("ai-insights")}
               style={{
-                width: "1rem",
-                height: "1rem",
-                flexShrink: 0,
+                padding: "0.5rem 1rem",
+                borderRadius:
+                  rightTab === "ai-insights" ? "1.25rem" : "0.375rem",
+                fontSize: "0.8125rem",
+                fontWeight: "500",
+                backgroundColor:
+                  rightTab === "ai-insights" ? "#10b981" : "transparent",
+                color: rightTab === "ai-insights" ? "white" : "#6b7280",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.375rem",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               }}
-            />
-            AI Insights
-          </button>
-          <button
-            onClick={() => setRightTab("job-description")}
+            >
+              <Lightbulb
+                style={{
+                  width: "1rem",
+                  height: "1rem",
+                  flexShrink: 0,
+                }}
+              />
+              AI Insights
+            </button>
+            <button
+              onClick={() => setRightTab("job-description")}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius:
+                  rightTab === "job-description" ? "1.25rem" : "0.375rem",
+                fontSize: "0.8125rem",
+                fontWeight: "500",
+                backgroundColor:
+                  rightTab === "job-description" ? "#10b981" : "transparent",
+                color: rightTab === "job-description" ? "white" : "#6b7280",
+                border: "none",
+                cursor: "pointer",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              }}
+            >
+              Job Description
+            </button>
+          </div>
+
+          <div
             style={{
-              padding: "0.5rem 1rem",
-              borderRadius:
-                rightTab === "job-description" ? "1.25rem" : "0.375rem",
-              fontSize: "0.8125rem",
-              fontWeight: "500",
-              backgroundColor:
-                rightTab === "job-description" ? "#10b981" : "transparent",
-              color: rightTab === "job-description" ? "white" : "#6b7280",
-              border: "none",
-              cursor: "pointer",
-              fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              flex: 1,
+              overflowY: "auto",
+              minHeight: 0,
             }}
           >
-            Job Description
-          </button>
-        </div>
-
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            minHeight: 0,
-          }}
-        >
-          {rightTab === "job-description" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "1rem",
-              }}
-            >
-              {!savedJobDescription ? (
-                <>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      color: "#6b7280",
-                      textAlign: "center",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    Add a job description to get AI-powered insights and
-                    recommendations.
-                  </p>
-                  <button
-                    onClick={handleAddJob}
-                    style={{
-                      backgroundColor: "#10b981",
-                      color: "white",
-                      padding: "0.625rem 1.5rem",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.875rem",
-                      fontWeight: "500",
-                      border: "none",
-                      cursor: "pointer",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    Add Job Description
-                  </button>
-                </>
-              ) : (
-                <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
+            {rightTab === "job-description" && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "1rem",
+                }}
+              >
+                {!savedJobDescription ? (
+                  <>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#6b7280",
+                        textAlign: "center",
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                    >
+                      Add a job description to get AI-powered insights and
+                      recommendations.
+                    </p>
+                    <button
+                      onClick={handleAddJob}
+                      style={{
+                        backgroundColor: "#10b981",
+                        color: "white",
+                        padding: "0.625rem 1.5rem",
+                        borderRadius: "0.5rem",
+                        fontSize: "0.875rem",
+                        fontWeight: "500",
+                        border: "none",
+                        cursor: "pointer",
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                    >
+                      Add Job Description
+                    </button>
+                  </>
+                ) : (
                   <div
                     style={{
-                      backgroundColor: "#f9fafb",
-                      borderRadius: "0.5rem",
-                      padding: "1rem",
-                      fontSize: "0.875rem",
-                      color: "#374151",
-                      lineHeight: "1.5",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
                     }}
                   >
-                    {savedJobDescription}
+                    <div
+                      style={{
+                        backgroundColor: "#f9fafb",
+                        borderRadius: "0.5rem",
+                        padding: "1rem",
+                        fontSize: "0.875rem",
+                        color: "#374151",
+                        lineHeight: "1.5",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        maxHeight: "300px",
+                        overflowY: "auto",
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                    >
+                      {savedJobDescription}
+                    </div>
+                    <button
+                      onClick={handleEditJob}
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "#10b981",
+                        padding: "0.5rem 1rem",
+                        borderRadius: "0.5rem",
+                        fontSize: "0.875rem",
+                        fontWeight: "500",
+                        border: "1px solid #10b981",
+                        cursor: "pointer",
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f0fdf4";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      Edit
+                    </button>
                   </div>
-                  <button
-                    onClick={handleEditJob}
-                    style={{
-                      backgroundColor: "transparent",
-                      color: "#10b981",
-                      padding: "0.5rem 1rem",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.875rem",
-                      fontWeight: "500",
-                      border: "1px solid #10b981",
-                      cursor: "pointer",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f0fdf4";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                  >
-                    Edit
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
 
-          {rightTab === "job-description" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "1rem",
-              }}
-            >
-              {!savedJobDescription ? (
-                <>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      color: "#6b7280",
-                      textAlign: "center",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    Add a job description to get AI-powered insights and
-                    recommendations.
-                  </p>
-                  <button
-                    onClick={handleAddJob}
-                    style={{
-                      backgroundColor: "#10b981",
-                      color: "white",
-                      padding: "0.625rem 1.5rem",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.875rem",
-                      fontWeight: "500",
-                      border: "none",
-                      cursor: "pointer",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    Add Job Description
-                  </button>
-                </>
-              ) : (
-                <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      backgroundColor: "#f9fafb",
-                      borderRadius: "0.5rem",
-                      padding: "1rem",
-                      fontSize: "0.875rem",
-                      color: "#374151",
-                      lineHeight: "1.5",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    {savedJobDescription}
-                  </div>
-                  <button
-                    onClick={handleEditJob}
-                    style={{
-                      backgroundColor: "transparent",
-                      color: "#10b981",
-                      padding: "0.5rem 1rem",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.875rem",
-                      fontWeight: "500",
-                      border: "1px solid #10b981",
-                      cursor: "pointer",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f0fdf4";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                  >
-                    Edit
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {rightTab === "ai-insights" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                height: "100%",
-              }}
-            >
+            {rightTab === "ai-insights" && (
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
                   gap: "1rem",
+                  height: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    onClick={handleAIAnalysis}
+                    disabled={!savedJobDescription || analyzing}
+                    style={{
+                      backgroundColor: savedJobDescription
+                        ? "#10b981"
+                        : "#9ca3af",
+                      color: "white",
+                      padding: "0.625rem 1.5rem",
+                      borderRadius: "0.5rem",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      border: "none",
+                      cursor:
+                        savedJobDescription && !analyzing
+                          ? "pointer"
+                          : "not-allowed",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      width: "100%",
+                      maxWidth: "200px",
+                    }}
+                  >
+                    {analyzing ? "Analyzing..." : "Get AI Insights"}
+                  </button>
+
+                  {!savedJobDescription && (
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#6b7280",
+                        textAlign: "center",
+                        fontStyle: "italic",
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      }}
+                    >
+                      Add a job description first to get AI insights
+                    </p>
+                  )}
+                </div>
+
+                {aiAnalysisResult && (
+                  <div
+                    style={{
+                      backgroundColor: "#f9fafb",
+                      borderRadius: "0.5rem",
+                      padding: "1rem",
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                      lineHeight: "1.5",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      overflowY: "auto",
+                      flex: 1,
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    {aiAnalysisResult}
+                  </div>
+                )}
+
+                {apiError && (
+                  <div
+                    style={{
+                      backgroundColor: "#fef2f2",
+                      borderRadius: "0.5rem",
+                      padding: "1rem",
+                      fontSize: "0.875rem",
+                      color: "#dc2626",
+                      lineHeight: "1.5",
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      border: "1px solid #fecaca",
+                    }}
+                  >
+                    Error: {apiError}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Job Description Modal */}
+        {jobModalContent !== null && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={handleCloseModal}
+          >
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "1rem",
+                padding: "2rem",
+                maxWidth: "500px",
+                width: "90%",
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
                   alignItems: "center",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "1.25rem",
+                    fontWeight: "600",
+                    color: "#111827",
+                    margin: 0,
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  }}
+                >
+                  {savedJobDescription
+                    ? "Edit Job Description"
+                    : "Add Job Description"}
+                </h3>
+                <button
+                  onClick={handleCloseModal}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "0.25rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "0.375rem",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f3f4f6")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  <X size={20} color="#6b7280" />
+                </button>
+              </div>
+
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "1.5rem",
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                }}
+              >
+                Paste job description or job URL
+              </p>
+
+              <textarea
+                value={jobModalContent}
+                onChange={(e) => setJobModalContent(e.target.value)}
+                placeholder="Paste job description text or URL here..."
+                style={{
+                  width: "100%",
+                  minHeight: "200px",
+                  padding: "0.75rem",
+                  borderRadius: "0.5rem",
+                  border: "1px solid #d1d5db",
+                  fontSize: "0.875rem",
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  resize: "vertical",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  backgroundColor: "#d5f8e2",
+                  color: "#064e3b",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#10b981";
+                  e.currentTarget.style.backgroundColor = "#dcfce7";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                  e.currentTarget.style.backgroundColor = "#f0fdf4";
+                }}
+              />
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.75rem",
+                  marginTop: "1.5rem",
+                  justifyContent: "flex-end",
                 }}
               >
                 <button
-                  onClick={handleAIAnalysis}
-                  disabled={!savedJobDescription || analyzing}
+                  onClick={handleCloseModal}
                   style={{
-                    backgroundColor: savedJobDescription
-                      ? "#10b981"
-                      : "#9ca3af",
-                    color: "white",
                     padding: "0.625rem 1.5rem",
                     borderRadius: "0.5rem",
                     fontSize: "0.875rem",
                     fontWeight: "500",
-                    border: "none",
-                    cursor:
-                      savedJobDescription && !analyzing
-                        ? "pointer"
-                        : "not-allowed",
-                    fontFamily:
-                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    width: "100%",
-                    maxWidth: "200px",
-                  }}
-                >
-                  {analyzing ? "Analyzing..." : "Get AI Insights"}
-                </button>
-
-                {!savedJobDescription && (
-                  <p
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#6b7280",
-                      textAlign: "center",
-                      fontStyle: "italic",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    Add a job description first to get AI insights
-                  </p>
-                )}
-              </div>
-
-              {aiAnalysisResult && (
-                <div
-                  style={{
-                    backgroundColor: "#f9fafb",
-                    borderRadius: "0.5rem",
-                    padding: "1rem",
-                    fontSize: "0.875rem",
+                    border: "1px solid #d1d5db",
+                    backgroundColor: "white",
                     color: "#374151",
-                    lineHeight: "1.5",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    overflowY: "auto",
-                    flex: 1,
+                    cursor: "pointer",
                     fontFamily:
                       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    border: "1px solid #e5e7eb",
                   }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f9fafb")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "white")
+                  }
                 >
-                  {aiAnalysisResult}
-                </div>
-              )}
-
-              {apiError && (
-                <div
+                  Cancel
+                </button>
+                <button
+                  onClick={handleJobSubmit}
                   style={{
-                    backgroundColor: "#fef2f2",
+                    padding: "0.625rem 1.5rem",
                     borderRadius: "0.5rem",
-                    padding: "1rem",
                     fontSize: "0.875rem",
-                    color: "#dc2626",
-                    lineHeight: "1.5",
+                    fontWeight: "500",
+                    border: "1px solid #d1d5db",
+                    backgroundColor: "white",
+                    color: "#374151",
+                    cursor: "pointer",
                     fontFamily:
                       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    border: "1px solid #fecaca",
                   }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f9fafb")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "white")
+                  }
                 >
-                  Error: {apiError}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Job Description Modal */}
-      {jobModalContent !== null && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={handleCloseModal}
-        >
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "1rem",
-              padding: "2rem",
-              maxWidth: "500px",
-              width: "90%",
-              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "1.25rem",
-                  fontWeight: "600",
-                  color: "#111827",
-                  margin: 0,
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}
-              >
-                {savedJobDescription ? "Edit Job Description" : "Add Job Description"}
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "0.25rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "0.375rem",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                <X size={20} color="#6b7280" />
-              </button>
-            </div>
-
-            <p
-              style={{
-                fontSize: "0.875rem",
-                color: "#6b7280",
-                marginBottom: "1.5rem",
-                fontFamily:
-                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              }}
-            >
-              Paste job description or job URL
-            </p>
-
-            <textarea
-              value={jobModalContent}
-              onChange={(e) => setJobModalContent(e.target.value)}
-              placeholder="Paste job description text or URL here..."
-              style={{
-                width: "100%",
-                minHeight: "200px",
-                padding: "0.75rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #d1d5db",
-                fontSize: "0.875rem",
-                fontFamily:
-                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                resize: "vertical",
-                outline: "none",
-                boxSizing: "border-box",
-                backgroundColor: "#d5f8e2",
-                color: "#064e3b",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#10b981";
-                e.currentTarget.style.backgroundColor = "#dcfce7";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#d1d5db";
-                e.currentTarget.style.backgroundColor = "#f0fdf4";
-              }}
-            />
-
-            <div
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                marginTop: "1.5rem",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                onClick={handleCloseModal}
-                style={{
-                  padding: "0.625rem 1.5rem",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "white",
-                  color: "#374151",
-                  cursor: "pointer",
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleJobSubmit}
-                style={{
-                  padding: "0.625rem 1.5rem",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  border: "none",
-                  backgroundColor: "#10b981",
-                  color: "white",
-                  cursor: "pointer",
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#059669")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#10b981")}
-              >
-                {"Submit"}
-              </button>
+                  Submit
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
