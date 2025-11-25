@@ -1276,6 +1276,7 @@
 import { useState } from 'react';
 import { Checkbox } from './Components/ui/checkbox';
 import Sidebar from "./Sidebar";
+import { useNavigate } from 'react-router-dom';
 
 interface SectionItem {
   id: string;
@@ -1365,6 +1366,7 @@ interface Template {
 }
 
 export function CreatePage() {
+  const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -1684,7 +1686,11 @@ export function CreatePage() {
   };
 
   const handleNavigateToProfile = () => {
-    window.location.href = '/profile';
+    navigate('/Profile');
+  };
+
+  const handleNavigateToComparison = () => {
+    navigate('/ComparePage');
   };
 
   const toggleSection = (sectionId: string) => {
@@ -1702,10 +1708,8 @@ export function CreatePage() {
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex'
     }}>
-      {/* Sidebar */}
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
       
-      {/* Main Content */}
       <div style={{
         flex: 1,
         padding: '24px',
@@ -1715,7 +1719,6 @@ export function CreatePage() {
           maxWidth: '1400px',
           margin: '0 auto'
         }}>
-          {/* Header Section */}
           <div style={{ 
             marginBottom: '32px',
             position: 'relative'
@@ -1750,6 +1753,25 @@ export function CreatePage() {
                 alignItems: 'center',
                 gap: '12px'
               }}>
+                <button
+                  onClick={handleNavigateToComparison}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                  }}
+                >
+                  Create
+                </button>
+
                 <button
                   onClick={handleNavigateToProfile}
                   style={{
@@ -1823,14 +1845,12 @@ export function CreatePage() {
             )}
           </div>
 
-          {/* Main Content Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: '320px 1fr',
             gap: '24px',
             alignItems: 'start'
           }}>
-            {/* Templates Sidebar - Fixed width */}
             <div>
               <div style={{
                 border: '2px solid #f1f5f9',
@@ -1939,7 +1959,6 @@ export function CreatePage() {
               </div>
             </div>
 
-            {/* Resume Builder - Main Content */}
             <div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {sections.map((section) => (
@@ -1990,7 +2009,6 @@ export function CreatePage() {
                     
                     {section.isExpanded && (
                       <div style={{ padding: '24px' }}>
-                        {/* Experience Items */}
                         {section.experienceItems && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {section.experienceItems.map((exp) => (
@@ -2074,7 +2092,6 @@ export function CreatePage() {
                           </div>
                         )}
 
-                        {/* Education Items */}
                         {section.educationItems && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {section.educationItems.map((edu) => (
@@ -2159,7 +2176,6 @@ export function CreatePage() {
                           </div>
                         )}
 
-                        {/* Certification Items */}
                         {section.certificationItems && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {section.certificationItems.map((cert) => (
@@ -2241,7 +2257,6 @@ export function CreatePage() {
                           </div>
                         )}
 
-                        {/* Project Items */}
                         {section.projectItems && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {section.projectItems.map((project) => (
@@ -2334,7 +2349,6 @@ export function CreatePage() {
                           </div>
                         )}
 
-                        {/* Skill Items */}
                         {section.skillItems && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {section.skillItems.map((skill) => (
@@ -2405,7 +2419,6 @@ export function CreatePage() {
                           </div>
                         )}
 
-                        {/* Volunteer Items */}
                         {section.volunteerItems && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {section.volunteerItems.map((vol) => (
@@ -2489,7 +2502,6 @@ export function CreatePage() {
                           </div>
                         )}
 
-                        {/* Regular Items */}
                         {section.items && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {section.items.map((item) => (
@@ -2541,4 +2553,3 @@ export function CreatePage() {
     </div>
   );
 }
-
