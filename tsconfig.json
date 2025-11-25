@@ -13,12 +13,11 @@
     "resolveJsonModule": true
   },
   "include": [
-    "main.ts"
-  ],
+    "main.ts",
+    "backend/**/*.ts"
+, "backend/ai-insight.js"  ],
   "exclude": [
     "frontend",
-    "backend",
-    "node_modules",
-    "dist"
+    "node_modules"
   ]
 }

@@ -17,7 +17,7 @@ function createWindow(): void {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, "preload.js"),
-      webSecurity: false, // Add this for development
+      webSecurity: false,
     },
   });
 
@@ -45,7 +45,7 @@ app.whenReady().then(() => {
   createWindow();
 });
 
-// IPC handlers
+// Keep only Electron-specific IPC handlers
 ipcMain.handle("load-pdf", async (_, filePath: string) => {
   console.log(" IPC load-pdf called with:", filePath);
   const exists = fs.existsSync(filePath);
@@ -66,4 +66,19 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+
+// Save resume JSON to disk
+ipcMain.handle("save-resume", async (_, { resumeObj, filename }: { resumeObj: any; filename?: string }) => {
+  try {
+    const outDir = path.join(__dirname, 'backend', 'resume-generator', 'resume_json_files');
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    const outFile = filename ? path.join(outDir, filename) : path.join(outDir, `resume_${Date.now()}.json`);
+    fs.writeFileSync(outFile, JSON.stringify(resumeObj, null, 2), 'utf8');
+    console.log('Saved resume JSON to', outFile);
+    return outFile;
+  } catch (err) {
+    console.error('Failed to save resume JSON:', err);
+    throw err;
+  }
 });

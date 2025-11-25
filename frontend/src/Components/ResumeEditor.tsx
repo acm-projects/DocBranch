@@ -1,12 +1,22 @@
-import React, { useState, useCallback } from "react";
-import { Plus, ChevronDown, GripVertical, X, Edit, Save } from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { Plus, ChevronDown, GripVertical, X, Edit, Save, RefreshCw } from "lucide-react";
+import PdfViewer from ".././PdfViewer";
+import axios from 'axios';
 
 // field interface
 export interface FieldData {
   id: string;
   label: string;
   value: string;
-  type: "text" | "textarea" | "date" | "email" | "tel" | "url";
+  type:
+    | "text"
+    | "textarea"
+    | "date"
+    | "email"
+    | "tel"
+    | "url"
+    | "links"
+    | "list";
   isEditing?: boolean;
 }
 
@@ -30,7 +40,7 @@ const defaultSections: SectionData[] = [
       { id: "email", label: "Email", value: "", type: "email" },
       { id: "phone", label: "Phone", value: "", type: "tel" },
       { id: "address", label: "Address", value: "", type: "text" },
-      { id: "linkedin", label: "LinkedIn", value: "", type: "url" },
+      { id: "links", label: "Links", value: "[]", type: "links" },
     ],
   },
   {
@@ -41,14 +51,17 @@ const defaultSections: SectionData[] = [
     fields: [
       {
         id: "institution",
-        label: "Name of Institution",
+        label: "Institution",
         value: "",
         type: "text",
       },
-      { id: "degree", label: "Degree", value: "", type: "text" },
-      { id: "field", label: "Field of Study", value: "", type: "text" },
-      { id: "year", label: "Graduation Year", value: "", type: "text" },
-      { id: "gpa", label: "GPA", value: "", type: "text" },
+      { id: "location", label: "Location", value: "", type: "text" },
+      { id: "majors", label: "Majors", value: "[]", type: "list" },
+      { id: "minors", label: "Minors", value: "[]", type: "list" },
+      { id: "start_date", label: "Start Date", value: "", type: "text" },
+      { id: "end_date", label: "End Date", value: "", type: "text" },
+      { id: "GPA", label: "GPA", value: "", type: "text" },
+      { id: "description", label: "Description", value: "[]", type: "list" },
     ],
   },
   {
@@ -62,6 +75,20 @@ const defaultSections: SectionData[] = [
       { id: "startDate", label: "Start Date", value: "", type: "date" },
       { id: "endDate", label: "End Date", value: "", type: "date" },
       { id: "description", label: "Description", value: "", type: "textarea" },
+    ],
+  },
+  {
+    id: "projects",
+    title: "Projects",
+    isOpen: false,
+    allowMultipleEntries: true,
+    fields: [
+      { id: "project_name", label: "Name", value: "", type: "text" },
+      { id: "technologies", label: "Technologies", value: "[]", type: "list" },
+      { id: "start_date", label: "Start Date", value: "", type: "date" },
+      { id: "end_date", label: "End Date", value: "", type: "date" },
+      { id: "role", label: "Role", value: "", type: "text" },
+      { id: "description", label: "Description", value: "[]", type: "list" },
     ],
   },
   {
@@ -88,7 +115,8 @@ const defaultSections: SectionData[] = [
     fields: [
       { id: "orgName", label: "Organization Name", value: "", type: "text" },
       { id: "role", label: "Role", value: "", type: "text" },
-      { id: "duration", label: "Duration", value: "", type: "text" },
+      { id: "start_date", label: "Start Date", value: "", type: "date" },
+      { id: "end_date", label: "End Date", value: "", type: "date" },
       { id: "activities", label: "Activities", value: "", type: "textarea" },
     ],
   },
@@ -106,6 +134,11 @@ const defaultSections: SectionData[] = [
   },
 ];
 
+interface ResumeEditorProps {
+  userId: string;
+  resumeId: string;
+}
+
 const additionalSectionTemplates = [
   { title: "Projects", allowMultipleEntries: true },
   { title: "Certifications", allowMultipleEntries: true },
@@ -118,7 +151,6 @@ const additionalSectionTemplates = [
 
 // Resume Section Component
 interface ResumeSectionProps {
-  title: string;
   fields: FieldData[];
   onFieldsChange: (fields: FieldData[]) => void;
   isOpen?: boolean;
@@ -126,11 +158,10 @@ interface ResumeSectionProps {
 }
 
 function ResumeSection({
-  title,
   fields,
   onFieldsChange,
   isOpen = false,
-  allowMultipleEntries = false,
+  allowMultipleEntries: _allowMultipleEntries = false,
 }: ResumeSectionProps) {
   const [hoveredField, setHoveredField] = useState<string | null>(null);
 
@@ -210,6 +241,7 @@ function ResumeSection({
                   border: "2px solid #e5e7eb",
                   borderRadius: "8px",
                   backgroundColor: "white",
+                  color: "#000000", 
                   overflow: "hidden",
                   width: "100%",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
@@ -256,6 +288,7 @@ function ResumeSection({
                           fontWeight: 600,
                           outline: "none",
                           backgroundColor: "white",
+                          color: "#000000",
                           fontFamily: "inherit",
                         }}
                         placeholder="Enter field name..."
@@ -370,7 +403,203 @@ function ResumeSection({
                       backgroundColor: "#ffffff",
                     }}
                   >
-                    {field.type === "textarea" ? (
+                    {field.type === "list" ? (
+                      (() => {
+                        const parsed: string[] = (() => {
+                          try {
+                            return JSON.parse(field.value || "[]");
+                          } catch {
+                            return [];
+                          }
+                        })();
+
+                        return (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 8,
+                            }}
+                          >
+                            {parsed.map((item, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  display: "flex",
+                                  gap: 8,
+                                  alignItems: "center",
+                                }}
+                              >
+                                <input
+                                  placeholder={field.label}
+                                  value={item ?? ""}
+                                  onChange={(e) => {
+                                    const copy = parsed.slice();
+                                    copy[idx] = e.target.value;
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 10px",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                  }}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const copy = parsed.slice();
+                                    copy.splice(idx, 1);
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    backgroundColor: "#ef4444",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "6px 8px",
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <div>
+                              <button
+                                onClick={() => {
+                                  const copy = parsed.slice();
+                                  copy.push("");
+                                  updateField(field.id, {
+                                    value: JSON.stringify(copy),
+                                  });
+                                }}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 6,
+                                  border: "1px dashed #cbd5e1",
+                                  background: "transparent",
+                                }}
+                              >
+                                + Add Item
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : field.type === "links" ? (
+                      (() => {
+                        const parsed: Array<{ label?: string; url?: string }> =
+                          (() => {
+                            try {
+                              return JSON.parse(field.value || "[]");
+                            } catch {
+                              return [];
+                            }
+                          })();
+
+                        return (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 8,
+                            }}
+                          >
+                            {parsed.map((lnk, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  display: "flex",
+                                  gap: 8,
+                                  alignItems: "center",
+                                }}
+                              >
+                                <input
+                                  placeholder="Label (e.g. LinkedIn)"
+                                  value={lnk.label ?? ""}
+                                  onChange={(e) => {
+                                    const copy = parsed.slice();
+                                    copy[idx] = {
+                                      ...(copy[idx] ?? {}),
+                                      label: e.target.value,
+                                    };
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 10px",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                  }}
+                                />
+                                <input
+                                  placeholder="URL"
+                                  value={lnk.url ?? ""}
+                                  onChange={(e) => {
+                                    const copy = parsed.slice();
+                                    copy[idx] = {
+                                      ...(copy[idx] ?? {}),
+                                      url: e.target.value,
+                                    };
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    flex: 2,
+                                    padding: "8px 10px",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                  }}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const copy = parsed.slice();
+                                    copy.splice(idx, 1);
+                                    updateField(field.id, {
+                                      value: JSON.stringify(copy),
+                                    });
+                                  }}
+                                  style={{
+                                    backgroundColor: "#ef4444",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "6px 8px",
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <div>
+                              <button
+                                onClick={() => {
+                                  const copy = parsed.slice();
+                                  copy.push({ label: "", url: "" });
+                                  updateField(field.id, {
+                                    value: JSON.stringify(copy),
+                                  });
+                                }}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 6,
+                                  border: "1px dashed #cbd5e1",
+                                  background: "transparent",
+                                }}
+                              >
+                                + Add Link
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : field.type === "textarea" ? (
                       <textarea
                         placeholder={`Enter ${field.label.toLowerCase()}...`}
                         value={field.value}
@@ -386,6 +615,7 @@ function ResumeSection({
                           fontSize: "13px",
                           outline: "none",
                           backgroundColor: "#f8fafc",
+                          color: "#000000", 
                           resize: "vertical",
                           minHeight: "60px",
                           fontFamily: "inherit",
@@ -409,6 +639,7 @@ function ResumeSection({
                           fontSize: "13px",
                           outline: "none",
                           backgroundColor: "#f8fafc",
+                          color: "#000000", 
                           fontFamily: "inherit",
                           boxSizing: "border-box",
                         }}
@@ -467,7 +698,7 @@ interface DraggableSectionProps {
 }
 
 function DraggableResumeSection({
-  id,
+  id: _id,
   index,
   title,
   fields,
@@ -588,7 +819,6 @@ function DraggableResumeSection({
             }}
           >
             <ResumeSection
-              title={title}
               fields={fields}
               onFieldsChange={onFieldsChange}
               isOpen={isOpen}
@@ -601,10 +831,153 @@ function DraggableResumeSection({
   );
 }
 
-export function ResumeEditor() {
+export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   const [sections, setSections] = useState<SectionData[]>(defaultSections);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeView, setActiveView] = useState<"edit" | "preview">("edit");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<any>(null);
+
+  // Fetch specific resume from backend
+  const fetchResume = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // First get all resumes
+      const response = await axios.get('http://localhost:3000/resumes');
+      console.log('Fetched all resumes:', response.data);
+      
+      if (response.data && response.data.Items) {
+        // Find the specific resume by userId and resumeId
+        const targetResume = response.data.Items.find(
+          (item: any) => item.user_id === userId && item.resume_id === resumeId
+        );
+
+        if (targetResume) {
+          setResumeData(targetResume);
+          parseResumeData(targetResume);
+        } else {
+          setError(`Resume not found for user ${userId} and resume ${resumeId}`);
+        }
+      } else {
+        setError('No resumes found in response');
+      }
+    } catch (err: any) {
+      console.error('Error fetching resume:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to fetch resume');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Parse the resume JSON and populate the form fields
+  const parseResumeData = (resume: any) => {
+    if (!resume || !resume.resume) return;
+
+    const resumeContent = resume.resume;
+    const dynamicSections: SectionData[] = [];
+
+    // Iterate through each section in the resume
+    Object.keys(resumeContent).forEach(sectionKey => {
+      const sectionData = resumeContent[sectionKey];
+      if (!sectionData) return;
+
+      const fields: FieldData[] = [];
+      const sectionTitle = sectionKey.replace(/_/g, ' ')
+                                    .replace(/\b\w/g, l => l.toUpperCase());
+
+      // Process the section data based on its type
+      if (Array.isArray(sectionData)) {
+        // Handle arrays (education, projects, leadership_experience)
+        if (sectionData.length > 0 && typeof sectionData[0] === 'object') {
+          // Array of objects - take first item
+          const firstItem = sectionData[0];
+          Object.keys(firstItem).forEach(fieldKey => {
+            const value = firstItem[fieldKey];
+            if (value !== null && value !== undefined) {
+              const fieldType = determineFieldType(fieldKey, value);
+              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
+              
+              fields.push({
+                id: `${sectionKey}-${fieldKey}`,
+                label: fieldKey.replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase()),
+                value: fieldValue,
+                type: fieldType
+              });
+            }
+          });
+        }
+      } else if (typeof sectionData === 'object') {
+        // Handle objects (personal_information, skills)
+        Object.keys(sectionData).forEach(fieldKey => {
+          const value = sectionData[fieldKey];
+          if (value !== null && value !== undefined) {
+            
+            // Special handling for nested structures
+            if (fieldKey === 'links' && Array.isArray(value)) {
+              // Handle links array specially
+              const linkedinLink = value.find((link: any) => link.linkedin);
+              if (linkedinLink) {
+                fields.push({
+                  id: `${sectionKey}-linkedin`,
+                  label: 'LinkedIn',
+                  value: linkedinLink.linkedin,
+                  type: 'url'
+                });
+              }
+            } else {
+              const fieldType = determineFieldType(fieldKey, value);
+              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
+              
+              fields.push({
+                id: `${sectionKey}-${fieldKey}`,
+                label: fieldKey.replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase()),
+                value: fieldValue,
+                type: fieldType
+              });
+            }
+          }
+        });
+      }
+
+      // Only add section if it has fields
+      if (fields.length > 0) {
+        dynamicSections.push({
+          id: sectionKey,
+          title: sectionTitle,
+          fields: fields,
+          isOpen: true,
+          allowMultipleEntries: Array.isArray(sectionData) && sectionData.length > 1
+        });
+      }
+    });
+
+    // Update sections with dynamically created ones
+    setSections(dynamicSections);
+  };
+
+  // Helper function to determine field type
+  const determineFieldType = (key: string, value: any): "text" | "textarea" | "date" | "email" | "tel" | "url" => {
+    const keyLower = key.toLowerCase();
+    
+    if (keyLower.includes('email')) return 'email';
+    if (keyLower.includes('phone')) return 'tel';
+    if (keyLower.includes('linkedin') || keyLower.includes('url') || keyLower.includes('link')) return 'url';
+    if (keyLower.includes('date')) return 'date';
+    if (keyLower.includes('description') || Array.isArray(value) || 
+        (typeof value === 'string' && value.length > 50)) return 'textarea';
+    return 'text';
+  };
+
+  useEffect(() => {
+    // Fetch specific resume when component mounts or props change
+    if (userId && resumeId) {
+      fetchResume();
+    }
+  }, [userId, resumeId]);
 
   const toggleSection = (sectionId: string) => {
     setSections(
@@ -642,6 +1015,7 @@ export function ResumeEditor() {
     };
     setSections([...sections, newSection]);
     setDropdownOpen(false);
+    setDropdownOpen(false);
   };
 
   const moveSection = useCallback((dragIndex: number, hoverIndex: number) => {
@@ -653,6 +1027,215 @@ export function ResumeEditor() {
       return newSections;
     });
   }, []);
+
+  // Build a resume object from the editor `sections` state.
+  const buildResume = () => {
+    const resume: any = {};
+
+    sections.forEach((section) => {
+      // PERSONAL
+      if (section.id === "personal") {
+        const pi: any = {};
+        section.fields.forEach((f) => {
+          if (f.id === "links") {
+            try {
+              const raw = JSON.parse(f.value || "[]");
+              const normalized = Array.isArray(raw)
+                ? raw.map((item: any) => {
+                    if (
+                      item &&
+                      typeof item === "object" &&
+                      ("label" in item || "url" in item)
+                    ) {
+                      const label = (item.label ?? "").toString();
+                      const key = label
+                        .toLowerCase()
+                        .replace(/\s+/g, "")
+                        .replace(/[^a-z0-9]/g, "");
+                      return { [key || "link"]: item.url ?? "" };
+                    }
+                    return item;
+                  })
+                : [];
+              pi.links = normalized;
+            } catch {
+              pi.links = [];
+            }
+          } else if (f.id === "name") {
+            pi.name = f.value;
+          } else if (f.id === "phone") {
+            pi.phone = f.value;
+          } else if (f.id === "email") {
+            pi.email = f.value;
+          } else if (f.id === "address" || f.id === "location") {
+            pi.location = f.value;
+          } else {
+            pi[f.id] = f.value;
+          }
+        });
+
+        resume.personal_information = pi;
+
+        // PROJECTS (each section treated as one project entry)
+      } else if (section.id === "projects") {
+        const proj: any = {};
+        let hasProjData = false;
+        section.fields.forEach((f) => {
+          if (f.type === "list") {
+            try {
+              const arr = JSON.parse(f.value || "[]");
+              if (
+                Array.isArray(arr) &&
+                arr.some((v: any) => {
+                  if (v == null) return false;
+                  if (typeof v === "string") return v.trim() !== "";
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return !!String(v).trim();
+                })
+              ) {
+                hasProjData = true;
+              }
+              proj[f.id === "project_name" ? "name" : f.id] = arr;
+            } catch {
+              proj[f.id === "project_name" ? "name" : f.id] = [];
+            }
+          } else {
+            const key = f.id === "project_name" ? "name" : f.id;
+            if (typeof f.value === "string" && f.value.trim())
+              hasProjData = true;
+            proj[key] = f.value;
+          }
+        });
+
+        if (hasProjData) {
+          resume.projects = resume.projects || [];
+          resume.projects.push(proj);
+        }
+
+        // EDUCATION
+      } else if (section.id === "education") {
+        const ed: any = {};
+        let hasEduData = false;
+        section.fields.forEach((f) => {
+          if (f.type === "list") {
+            try {
+              const arr = JSON.parse(f.value || "[]");
+              if (
+                Array.isArray(arr) &&
+                arr.some((v: any) => {
+                  if (v == null) return false;
+                  if (typeof v === "string") return v.trim() !== "";
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return !!String(v).trim();
+                })
+              ) {
+                hasEduData = true;
+              }
+              ed[f.id] = arr;
+            } catch {
+              ed[f.id] = [];
+            }
+          } else {
+            if (typeof f.value === "string" && f.value.trim())
+              hasEduData = true;
+            ed[f.id] = f.value;
+          }
+        });
+
+        if (hasEduData) {
+          resume.education = resume.education || [];
+          resume.education.push(ed);
+        }
+
+        // SKILLS (special mapping)
+      } else if (section.id === "skills") {
+        const skillsObj: any = {};
+        section.fields.forEach((f) => {
+          if (f.id === "technical") {
+            skillsObj.programming_languages = f.value
+              ? f.value
+                  .split(/,|\n/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+          } else if (f.id === "soft") {
+            skillsObj.soft_skills = f.value
+              ? f.value
+                  .split(/,|\n/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+          } else if (f.id === "languages") {
+            skillsObj.languages = f.value
+              ? f.value
+                  .split(/,|\n/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+          }
+        });
+
+        const hasSkills =
+          (skillsObj.programming_languages &&
+            skillsObj.programming_languages.length > 0) ||
+          (skillsObj.soft_skills && skillsObj.soft_skills.length > 0) ||
+          (skillsObj.languages && skillsObj.languages.length > 0);
+
+        if (hasSkills) resume.skills = skillsObj;
+
+        // GENERIC / OTHER SECTIONS
+      } else {
+        const obj: any = {};
+        let hasObjData = false;
+        section.fields.forEach((f) => {
+          if (f.type === "list") {
+            try {
+              const arr = JSON.parse(f.value || "[]");
+              if (
+                Array.isArray(arr) &&
+                arr.some((v: any) => {
+                  if (v == null) return false;
+                  if (typeof v === "string") return v.trim() !== "";
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return !!String(v).trim();
+                })
+              ) {
+                hasObjData = true;
+              }
+              obj[f.id] = arr;
+            } catch {
+              obj[f.id] = [];
+            }
+          } else {
+            obj[f.id] = f.value;
+            if (typeof f.value === "string" && f.value.trim())
+              hasObjData = true;
+          }
+        });
+
+        if (hasObjData) {
+          resume[section.id] = resume[section.id] || [];
+          resume[section.id].push(obj);
+        }
+      }
+    });
+
+    // Return the envelope. Do not force-create empty arrays/objects for sections;
+    // only sections that had data are present on `resume`.
+    return {
+      user_id: "0",
+      resume_id: "0",
+      resume,
+      metadata: {
+        resume_info: {
+          resume_creation_date: new Date().toISOString(),
+          filename: "generated_resume.json",
+          template_used: "",
+          section_order: sections.map((s) => s.id),
+        },
+      },
+    };
+  };
 
   return (
     <div
@@ -689,8 +1272,23 @@ export function ResumeEditor() {
             fontWeight: 500,
           }}
         >
-          Build an customize your resume - Drag sections to reorder
+          Build and customize your resume - Drag sections to reorder
         </p>
+      </div>
+
+      {/* API Status */}
+      <div style={{ marginBottom: "16px" }}>
+        {loading && (
+          <div style={{ color: "#3b82f6", fontSize: "13px", textAlign: "center" }}>
+            Loading resume data...
+          </div>
+        )}
+        {error && (
+          <div style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}>
+            Error: {error}
+          </div>
+        )}
+
       </div>
 
       <div
@@ -704,107 +1302,110 @@ export function ResumeEditor() {
           flexWrap: "wrap",
         }}
       >
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            style={{
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              color: "white",
-              border: "none",
-              padding: "8px 14px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <Plus size={14} />
-            Add Section
-          </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              style={{
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                color: "white",
+                border: "none",
+                padding: "8px 14px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <Plus size={14} />
+              Add Section
+            </button>
 
-          {dropdownOpen && (
-            <>
-              <div
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 40,
-                }}
-                onClick={() => setDropdownOpen(false)}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  marginTop: "4px",
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "6px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  minWidth: "180px",
-                  zIndex: 50,
-                }}
-              >
-                {additionalSectionTemplates.map((template) => (
+            {dropdownOpen && (
+              <>
+                <div
+                  style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 40,
+                  }}
+                  onClick={() => setDropdownOpen(false)}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: "4px",
+                    backgroundColor: "white",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    padding: "6px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                    minWidth: "180px",
+                    zIndex: 50,
+                  }}
+                >
+                  {additionalSectionTemplates.map((template) => (
+                    <div
+                      key={template.title}
+                      onClick={() =>
+                        addSection(template.title, template.allowMultipleEntries)
+                      }
+                      style={{
+                        padding: "8px 10px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {template.title}
+                    </div>
+                  ))}
                   <div
-                    key={template.title}
-                    onClick={() =>
-                      addSection(template.title, template.allowMultipleEntries)
-                    }
+                    style={{
+                      height: "1px",
+                      backgroundColor: "#e2e8f0",
+                      margin: "4px 0",
+                    }}
+                  />
+                  <div
+                    onClick={() => addSection("Custom Section", false)}
                     style={{
                       padding: "8px 10px",
                       fontSize: "13px",
                       cursor: "pointer",
                       borderRadius: "4px",
-                      fontWeight: 500,
+                      fontWeight: 600,
+                      color: "#3b82f6",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f1f5f9";
+                      e.currentTarget.style.backgroundColor = "#eff6ff";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
                   >
-                    {template.title}
+                    Custom Section
                   </div>
-                ))}
-                <div
-                  style={{
-                    height: "1px",
-                    backgroundColor: "#e2e8f0",
-                    margin: "4px 0",
-                  }}
-                />
-                <div
-                  onClick={() => addSection("Custom Section", false)}
-                  style={{
-                    padding: "8px 10px",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                    borderRadius: "4px",
-                    fontWeight: 600,
-                    color: "#3b82f6",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#eff6ff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  Custom Section
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
+
         </div>
 
         <div
@@ -868,43 +1469,72 @@ export function ResumeEditor() {
       >
         {activeView === "edit" ? (
           <div>
-            {sections.map((section, index) => (
-              <DraggableResumeSection
-                key={section.id}
-                id={section.id}
-                index={index}
-                title={section.title}
-                fields={section.fields}
-                onFieldsChange={(fields) =>
-                  updateSectionFields(section.id, fields)
-                }
-                isOpen={section.isOpen}
-                onToggle={() => toggleSection(section.id)}
-                allowMultipleEntries={section.allowMultipleEntries}
-                moveSection={moveSection}
-              />
-            ))}
+            {sections.length > 0 ? (
+              sections.map((section, index) => (
+                <DraggableResumeSection
+                  key={section.id}
+                  id={section.id}
+                  index={index}
+                  title={section.title}
+                  fields={section.fields}
+                  onFieldsChange={(fields) =>
+                    updateSectionFields(section.id, fields)
+                  }
+                  isOpen={section.isOpen}
+                  onToggle={() => toggleSection(section.id)}
+                  allowMultipleEntries={section.allowMultipleEntries}
+                  moveSection={moveSection}
+                />
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+                {loading ? "Loading resume data..." : "No resume data found"}
+              </div>
+            )}
           </div>
         ) : (
           <div
             style={{
               backgroundColor: "white",
-              padding: "24px",
+              padding: "8px",
               borderRadius: "8px",
               border: "1px solid #e5e7eb",
-              minHeight: "100%",
+              /* Allow the flex parent to control height */
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              /* Ensure this box expands to fill the available vertical space */
+              flex: 1,
             }}
           >
             <div
               style={{
+                flex: 1,
+                display: "flex",
+                /* Stretch the child vertically so PdfViewer can fill */
+                alignItems: "stretch",
+                justifyContent: "stretch",
                 textAlign: "center",
                 color: "#6b7280",
-                padding: "40px 20px",
+                padding: "4px 2px",
+                boxSizing: "border-box",
+                minHeight: 0,
+                overflow: "hidden",
               }}
             >
-              <p style={{ fontSize: "14px", margin: 0 }}>
-                Preview functionality coming soon...
-              </p>
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  flex: 1,
+                  minHeight: 0,
+                }}
+              >
+                <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
+                  <PdfViewer resumeObj={buildResume()} />
+                </div>
+              </div>
             </div>
           </div>
         )}

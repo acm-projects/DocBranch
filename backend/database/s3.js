@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config();
-const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
 const path = require('path');
 
@@ -9,39 +9,21 @@ const config = {
 };
 const client = new S3Client(config);
 
-const uploadFileToS3 = async (localFilePathOrBody, bucket, key, contentType = "application/octet-stream") => {
-  // localFilePathOrBody can be:
-  // - a path to an existing local file (string)
-  // - a string body
-  // - a Buffer
-  // - an object (will be JSON.stringified)
-
-  let Body;
-  let resolvedPath;
-
-  if (typeof localFilePathOrBody === 'string') {
-    // Check if it's a path to an existing file
-    const possiblePath = path.isAbsolute(localFilePathOrBody) ? localFilePathOrBody : path.resolve(localFilePathOrBody);
-    if (fs.existsSync(possiblePath) && fs.statSync(possiblePath).isFile()) {
-      resolvedPath = possiblePath;
-      Body = fs.createReadStream(resolvedPath);
-    } else {
-      // treat as raw string body
-      Body = Buffer.from(localFilePathOrBody, 'utf8');
-      // if contentType was default, assume text/plain
-      if (contentType === 'application/octet-stream') contentType = 'text/plain; charset=utf-8';
-    }
-  } else if (Buffer.isBuffer(localFilePathOrBody)) {
-    Body = localFilePathOrBody;
-  } else if (typeof localFilePathOrBody === 'object' && localFilePathOrBody !== null) {
-    // JSON object
-    const json = JSON.stringify(localFilePathOrBody);
-    Body = Buffer.from(json, 'utf8');
-    contentType = 'application/json';
-  } else {
-    throw new Error('Unsupported body type for uploadFileToS3');
+/**
+ * Upload a local file to S3.
+ * @param {string} filePath - Path to a local file to upload.
+ * @param {string} bucket
+ * @param {string} key
+ * @param {string} [contentType]
+ */
+const uploadFileToS3 = async (filePath, bucket, key, contentType = 'application/octet-stream') => {
+  if (typeof filePath !== 'string') throw new Error('uploadFileToS3 expects a file path string as the first argument');
+  const possiblePath = path.isAbsolute(filePath) ? filePath : path.resolve(filePath);
+  if (!fs.existsSync(possiblePath) || !fs.statSync(possiblePath).isFile()) {
+    throw new Error(`File not found: ${possiblePath}`);
   }
 
+  const Body = fs.createReadStream(possiblePath);
   const input = {
     Body,
     Bucket: bucket,
@@ -49,16 +31,39 @@ const uploadFileToS3 = async (localFilePathOrBody, bucket, key, contentType = "a
     ContentType: contentType,
   };
 
-  // If Body is a Buffer or string, set ContentLength to avoid undefined-length streaming headers
-  if (Buffer.isBuffer(Body)) {
-    input.ContentLength = Body.length;
+  const uploadCommand = new PutObjectCommand(input);
+  try {
+    const uploadResponse = await client.send(uploadCommand);
+    console.log(`Uploaded ${possiblePath} to s3://${bucket}/${key}`);
+    return uploadResponse;
+  } catch (err) {
+    console.error('S3 upload error:', err);
+    throw err;
   }
+}
+
+/**
+ * Upload a JavaScript object to S3 as JSON.
+ * @param {Object} obj - Plain object to be JSON.stringified and uploaded.
+ * @param {string} bucket
+ * @param {string} key
+ */
+const uploadObjectToS3 = async (obj, bucket, key) => {
+  if (typeof obj !== 'object' || obj === null) throw new Error('uploadObjectToS3 expects a non-null object as the first argument');
+  const json = JSON.stringify(obj);
+  const Body = Buffer.from(json, 'utf8');
+  const input = {
+    Body,
+    Bucket: bucket,
+    Key: key,
+    ContentType: 'application/json',
+    ContentLength: Body.length,
+  };
 
   const uploadCommand = new PutObjectCommand(input);
   try {
     const uploadResponse = await client.send(uploadCommand);
-    if (resolvedPath) console.log(`Uploaded ${resolvedPath} to s3://${bucket}/${key}`);
-    else console.log(`Uploaded data to s3://${bucket}/${key}`);
+    console.log(`Uploaded object to s3://${bucket}/${key}`);
     return uploadResponse;
   } catch (err) {
     console.error('S3 upload error:', err);
@@ -80,6 +85,34 @@ const downloadFileFromS3 = async (bucket, key, localFilePath) => {
   return downloadResponse;
 }
 
+/**
+ * Delete a file from S3 using userId and resumeId to construct the key.
+ * By default the key is `${userId}/${resumeId}`. Pass an optional keyPrefix
+ * (e.g. 'resumes/') to change the prefix.
+ * @param {string} userId
+ * @param {string} resumeId
+ * @param {string} bucket
+ */
+const deleteFromS3 = async (userId, resumeId, bucket) => {
+  if (!userId || !resumeId) throw new Error('deleteFileFromS3 requires userId and resumeId');
+  if (!bucket) throw new Error('deleteFileFromS3 requires bucket');
+
+  // normalize prefix to ensure trailing slash if provided
+  let prefix = 'resumes/';
+  let fileType = 'json';
+
+  const key = `${prefix}${userId}/${resumeId}.${fileType}`;
+  const cmd = new DeleteObjectCommand({ Bucket: bucket, Key: key });
+  try {
+    await client.send(cmd);
+    console.log(`Deleted s3://${bucket}/${key}`);
+    return { bucket, key, deleted: true };
+  } catch (err) {
+    console.error(`Error deleting s3://${bucket}/${key}:`, err);
+    throw err;
+  }
+}
+
 // Example usage:
 // import promptSync from 'prompt-sync';
 // const prompt = promptSync();
@@ -94,5 +127,7 @@ const downloadFileFromS3 = async (bucket, key, localFilePath) => {
 
 module.exports = {
   uploadFileToS3,
-  downloadFileFromS3
+  uploadObjectToS3,
+  downloadFileFromS3,
+  deleteFromS3
 };

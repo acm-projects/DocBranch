@@ -5,15 +5,18 @@ export default function SimplePdfViewer({
   filePath,
   userId,
   resumeId,
+  resumeObj,
 }: {
   filePath?: string;
-  userId: string;
-  resumeId: string;
+  userId?: string;
+  resumeId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resumeObj?: any;
 }) {
-  // runtime guard: require userId and resumeId
-  if (!userId || !resumeId) {
+  // runtime guard: require either a resume object, or userId+resumeId, or a filePath with electron
+  if (!filePath && !resumeObj && (!userId || !resumeId)) {
     throw new Error(
-      "SimplePdfViewer requires both `userId` and `resumeId` props."
+      "SimplePdfViewer requires either `resumeObj` or both `userId` and `resumeId`, or a `filePath` when running in electron."
     );
   }
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -66,7 +69,13 @@ export default function SimplePdfViewer({
       setError(null);
       setPdfUrl(null);
       try {
-        const blob = await generateResumePdf(userId, resumeId);
+        let blob: Blob;
+        if (resumeObj) {
+          blob = await generateResumePdf(resumeObj);
+        } else {
+          // TypeScript: userId/resumeId are guaranteed by the runtime guard above
+          blob = await generateResumePdf(userId!, resumeId!);
+        }
         if (!mounted) return;
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
@@ -84,7 +93,11 @@ export default function SimplePdfViewer({
     return () => {
       mounted = false;
     };
-  }, [userId, resumeId]);
+  }, [
+    userId,
+    resumeId,
+    /* include resumeObj so effect reruns when provided */ resumeObj,
+  ]);
 
   return (
     <div

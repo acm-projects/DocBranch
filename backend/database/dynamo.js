@@ -1,5 +1,7 @@
-const {uploadFileToS3, downloadFileFromS3} = require('./s3');
+const {uploadObjectToS3, downloadFileFromS3, deleteFileFromS3} = require('./s3');
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 
 // AWS SDK v3 (modular) - use the Document client wrapper for convenient marshalling
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
@@ -129,14 +131,15 @@ const addOrUpdateResume = async (resumeDocument) => {
   await addOrUpdateProfile(resumeDocument.resume, resumeDocument.user_id);
 
   // ALSO ADD TO S3 AS JSON FILE
-  await uploadFileToS3(JSON.stringify(resumeDocument), "docbranchtestbucket", `resumes/${resumeDocument.user_id}/${resumeDocument.resume_id}.json`, "application/json");
+  await uploadObjectToS3(resumeDocument, "docbranchtestbucket", `resumes/${resumeDocument.user_id}/${resumeDocument.resume_id}.json`);
 
   return await dynamoClient.send(new PutCommand(param));
 }
 
-const addOrUpdateProfile = async (profile, user_id) => {
-  if (!profile || !user_id) {
-    throw new Error('Profile must include a user_id');
+
+const addOrUpdateProfile = async (resume, user_id) => {
+  if (!resume || !user_id) {
+    throw new Error('Resume object and user_id are required');
   }
 
   // Fetch existing profile by user_id (use get since user_id is the key)
@@ -147,7 +150,12 @@ const addOrUpdateProfile = async (profile, user_id) => {
   const existingRes = await dynamoClient.send(new GetCommand(getParams));
   const existing = existingRes && existingRes.Item ? existingRes.Item : {};
 
-  const merged = mergeObjects(existing, profile);
+  const merged = mergeObjects(existing, resume);
+
+  // Ensure the primary key is present on the item we put into DynamoDB.
+  // merged may not include user_id (profiles often don't store it inside the profile object),
+  // so explicitly set it from the function argument.
+  merged.user_id = user_id;
 
   const param = {
     TableName: PROFILES,
@@ -203,6 +211,9 @@ const deleteResumeById = async (userid, resumeid) => {
       resume_id: resumeid
     }
   };
+
+    await deleteFromS3(userid, resumeid, 'docbranchtestbucket');
+
   return await dynamoClient.send(new DeleteCommand(params));
 }
 
@@ -216,29 +227,8 @@ const deleteProfileById = async (userid) => {
   return await dynamoClient.send(new DeleteCommand(params));
 }
 
-const newresume = {
-  user_id: "1",
-  resume_id: "1",
-  name: "Jane Doe",
-  email: "jane.doe@example.com",
-  age: 30,
-  skills: ["Java", "Python", "React"],
-  experience: [
-    {
-      company: "Techno Corpo",
-      role: "Backend Developer",
-      start_date: "2021-01-01",
-      end_date: "2022-01-01"
-    }
-  ]
-        
-  // user_id: '1',
-  // resume_id: '1',
-  // email: 'john.doe@example.com',
-  // name: 'John Doe'
-}
-
 // Sample / test runner: only execute when this file is run directly (not when required)
+
 // if (require.main === module) {
 //   (async () => {
 //     try {
@@ -260,10 +250,26 @@ const newresume = {
 if (require.main === module) {
   (async () => {
     try {
-      await addOrUpdateResume(newresume);
-      console.log("Returned: ", JSON.stringify(await getResumesByUser("1"), null, 2));
+      // Attempt to load and add/update 10 resume files named
+      // Allen_Zheng_Resume_01.json ... Allen_Zheng_Resume_10.json
+      for (let i = 1; i <= 10; i++) {
+        const idx = String(i).padStart(2, '0');
+        const relPath = path.join(__dirname, '..', 'resume-generator', 'resume_json_files', `Allen_Zheng_Resume_${idx}.json`);
+        if (!fs.existsSync(relPath)) {
+          console.warn(`Skipping missing file: ${relPath}`);
+          continue;
+        }
 
-      await downloadFileFromS3("docbranchtestbucket", `resumes/1/1.json`, "./downloaded_resume_1_1.json");
+        // require the JSON file. It may export the resume in different shapes;
+        // prefer `newresume`, then `resume`, otherwise use the whole JSON.
+        const newresume = require(relPath);
+
+        await addOrUpdateResume(newresume);
+      }
+
+      //await addOrUpdateResume(newresume);
+      //console.log("Returned: ", JSON.stringify(await deleteResumeById("0", "0"), null, 2));
+
     } catch (err) {
       console.error('Error running dynamo.js test runner:', err);
     }

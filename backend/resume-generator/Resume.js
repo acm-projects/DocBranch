@@ -38,8 +38,6 @@ class Resume {
     this.bulletIndent = 14 + this.indentSize;
     this.bulletTextIndent = this.bulletIndent + 4;
 
-    this.sectionOrder = ['education', 'experience', 'projects', 'activities', 'skills'];
-
     this.doc = null; // will hold PDFDocument instance
   }
 
@@ -73,11 +71,28 @@ class Resume {
     const resumeData = this.resume;
     const doc = this.doc;
 
-    // Header: name and contact
+    // Header: name and top-right location/address on the same line
     const info = resumeData.personal_information || {};
-    doc.font('CMUSerif-Bold').fontSize(this.userNameFontSize)
-      .text(info.name || '', { align: 'center' });
 
+    // prefer explicit location, fall back to address
+    const headerRight = (info.location && info.location.toString().trim()) || (info.address && info.address.toString().trim()) || '';
+    const marginTop = doc.page.margins.top || 30;
+    const usableWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+    // We'll draw both name and location on the same Y (snap to the top margin).
+    const headerY = marginTop;
+
+    // Draw right-aligned small location at the top of the line
+    if (headerRight) {
+      doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+        .text(headerRight, doc.page.margins.left, headerY, { width: usableWidth, align: 'right' });
+    }
+
+    // Draw the name centered on the same Y. Using a larger font; letting PDFKit handle baseline differences.
+    doc.font('CMUSerif-Bold').fontSize(this.userNameFontSize)
+      .text(info.name || '', doc.page.margins.left, headerY, { width: usableWidth, align: 'center' });
+
+    // Contact row below the name
     const contactArr = [info.phone, info.email];
     if (info.links && Array.isArray(info.links)) {
       info.links.forEach(linkObj => {
@@ -85,18 +100,81 @@ class Resume {
         contactArr.push(linkObj[key]);
       });
     }
+    const contactY = headerY + this.userNameFontSize + 6;
     doc.font('CMUSerif').fontSize(this.smallTextFontSize)
-      .text(contactArr.filter(Boolean).join(' | '), { align: 'center' });
+      .text(contactArr.filter(Boolean).join(' | '), doc.page.margins.left, contactY, { width: usableWidth, align: 'center' });
 
     // Render sections using helper methods in requested order; accept arbitrary section names.
     // Use metadata.section_order when available (support metadata at root or inside resume),
     // otherwise iterate over the keys of the resume object.
-    const metaSectionOrder = (this.metadata && this.metadata.resume_info && this.metadata.resume_info.section_order) ||
-      (resumeData.metadata && resumeData.metadata.resume_info && resumeData.metadata.resume_info.section_order) || null;
+    const sectionOrder = (this.metadata && this.metadata.resume_info && this.metadata.resume_info.section_order) || null;
 
+    // Build an explicit rendering order. If metadata provides a section_order array,
+    // match each requested name to an actual key in the resume JSON. Matching is
+    // tolerant to spacing/underscores/casing (e.g. 'Work Experience' -> 'experience').
+    // Any keys not mentioned in the metadata order are appended after the ordered ones.
     let order = null;
-    if (Array.isArray(metaSectionOrder) && metaSectionOrder.length > 0) {
-      order = metaSectionOrder;
+    if (Array.isArray(sectionOrder) && sectionOrder.length > 0) {
+      // stronger normalization: strip ALL non-alphanumerics to avoid punctuation/spacing
+      const normalize = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const keys = Object.keys(resumeData || {});
+
+      // map normalized forms of keys to the actual key name (preserve first occurrence)
+      const normToKey = {};
+      keys.forEach(k => {
+        const nk = normalize(k);
+        if (!normToKey[nk]) normToKey[nk] = k;
+        // also map formatted section title to key (e.g., 'Leadership Experience' -> 'leadership_experience')
+        const fk = normalize(this._formatSectionTitle(k));
+        if (!normToKey[fk]) normToKey[fk] = k;
+      });
+
+      const added = new Set();
+      const ordered = [];
+
+      // make a stable list of normalized tokens for matching
+      const normKeys = Object.keys(normToKey);
+
+      sectionOrder.forEach(req => {
+        if (!req && req !== 0) return;
+        const reqNorm = normalize(req);
+
+        // 1) exact normalized match
+        let match = normToKey[reqNorm];
+
+        // 2) prefer candidates that start/end with reqNorm (more specific) — check longer tokens first
+        if (!match) {
+          const candidates = normKeys.slice().sort((a, b) => b.length - a.length);
+          const found = candidates.find(n => n === reqNorm || n.endsWith(reqNorm) || n.startsWith(reqNorm));
+          if (found) match = normToKey[found];
+        }
+
+        // 3) fallback: permissive substring match (least preferred)
+        if (!match) {
+          const found = normKeys.find(n => n.includes(reqNorm) || reqNorm.includes(n));
+          if (found) match = normToKey[found];
+        }
+
+        if (match) {
+          if (!added.has(match)) {
+            ordered.push(match);
+            added.add(match);
+          }
+        } else {
+          // helpful debug output when metadata entries don't match any key
+          /* eslint-disable no-console */
+          console.warn && console.warn(`Warning: metadata.section_order entry "${req}" did not match any resume section key.`);
+        }
+      });
+
+      // Append any remaining keys (preserve original key order), skipping internal keys
+      keys.forEach(k => {
+        if (added.has(k)) return;
+        if (k === 'personal_information' || k === 'metadata') return;
+        ordered.push(k);
+      });
+
+      order = ordered;
     } else {
       order = Object.keys(resumeData || {});
     }
