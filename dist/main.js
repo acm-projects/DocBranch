@@ -14,7 +14,7 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             preload: path.join(__dirname, "preload.js"),
-            webSecurity: false, // Add this for development
+            webSecurity: false,
         },
     });
     if (isDev) {
@@ -40,7 +40,7 @@ app.whenReady().then(() => {
     });
     createWindow();
 });
-// IPC handlers
+// Keep only Electron-specific IPC handlers
 ipcMain.handle("load-pdf", async (_, filePath) => {
     console.log(" IPC load-pdf called with:", filePath);
     const exists = fs.existsSync(filePath);

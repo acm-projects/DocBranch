@@ -2,10 +2,15 @@ export {};
 
 declare global {
   interface Window {
-    electron: {
-      ipcRenderer: {
-        invoke: (channel: string, ...args: any[]) => Promise<any>;
-      };
+    electronAPI: {
+      analyzeResume: (data: { 
+        resumeData: any; 
+        jobDescription: string 
+      }) => Promise<{ 
+        success: boolean; 
+        result: string;
+        error?: string;
+      }>;
     };
   }
 }

@@ -54,4 +54,7 @@ export async function generateResumePdf(arg1: string | any, arg2?: string): Prom
     const message = err && err.response && err.response.data ? JSON.stringify(err.response.data) : (err && err.message) || String(err);
     throw new Error(`Failed to generate PDF: ${message}`);
   }
+
+  
 }
+

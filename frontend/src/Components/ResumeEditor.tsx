@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from "react";
-import { Plus, ChevronDown, GripVertical, X, Edit, Save } from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { Plus, ChevronDown, GripVertical, X, Edit, Save, RefreshCw } from "lucide-react";
 import PdfViewer from ".././PdfViewer";
+import axios from 'axios';
 
 // field interface
 export interface FieldData {
@@ -133,6 +134,11 @@ const defaultSections: SectionData[] = [
   },
 ];
 
+interface ResumeEditorProps {
+  userId: string;
+  resumeId: string;
+}
+
 const additionalSectionTemplates = [
   { title: "Projects", allowMultipleEntries: true },
   { title: "Certifications", allowMultipleEntries: true },
@@ -235,6 +241,7 @@ function ResumeSection({
                   border: "2px solid #e5e7eb",
                   borderRadius: "8px",
                   backgroundColor: "white",
+                  color: "#000000", 
                   overflow: "hidden",
                   width: "100%",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
@@ -281,6 +288,7 @@ function ResumeSection({
                           fontWeight: 600,
                           outline: "none",
                           backgroundColor: "white",
+                          color: "#000000",
                           fontFamily: "inherit",
                         }}
                         placeholder="Enter field name..."
@@ -607,6 +615,7 @@ function ResumeSection({
                           fontSize: "13px",
                           outline: "none",
                           backgroundColor: "#f8fafc",
+                          color: "#000000", 
                           resize: "vertical",
                           minHeight: "60px",
                           fontFamily: "inherit",
@@ -630,6 +639,7 @@ function ResumeSection({
                           fontSize: "13px",
                           outline: "none",
                           backgroundColor: "#f8fafc",
+                          color: "#000000", 
                           fontFamily: "inherit",
                           boxSizing: "border-box",
                         }}
@@ -821,10 +831,153 @@ function DraggableResumeSection({
   );
 }
 
-export function ResumeEditor() {
+export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   const [sections, setSections] = useState<SectionData[]>(defaultSections);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeView, setActiveView] = useState<"edit" | "preview">("edit");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<any>(null);
+
+  // Fetch specific resume from backend
+  const fetchResume = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // First get all resumes
+      const response = await axios.get('http://localhost:3000/resumes');
+      console.log('Fetched all resumes:', response.data);
+      
+      if (response.data && response.data.Items) {
+        // Find the specific resume by userId and resumeId
+        const targetResume = response.data.Items.find(
+          (item: any) => item.user_id === userId && item.resume_id === resumeId
+        );
+
+        if (targetResume) {
+          setResumeData(targetResume);
+          parseResumeData(targetResume);
+        } else {
+          setError(`Resume not found for user ${userId} and resume ${resumeId}`);
+        }
+      } else {
+        setError('No resumes found in response');
+      }
+    } catch (err: any) {
+      console.error('Error fetching resume:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to fetch resume');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Parse the resume JSON and populate the form fields
+  const parseResumeData = (resume: any) => {
+    if (!resume || !resume.resume) return;
+
+    const resumeContent = resume.resume;
+    const dynamicSections: SectionData[] = [];
+
+    // Iterate through each section in the resume
+    Object.keys(resumeContent).forEach(sectionKey => {
+      const sectionData = resumeContent[sectionKey];
+      if (!sectionData) return;
+
+      const fields: FieldData[] = [];
+      const sectionTitle = sectionKey.replace(/_/g, ' ')
+                                    .replace(/\b\w/g, l => l.toUpperCase());
+
+      // Process the section data based on its type
+      if (Array.isArray(sectionData)) {
+        // Handle arrays (education, projects, leadership_experience)
+        if (sectionData.length > 0 && typeof sectionData[0] === 'object') {
+          // Array of objects - take first item
+          const firstItem = sectionData[0];
+          Object.keys(firstItem).forEach(fieldKey => {
+            const value = firstItem[fieldKey];
+            if (value !== null && value !== undefined) {
+              const fieldType = determineFieldType(fieldKey, value);
+              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
+              
+              fields.push({
+                id: `${sectionKey}-${fieldKey}`,
+                label: fieldKey.replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase()),
+                value: fieldValue,
+                type: fieldType
+              });
+            }
+          });
+        }
+      } else if (typeof sectionData === 'object') {
+        // Handle objects (personal_information, skills)
+        Object.keys(sectionData).forEach(fieldKey => {
+          const value = sectionData[fieldKey];
+          if (value !== null && value !== undefined) {
+            
+            // Special handling for nested structures
+            if (fieldKey === 'links' && Array.isArray(value)) {
+              // Handle links array specially
+              const linkedinLink = value.find((link: any) => link.linkedin);
+              if (linkedinLink) {
+                fields.push({
+                  id: `${sectionKey}-linkedin`,
+                  label: 'LinkedIn',
+                  value: linkedinLink.linkedin,
+                  type: 'url'
+                });
+              }
+            } else {
+              const fieldType = determineFieldType(fieldKey, value);
+              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
+              
+              fields.push({
+                id: `${sectionKey}-${fieldKey}`,
+                label: fieldKey.replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase()),
+                value: fieldValue,
+                type: fieldType
+              });
+            }
+          }
+        });
+      }
+
+      // Only add section if it has fields
+      if (fields.length > 0) {
+        dynamicSections.push({
+          id: sectionKey,
+          title: sectionTitle,
+          fields: fields,
+          isOpen: true,
+          allowMultipleEntries: Array.isArray(sectionData) && sectionData.length > 1
+        });
+      }
+    });
+
+    // Update sections with dynamically created ones
+    setSections(dynamicSections);
+  };
+
+  // Helper function to determine field type
+  const determineFieldType = (key: string, value: any): "text" | "textarea" | "date" | "email" | "tel" | "url" => {
+    const keyLower = key.toLowerCase();
+    
+    if (keyLower.includes('email')) return 'email';
+    if (keyLower.includes('phone')) return 'tel';
+    if (keyLower.includes('linkedin') || keyLower.includes('url') || keyLower.includes('link')) return 'url';
+    if (keyLower.includes('date')) return 'date';
+    if (keyLower.includes('description') || Array.isArray(value) || 
+        (typeof value === 'string' && value.length > 50)) return 'textarea';
+    return 'text';
+  };
+
+  useEffect(() => {
+    // Fetch specific resume when component mounts or props change
+    if (userId && resumeId) {
+      fetchResume();
+    }
+  }, [userId, resumeId]);
 
   const toggleSection = (sectionId: string) => {
     setSections(
@@ -1119,8 +1272,23 @@ export function ResumeEditor() {
             fontWeight: 500,
           }}
         >
-          Build an customize your resume - Drag sections to reorder
+          Build and customize your resume - Drag sections to reorder
         </p>
+      </div>
+
+      {/* API Status */}
+      <div style={{ marginBottom: "16px" }}>
+        {loading && (
+          <div style={{ color: "#3b82f6", fontSize: "13px", textAlign: "center" }}>
+            Loading resume data...
+          </div>
+        )}
+        {error && (
+          <div style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}>
+            Error: {error}
+          </div>
+        )}
+
       </div>
 
       <div
@@ -1134,142 +1302,110 @@ export function ResumeEditor() {
           flexWrap: "wrap",
         }}
       >
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            style={{
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              color: "white",
-              border: "none",
-              padding: "8px 14px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <Plus size={14} />
-            Add Section
-          </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              style={{
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                color: "white",
+                border: "none",
+                padding: "8px 14px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <Plus size={14} />
+              Add Section
+            </button>
 
-          {/* <button
-            onClick={async () => {
-              const payload = buildResume();
-              try {
-                const savedPath = await (
-                  window as any
-                ).electron.ipcRenderer.invoke("save-resume", {
-                  resumeObj: payload,
-                  filename: `resume_${Date.now()}.json`,
-                });
-                // eslint-disable-next-line no-alert
-                alert(`Saved resume JSON to ${savedPath}`);
-              } catch (err: any) {
-                // eslint-disable-next-line no-alert
-                alert(
-                  "Failed to save resume JSON: " +
-                    (err && err.message ? err.message : String(err))
-                );
-              }
-            }}
-            style={{
-              marginLeft: "8px",
-              background: "#1f2937",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            Save JSON
-          </button> */}
-
-          {dropdownOpen && (
-            <>
-              <div
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 40,
-                }}
-                onClick={() => setDropdownOpen(false)}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  marginTop: "4px",
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "6px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  minWidth: "180px",
-                  zIndex: 50,
-                }}
-              >
-                {additionalSectionTemplates.map((template) => (
+            {dropdownOpen && (
+              <>
+                <div
+                  style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 40,
+                  }}
+                  onClick={() => setDropdownOpen(false)}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: "4px",
+                    backgroundColor: "white",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    padding: "6px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                    minWidth: "180px",
+                    zIndex: 50,
+                  }}
+                >
+                  {additionalSectionTemplates.map((template) => (
+                    <div
+                      key={template.title}
+                      onClick={() =>
+                        addSection(template.title, template.allowMultipleEntries)
+                      }
+                      style={{
+                        padding: "8px 10px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {template.title}
+                    </div>
+                  ))}
                   <div
-                    key={template.title}
-                    onClick={() =>
-                      addSection(template.title, template.allowMultipleEntries)
-                    }
+                    style={{
+                      height: "1px",
+                      backgroundColor: "#e2e8f0",
+                      margin: "4px 0",
+                    }}
+                  />
+                  <div
+                    onClick={() => addSection("Custom Section", false)}
                     style={{
                       padding: "8px 10px",
                       fontSize: "13px",
                       cursor: "pointer",
                       borderRadius: "4px",
-                      fontWeight: 500,
+                      fontWeight: 600,
+                      color: "#3b82f6",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f1f5f9";
+                      e.currentTarget.style.backgroundColor = "#eff6ff";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
                   >
-                    {template.title}
+                    Custom Section
                   </div>
-                ))}
-                <div
-                  style={{
-                    height: "1px",
-                    backgroundColor: "#e2e8f0",
-                    margin: "4px 0",
-                  }}
-                />
-                <div
-                  onClick={() => addSection("Custom Section", false)}
-                  style={{
-                    padding: "8px 10px",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                    borderRadius: "4px",
-                    fontWeight: 600,
-                    color: "#3b82f6",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#eff6ff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  Custom Section
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
+
         </div>
 
         <div
@@ -1333,22 +1469,28 @@ export function ResumeEditor() {
       >
         {activeView === "edit" ? (
           <div>
-            {sections.map((section, index) => (
-              <DraggableResumeSection
-                key={section.id}
-                id={section.id}
-                index={index}
-                title={section.title}
-                fields={section.fields}
-                onFieldsChange={(fields) =>
-                  updateSectionFields(section.id, fields)
-                }
-                isOpen={section.isOpen}
-                onToggle={() => toggleSection(section.id)}
-                allowMultipleEntries={section.allowMultipleEntries}
-                moveSection={moveSection}
-              />
-            ))}
+            {sections.length > 0 ? (
+              sections.map((section, index) => (
+                <DraggableResumeSection
+                  key={section.id}
+                  id={section.id}
+                  index={index}
+                  title={section.title}
+                  fields={section.fields}
+                  onFieldsChange={(fields) =>
+                    updateSectionFields(section.id, fields)
+                  }
+                  isOpen={section.isOpen}
+                  onToggle={() => toggleSection(section.id)}
+                  allowMultipleEntries={section.allowMultipleEntries}
+                  moveSection={moveSection}
+                />
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+                {loading ? "Loading resume data..." : "No resume data found"}
+              </div>
+            )}
           </div>
         ) : (
           <div
