@@ -26,6 +26,9 @@ const ComparePage = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [showCurrentResume, setShowCurrentResume] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [bedrockLoading, setBedrockLoading] = useState(false);
+  const [bedrockResult, setBedrockResult] = useState<any | null>(null);
+  const [bedrockError, setBedrockError] = useState<string | null>(null);
 
   // useEffect(() => {
   //   // Removed fetchResumes logic and unused state
@@ -66,6 +69,35 @@ const ComparePage = () => {
       setApiError(errorMessage);
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  // Bedrock (RAG) query handler using the top search input `globalSearchQuery`
+  const handleBedrockQuery = async () => {
+    if (!globalSearchQuery || !globalSearchQuery.trim()) {
+      setBedrockError("Please enter a query");
+      setBedrockResult(null);
+      return;
+    }
+
+    setBedrockLoading(true);
+    setBedrockError(null);
+    setBedrockResult(null);
+
+    try {
+      const response = await backend_api.post("/bedrock/query", {
+        query: globalSearchQuery,
+      });
+      setBedrockResult(response.data ?? null);
+    } catch (error: any) {
+      console.error("Bedrock query failed:", error);
+      const msg =
+        error?.response?.data?.error ||
+        error?.message ||
+        "Bedrock query failed";
+      setBedrockError(msg);
+    } finally {
+      setBedrockLoading(false);
     }
   };
 
@@ -224,6 +256,7 @@ const ComparePage = () => {
               pointerEvents: "none",
             }}
           />
+          <div></div>
           <input
             type="text"
             placeholder="Search"
@@ -252,6 +285,85 @@ const ComparePage = () => {
               e.currentTarget.style.backgroundColor = "#d1d5db";
             }}
           />
+          {/* Bedrock query trigger and results (uses `globalSearchQuery`) */}
+          <div
+            style={{
+              marginTop: "0.5rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                onClick={handleBedrockQuery}
+                disabled={bedrockLoading || !globalSearchQuery.trim()}
+                style={{
+                  backgroundColor: bedrockLoading ? "#9ca3af" : "#10b981",
+                  color: "white",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  cursor:
+                    bedrockLoading || !globalSearchQuery.trim()
+                      ? "not-allowed"
+                      : "pointer",
+                  fontSize: "0.875rem",
+                }}
+              >
+                {bedrockLoading ? "Querying..." : "Query KB"}
+              </button>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "0.5rem",
+                padding: "0.75rem",
+                fontSize: "0.875rem",
+                color: "#111827",
+                maxHeight: "200px",
+                overflowY: "auto",
+                boxSizing: "border-box",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              {bedrockError && (
+                <div style={{ color: "#dc2626" }}>Error: {bedrockError}</div>
+              )}
+
+              {!bedrockError && bedrockResult && (
+                <div>
+                  {bedrockResult.generatedText && (
+                    <div
+                      style={{ whiteSpace: "pre-wrap", marginBottom: "0.5rem" }}
+                    >
+                      {bedrockResult.generatedText}
+                    </div>
+                  )}
+                  <pre
+                    style={{
+                      background: "#f3f4f6",
+                      padding: "0.5rem",
+                      borderRadius: "0.375rem",
+                      fontSize: "0.75rem",
+                      overflowX: "auto",
+                    }}
+                  >
+                    {JSON.stringify(
+                      bedrockResult.raw ?? bedrockResult,
+                      null,
+                      2
+                    )}
+                  </pre>
+                </div>
+              )}
+
+              {!bedrockError && !bedrockResult && !bedrockLoading && (
+                <div style={{ color: "#6b7280" }}>No results yet</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
