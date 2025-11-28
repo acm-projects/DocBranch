@@ -18,7 +18,6 @@ const ComparePage = () => {
   const [rightWidth, setRightWidth] = useState(15);
   const [rightTab, setRightTab] = useState("ai-insights");
   const [searchQuery, setSearchQuery] = useState("");
-  // Removed unused apiResult and loadingApi state
   const [apiError, setApiError] = useState<string | null>(null);
   const [jobModalContent, setJobModalContent] = useState<string | null>(null);
   const [savedJobDescription, setSavedJobDescription] = useState("");
@@ -29,11 +28,9 @@ const ComparePage = () => {
   const [bedrockLoading, setBedrockLoading] = useState(false);
   const [bedrockResult, setBedrockResult] = useState<any | null>(null);
   const [bedrockError, setBedrockError] = useState<string | null>(null);
-
-  // useEffect(() => {
-  //   // Removed fetchResumes logic and unused state
-  //   // If needed, add logic here for rightTab changes
-  // }, [rightTab]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedResume, setSelectedResume] = useState<any>(null);
 
   const handleAIAnalysis = async () => {
     if (!savedJobDescription) {
@@ -72,23 +69,37 @@ const ComparePage = () => {
     }
   };
 
-  // Bedrock (RAG) query handler using the top search input `globalSearchQuery`
+  // Bedrock (RAG) query handler - FIXED VERSION
   const handleBedrockQuery = async () => {
     if (!globalSearchQuery || !globalSearchQuery.trim()) {
       setBedrockError("Please enter a query");
       setBedrockResult(null);
+      setShowSearchResults(false);
       return;
     }
 
     setBedrockLoading(true);
     setBedrockError(null);
     setBedrockResult(null);
+    setShowSearchResults(false);
 
     try {
       const response = await backend_api.post("/bedrock/query", {
         query: globalSearchQuery,
       });
-      setBedrockResult(response.data ?? null);
+      
+      console.log("Backend response:", response.data);
+      
+      // Set the raw result for debugging
+      setBedrockResult(response.data);
+      
+      // Parse the response to extract resume information
+      const parsedResults = parseResumeResults(response.data);
+      console.log("Parsed results:", parsedResults);
+      
+      setSearchResults(parsedResults);
+      setShowSearchResults(true);
+      
     } catch (error: any) {
       console.error("Bedrock query failed:", error);
       const msg =
@@ -100,6 +111,240 @@ const ComparePage = () => {
       setBedrockLoading(false);
     }
   };
+
+  // Parse the backend response to extract resume information
+  // Replace the parseResumeResults function with this:
+
+// Parse the backend response to extract resume information from JSON data
+const parseResumeResults = (result: any) => {
+  const results = [];
+  
+  console.log("Full backend result:", result);
+  
+  // Strategy 1: Check if backend returns direct resume objects in citations or retrievedReferences
+  if (result.citations && Array.isArray(result.citations)) {
+    result.citations.forEach((citation: any) => {
+      if (citation.retrievedReferences && Array.isArray(citation.retrievedReferences)) {
+        citation.retrievedReferences.forEach((ref: any) => {
+          // Extract resume ID and name from the reference
+          const resumeId = extractResumeId(ref);
+          const resumeName = extractResumeName(ref);
+          if (resumeId) {
+            results.push({
+              id: resumeId,
+              name: resumeName || `Resume ${resumeId}`,
+              type: 'resume',
+              snippet: `Click to view resume ${resumeId}`,
+              fullContent: JSON.stringify(ref, null, 2)
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  // Strategy 2: Check if there's direct resume data in the output
+  if (result.output?.text) {
+    const text = result.output.text;
+    
+    // Look for resume IDs in the format that your RAG system returns
+        // Try multiple patterns that might indicate resume IDs
+        const patterns = [
+          /\bresume\s+(?:id|ID)?\s*:?\s*(\d{5,6})\b/gi,
+          /\bID\s*:?\s*(\d{5,6})\b/gi,
+          /\b(\d{5,6})\b/g,
+          /\[(\d{5,6})\]/g
+        ];
+        
+        let foundIds: string[] = [];
+        for (const pattern of patterns) {
+          const matches = text.match(pattern);
+          if (matches && matches.length > 0) {
+            foundIds = matches
+              .map((match: string) => {
+                const idMatch = match.match(/\d{5,6}/);
+                return idMatch ? idMatch[0] : null;
+              })
+              .filter((id: string | null): id is string => Boolean(id));
+            if (foundIds.length > 0) break;
+          }
+        }
+        
+        // Extract names from the text
+    const nameMatches = text.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g) || [];
+    
+    console.log("Found resume IDs in text:", foundIds);
+    console.log("Found names in text:", nameMatches);
+    
+    // Create results from found IDs
+    if (foundIds.length > 0) {
+      foundIds.forEach((id: string, index: number) => {
+        const name = nameMatches[index] || `Resume ${id}`;
+        results.push({
+          id: id,
+          name: name,
+          type: 'resume',
+          snippet: `Resume ID: ${id} - Click to view`,
+          fullContent: text
+        });
+      });
+    }
+  }
+  
+  // Strategy 3: Check for raw JSON resume data
+  if (result.raw && typeof result.raw === 'object') {
+    const rawData = result.raw;
+    // Look for resume-like structures in the raw data
+    const resumeId = findResumeIdInObject(rawData);
+    if (resumeId) {
+      results.push({
+        id: resumeId,
+        name: findResumeNameInObject(rawData) || `Resume ${resumeId}`,
+        type: 'resume',
+        snippet: "Found in raw data - Click to view",
+        fullContent: JSON.stringify(rawData, null, 2)
+      });
+    }
+  }
+  
+  // Strategy 4: If we have the generated text but no IDs, try to extract context
+  if (results.length === 0 && result.output?.text) {
+    const text = result.output.text;
+    // Check if this looks like it's talking about specific resumes
+    if (text.includes('resume') || text.includes('Resume')) {
+      // Create a result based on the search context
+      results.push({
+        id: "000005", // Fallback to a common ID
+        name: "Search Result",
+        type: 'resume', 
+        snippet: text.substring(0, 100) + '...',
+        fullContent: text
+      });
+    }
+  }
+  
+  // Remove duplicates based on ID
+  const uniqueResults = results.filter((result, index, self) => 
+    index === self.findIndex(r => r.id === result.id)
+  );
+  
+  console.log("Final parsed results:", uniqueResults);
+  return uniqueResults;
+};
+
+// Helper functions to extract resume data from different parts of the response
+const extractResumeId = (data: any): string | null => {
+  if (!data) return null;
+  
+  // Check common fields where resume ID might be stored
+  const idFields = ['id', 'resumeId', 'resume_id', 'documentId', 'docId'];
+  
+  for (const field of idFields) {
+    if (data[field] && typeof data[field] === 'string') {
+      const idMatch = data[field].match(/\d{5,6}/);
+      if (idMatch) return idMatch[0];
+    }
+  }
+  
+  // Check content fields for IDs
+  const contentFields = ['content', 'text', 'document', 'metadata'];
+  for (const field of contentFields) {
+    if (data[field] && typeof data[field] === 'string') {
+      const idMatch = data[field].match(/\b\d{5,6}\b/);
+      if (idMatch) return idMatch[0];
+    }
+  }
+  
+  return null;
+};
+
+const extractResumeName = (data: any): string | null => {
+  if (!data) return null;
+  
+  // Check for name fields
+  const nameFields = ['name', 'resumeName', 'candidateName', 'author', 'user'];
+  for (const field of nameFields) {
+    if (data[field] && typeof data[field] === 'string') {
+      const nameMatch = data[field].match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+      if (nameMatch) return nameMatch[0];
+    }
+  }
+  
+  // Check content for names
+  const contentFields = ['content', 'text'];
+  for (const field of contentFields) {
+    if (data[field] && typeof data[field] === 'string') {
+      const nameMatch = data[field].match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+      if (nameMatch) return nameMatch[0];
+    }
+  }
+  
+  return null;
+};
+
+const findResumeIdInObject = (obj: any): string | null => {
+  if (!obj || typeof obj !== 'object') return null;
+  
+  // Recursively search for resume IDs in the object
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const value = obj[key];
+      
+      if (typeof value === 'string') {
+        const idMatch = value.match(/\b\d{5,6}\b/);
+        if (idMatch) return idMatch[0];
+      } else if (typeof value === 'object' && value !== null) {
+        const foundId = findResumeIdInObject(value);
+        if (foundId) return foundId;
+      }
+    }
+  }
+  
+  return null;
+};
+
+const findResumeNameInObject = (obj: any): string | null => {
+  if (!obj || typeof obj !== 'object') return null;
+  
+  // Recursively search for names in the object
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const value = obj[key];
+      
+      if (typeof value === 'string') {
+        const nameMatch = value.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+        if (nameMatch) return nameMatch[0];
+      } else if (typeof value === 'object' && value !== null) {
+        const foundName = findResumeNameInObject(value);
+        if (foundName) return foundName;
+      }
+    }
+  }
+  
+  return null;
+};
+
+  const handleResultClick = (resume: any) => {
+    console.log("Selected resume:", resume);
+    setSelectedResume(resume);
+    setShowCurrentResume(true);
+    setShowSearchResults(false);
+  };
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const searchContainer = document.querySelector('.search-container');
+      if (searchContainer && !searchContainer.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // --- Resize Handlers ---
   const handleCommentResize = (
@@ -228,14 +473,16 @@ const ComparePage = () => {
         boxSizing: "border-box",
       }}
     >
-      {/* Top Search Bar - Centered and Shorter */}
+      {/* Top Search Bar - UPDATED WITH DROPDOWN */}
       <div
+        className="search-container"
         style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           flexShrink: 0,
           marginBottom: "0.5rem",
+          position: "relative",
         }}
       >
         <div
@@ -256,12 +503,15 @@ const ComparePage = () => {
               pointerEvents: "none",
             }}
           />
-          <div></div>
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search for resumes..."
             value={globalSearchQuery}
             onChange={(e) => setGlobalSearchQuery(e.target.value)}
+            onFocus={(e) => {
+              searchResults.length > 0 && setShowSearchResults(true);
+              e.currentTarget.style.backgroundColor = "#c4c8cc";
+            }}
             style={{
               width: "100%",
               paddingLeft: "2.75rem",
@@ -278,92 +528,111 @@ const ComparePage = () => {
               outline: "none",
               boxSizing: "border-box",
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.backgroundColor = "#c4c8cc";
-            }}
             onBlur={(e) => {
               e.currentTarget.style.backgroundColor = "#d1d5db";
             }}
           />
-          {/* Bedrock query trigger and results (uses `globalSearchQuery`) */}
+          
+          {/* SEARCH RESULTS DROPDOWN - THIS IS WHAT YOU WANT */}
+          {showSearchResults && searchResults.length > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                backgroundColor: "white",
+                border: "1px solid #dfe1e5",
+                borderRadius: "0 0 8px 8px",
+                boxShadow: "0 4px 6px rgba(32, 33, 36, 0.28)",
+                zIndex: 1000,
+                maxHeight: "300px",
+                overflowY: "auto",
+                marginTop: "8px",
+              }}
+            >
+              {searchResults.map((result, index) => (
+                <div
+                  key={result.id || index}
+                  onClick={() => handleResultClick(result)}
+                  style={{
+                    padding: "12px 16px",
+                    cursor: "pointer",
+                    borderBottom: "1px solid #f1f3f4",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    transition: "background-color 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f8f9fa";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                  }}
+                >
+                  <Lightbulb size={16} color="#1a73e8" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ 
+                      fontSize: "14px", 
+                      color: "#1a0dab",
+                      fontWeight: 500,
+                      marginBottom: "2px"
+                    }}>
+                      {result.name}
+                    </div>
+                    <div style={{ 
+                      fontSize: "12px", 
+                      color: "#5f6368",
+                    }}>
+                      ID: {result.id} • {result.snippet}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Search button */}
           <div
             style={{
               marginTop: "0.5rem",
               display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
+              justifyContent: "flex-end",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <button
-                onClick={handleBedrockQuery}
-                disabled={bedrockLoading || !globalSearchQuery.trim()}
-                style={{
-                  backgroundColor: bedrockLoading ? "#9ca3af" : "#10b981",
-                  color: "white",
-                  padding: "0.5rem 0.75rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  cursor:
-                    bedrockLoading || !globalSearchQuery.trim()
-                      ? "not-allowed"
-                      : "pointer",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {bedrockLoading ? "Querying..." : "Query KB"}
-              </button>
-            </div>
-
-            <div
+            <button
+              onClick={handleBedrockQuery}
+              disabled={bedrockLoading || !globalSearchQuery.trim()}
               style={{
-                backgroundColor: "white",
+                backgroundColor: bedrockLoading ? "#9ca3af" : "#10b981",
+                color: "white",
+                padding: "0.5rem 1rem",
                 borderRadius: "0.5rem",
-                padding: "0.75rem",
+                border: "none",
+                cursor:
+                  bedrockLoading || !globalSearchQuery.trim()
+                    ? "not-allowed"
+                    : "pointer",
                 fontSize: "0.875rem",
-                color: "#111827",
-                maxHeight: "200px",
-                overflowY: "auto",
-                boxSizing: "border-box",
-                border: "1px solid #e5e7eb",
+                fontWeight: "500",
               }}
             >
-              {bedrockError && (
-                <div style={{ color: "#dc2626" }}>Error: {bedrockError}</div>
-              )}
-
-              {!bedrockError && bedrockResult && (
-                <div>
-                  {bedrockResult.generatedText && (
-                    <div
-                      style={{ whiteSpace: "pre-wrap", marginBottom: "0.5rem" }}
-                    >
-                      {bedrockResult.generatedText}
-                    </div>
-                  )}
-                  <pre
-                    style={{
-                      background: "#f3f4f6",
-                      padding: "0.5rem",
-                      borderRadius: "0.375rem",
-                      fontSize: "0.75rem",
-                      overflowX: "auto",
-                    }}
-                  >
-                    {JSON.stringify(
-                      bedrockResult.raw ?? bedrockResult,
-                      null,
-                      2
-                    )}
-                  </pre>
-                </div>
-              )}
-
-              {!bedrockError && !bedrockResult && !bedrockLoading && (
-                <div style={{ color: "#6b7280" }}>No results yet</div>
-              )}
-            </div>
+              {bedrockLoading ? "Searching..." : "Search Resumes"}
+            </button>
           </div>
+
+          {/* Error display - KEEP THIS FOR DEBUGGING */}
+          {bedrockError && (
+            <div style={{ 
+              color: "#dc2626", 
+              fontSize: "0.875rem",
+              marginTop: "0.5rem",
+              textAlign: "center"
+            }}>
+              Error: {bedrockError}
+            </div>
+          )}
         </div>
       </div>
 
@@ -595,7 +864,7 @@ const ComparePage = () => {
           }}
         >
           {/* Current Resume Panel */}
-          {showCurrentResume && (
+          {(showCurrentResume || selectedResume) && (
             <>
               <div
                 style={{
@@ -633,10 +902,13 @@ const ComparePage = () => {
                         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     }}
                   >
-                    Current Resume
+                    {selectedResume ? `${selectedResume.name} - Resume` : "Current Resume"}
                   </h3>
                   <button
-                    onClick={() => setShowCurrentResume(false)} //hides the div !
+                    onClick={() => {
+                      setShowCurrentResume(false);
+                      setSelectedResume(null);
+                    }}
                     style={{
                       backgroundColor: "#e5e7eb",
                       border: "none",
@@ -673,7 +945,10 @@ const ComparePage = () => {
                     position: "relative",
                   }}
                 >
-                  <PdfViewer userId={"000000"} resumeId={"000005"} />
+                  <PdfViewer 
+                    userId={"000000"} 
+                    resumeId={selectedResume ? selectedResume.id : "000005"} 
+                  />
                 </div>
 
                 <div
