@@ -854,26 +854,37 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     setLoading(true);
     setError(null);
     try {
-      // First get all resumes
-      const response = await axios.get("http://localhost:3000/resumes");
-      console.log("Fetched all resumes:", response.data);
+      // Fetch the specific resume directly instead of fetching all resumes
+      const url = `http://localhost:3000/resumes/${encodeURIComponent(
+        userId
+      )}/${encodeURIComponent(resumeId)}`;
+      const response = await axios.get(url);
+      console.log("Fetched resume endpoint response:", response.data);
 
-      if (response.data && response.data.Items) {
-        // Find the specific resume by userId and resumeId
-        const targetResume = response.data.Items.find(
-          (item: any) => item.user_id === userId && item.resume_id === resumeId
-        );
+      // Normalize possible response shapes:
+      // - { Item: { user_id, resume_id, resume, ... } }
+      // - { user_id, resume_id, resume, ... }
+      // - { resume: { ... }, user_id, resume_id }
+      const data = response.data;
+      let targetResume: any = null;
 
-        if (targetResume) {
-          setResumeData(targetResume);
-          parseResumeData(targetResume);
-        } else {
-          setError(
-            `Resume not found for user ${userId} and resume ${resumeId}`
-          );
-        }
+      if (data && data.Item) {
+        targetResume = data.Item;
+      } else if (data && data.resume && (data.user_id || data.resume_id)) {
+        // response body is the resume envelope
+        targetResume = data;
+      } else if (data && (data.user_id || data.resume_id || data.resume)) {
+        // response is likely the envelope or single resume object
+        targetResume = data;
       } else {
-        setError("No resumes found in response");
+        targetResume = null;
+      }
+
+      if (targetResume) {
+        setResumeData(targetResume);
+        parseResumeData(targetResume);
+      } else {
+        setError(`Resume not found for user ${userId} and resume ${resumeId}`);
       }
     } catch (err: any) {
       console.error("Error fetching resume:", err);
@@ -912,9 +923,23 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
             const value = firstItem[fieldKey];
             if (value !== null && value !== undefined) {
               const fieldType = determineFieldType(fieldKey, value);
-              const fieldValue = Array.isArray(value)
-                ? value.join(", ")
-                : String(value);
+              let fieldValue: string;
+
+              if (fieldType === "list") {
+                // Ensure list-typed fields are represented as JSON arrays.
+                const arr = Array.isArray(value)
+                  ? value
+                  : typeof value === "string"
+                  ? value
+                      .split(/,|\n/)
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                  : [String(value)];
+
+                fieldValue = JSON.stringify(arr);
+              } else {
+                fieldValue = Array.isArray(value) ? value.join(", ") : String(value);
+              }
 
               fields.push({
                 id: `${sectionKey}-${fieldKey}`,
@@ -984,13 +1009,22 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   const determineFieldType = (
     key: string,
     value: any
-  ): "text" | "textarea" | "date" | "email" | "tel" | "url" => {
+  ):
+    | "text"
+    | "textarea"
+    | "date"
+    | "email"
+    | "tel"
+    | "url"
+    | "list"
+    | "links" => {
     const keyLower = key.toLowerCase();
 
     if (keyLower.includes("email")) return "email";
     if (keyLower.includes("phone")) return "tel";
     if (
       keyLower.includes("linkedin") ||
+      keyLower.includes("github") ||
       keyLower.includes("url") ||
       keyLower.includes("link")
     )
@@ -1001,7 +1035,7 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       Array.isArray(value) ||
       (typeof value === "string" && value.length > 50)
     )
-      return "textarea";
+      return "list";
     return "text";
   };
 
@@ -1066,10 +1100,13 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     const resume: any = {};
 
     sections.forEach((section) => {
-      // PERSONAL
-      if (section.id === "personal") {
+      // PERSONAL (accept both `personal` and `personal_information` keys)
+      if (section.id === "personal" || section.id === "personal_information") {
         const pi: any = {};
         section.fields.forEach((f) => {
+          const baseId = f.id.startsWith(`${section.id}-`)
+            ? f.id.slice(section.id.length + 1)
+            : f.id;
           if (f.id === "links") {
             try {
               const raw = JSON.parse(f.value || "[]");
@@ -1094,16 +1131,16 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
             } catch {
               pi.links = [];
             }
-          } else if (f.id === "name") {
+          } else if (baseId === "name") {
             pi.name = f.value;
-          } else if (f.id === "phone") {
+          } else if (baseId === "phone") {
             pi.phone = f.value;
-          } else if (f.id === "email") {
+          } else if (baseId === "email") {
             pi.email = f.value;
-          } else if (f.id === "address" || f.id === "location") {
+          } else if (baseId === "address" || baseId === "location") {
             pi.location = f.value;
           } else {
-            pi[f.id] = f.value;
+            pi[baseId] = f.value;
           }
         });
 
@@ -1114,6 +1151,9 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
         const proj: any = {};
         let hasProjData = false;
         section.fields.forEach((f) => {
+          const baseId = f.id.startsWith(`${section.id}-`)
+            ? f.id.slice(section.id.length + 1)
+            : f.id;
           if (f.type === "list") {
             try {
               const arr = JSON.parse(f.value || "[]");
@@ -1128,12 +1168,12 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               ) {
                 hasProjData = true;
               }
-              proj[f.id === "project_name" ? "name" : f.id] = arr;
+              proj[baseId === "project_name" ? "name" : baseId] = arr;
             } catch {
-              proj[f.id === "project_name" ? "name" : f.id] = [];
+              proj[baseId === "project_name" ? "name" : baseId] = [];
             }
           } else {
-            const key = f.id === "project_name" ? "name" : f.id;
+            const key = baseId === "project_name" ? "name" : baseId;
             if (typeof f.value === "string" && f.value.trim())
               hasProjData = true;
             proj[key] = f.value;
@@ -1150,6 +1190,9 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
         const ed: any = {};
         let hasEduData = false;
         section.fields.forEach((f) => {
+          const baseId = f.id.startsWith(`${section.id}-`)
+            ? f.id.slice(section.id.length + 1)
+            : f.id;
           if (f.type === "list") {
             try {
               const arr = JSON.parse(f.value || "[]");
@@ -1164,14 +1207,14 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               ) {
                 hasEduData = true;
               }
-              ed[f.id] = arr;
+              ed[baseId] = arr;
             } catch {
-              ed[f.id] = [];
+              ed[baseId] = [];
             }
           } else {
             if (typeof f.value === "string" && f.value.trim())
               hasEduData = true;
-            ed[f.id] = f.value;
+            ed[baseId] = f.value;
           }
         });
 
@@ -1184,35 +1227,26 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       } else if (section.id === "skills") {
         const skillsObj: any = {};
         section.fields.forEach((f) => {
-          if (f.id === "technical") {
-            skillsObj.programming_languages = f.value
-              ? f.value
-                  .split(/,|\n/)
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              : [];
-          } else if (f.id === "soft") {
-            skillsObj.soft_skills = f.value
-              ? f.value
-                  .split(/,|\n/)
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              : [];
-          } else if (f.id === "languages") {
-            skillsObj.languages = f.value
-              ? f.value
-                  .split(/,|\n/)
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              : [];
-          }
+          const baseId = f.id.startsWith(`${section.id}-`)
+            ? f.id.slice(section.id.length + 1)
+            : f.id;
+
+          // Normalize value into an array of skills (split by comma or newline)
+          const parsed = f.value
+            ? f.value
+                .split(/,|\n/)
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : [];
+
+          // Store under a generic key using the field id as the category
+          // e.g. resume.skills = { technical: [...], soft: [...], languages: [...] }
+          skillsObj[baseId] = parsed;
         });
 
-        const hasSkills =
-          (skillsObj.programming_languages &&
-            skillsObj.programming_languages.length > 0) ||
-          (skillsObj.soft_skills && skillsObj.soft_skills.length > 0) ||
-          (skillsObj.languages && skillsObj.languages.length > 0);
+        const hasSkills = Object.values(skillsObj).some(
+          (arr: any) => Array.isArray(arr) && arr.length > 0
+        );
 
         if (hasSkills) resume.skills = skillsObj;
 
@@ -1221,6 +1255,9 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
         const obj: any = {};
         let hasObjData = false;
         section.fields.forEach((f) => {
+          const baseId = f.id.startsWith(`${section.id}-`)
+            ? f.id.slice(section.id.length + 1)
+            : f.id;
           if (f.type === "list") {
             try {
               const arr = JSON.parse(f.value || "[]");
@@ -1235,12 +1272,12 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               ) {
                 hasObjData = true;
               }
-              obj[f.id] = arr;
+              obj[baseId] = arr;
             } catch {
-              obj[f.id] = [];
+              obj[baseId] = [];
             }
           } else {
-            obj[f.id] = f.value;
+            obj[baseId] = f.value;
             if (typeof f.value === "string" && f.value.trim())
               hasObjData = true;
           }

@@ -94,6 +94,9 @@ class Resume {
 
     // Contact row below the name
     const contactArr = [info.phone, info.email];
+    // Include common profile shortcuts if provided
+    if (info.linkedin) contactArr.push(info.linkedin);
+    if (info.github) contactArr.push(info.github);
     if (info.links && Array.isArray(info.links)) {
       info.links.forEach(linkObj => {
         const key = Object.keys(linkObj)[0];
