@@ -938,7 +938,9 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
 
                 fieldValue = JSON.stringify(arr);
               } else {
-                fieldValue = Array.isArray(value) ? value.join(", ") : String(value);
+                fieldValue = Array.isArray(value)
+                  ? value.join(", ")
+                  : String(value);
               }
 
               fields.push({
