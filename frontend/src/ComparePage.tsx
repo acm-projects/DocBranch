@@ -309,63 +309,90 @@ const ComparePage = () => {
           style={{
             position: "relative",
             width: "100%",
-            maxWidth: "500px",
+            maxWidth: "600px",
+            display: "flex",
+            gap: "0.5rem",
+            alignItems: "center",
           }}
         >
-          <Search
-            size={18}
+          <div style={{ position: "relative", flex: 1 }}>
+            <Search
+              size={18}
+              style={{
+                position: "absolute",
+                left: "0.5rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#9ca3af",
+                pointerEvents: "none",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search resumes (e.g., 'best AWS resume' or 'resume with sports experience')"
+              value={globalSearchQuery}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleSearchKeyPress}
+              onClick={() => {
+                if (searchResults.length > 0) {
+                  setShowSearchDropdown(true);
+                }
+              }}
+              style={{
+                width: "100%",
+                paddingLeft: "2.75rem",
+                paddingRight: "1rem",
+                paddingTop: "0.625rem",
+                paddingBottom: "0.625rem",
+                backgroundColor: "#d1d5db",
+                border: "none",
+                borderRadius: "0.75rem",
+                fontSize: "0.875rem",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                color: "#111827",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.backgroundColor = "#c4c8cc";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.backgroundColor = "#d1d5db";
+              }}
+            />
+          </div>
+          
+          <button
+            onClick={handleBedrockQuery}
+            disabled={bedrockLoading || !globalSearchQuery.trim()}
             style={{
-              position: "absolute",
-              left: "0.5rem",
-              top: "24%",
-              transform: "translateY(-50%)",
-              color: "#9ca3af",
-              pointerEvents: "none",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Search resumes (e.g., 'best AWS resume' or 'resume with sports experience')"
-            value={globalSearchQuery}
-            onChange={handleSearchInputChange}
-            onKeyPress={handleSearchKeyPress}
-            onClick={() => {
-              if (searchResults.length > 0) {
-                setShowSearchDropdown(true);
-              }
-            }}
-            style={{
-              width: "100%",
-              paddingLeft: "2.75rem",
-              paddingRight: "1rem",
-              paddingTop: "0.625rem",
-              paddingBottom: "0.625rem",
-              backgroundColor: "#d1d5db",
-              border: "none",
+              backgroundColor: bedrockLoading ? "#9ca3af" : "#10b981",
+              color: "white",
+              padding: "0.625rem 1.5rem",
               borderRadius: "0.75rem",
+              border: "none",
+              cursor:
+                bedrockLoading || !globalSearchQuery.trim()
+                  ? "not-allowed"
+                  : "pointer",
               fontSize: "0.875rem",
-              fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              color: "#111827",
-              outline: "none",
-              boxSizing: "border-box",
+              fontWeight: "500",
+              whiteSpace: "nowrap",
+              height: "38px",
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.backgroundColor = "#c4c8cc";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.backgroundColor = "#d1d5db";
-            }}
-          />
+          >
+            {bedrockLoading ? "Searching..." : "Search"}
+          </button>
           
           {/* Search Dropdown Results */}
           {showSearchDropdown && searchResults.length > 0 && (
             <div
               style={{
                 position: "absolute",
-                top: "100%",
+                top: "calc(100% + 0.5rem)",
                 left: 0,
-                right: 0,
+                right: "calc(0px + 120px)",
                 backgroundColor: "white",
                 border: "1px solid #e5e7eb",
                 borderRadius: "0.5rem",
@@ -421,35 +448,6 @@ const ComparePage = () => {
             </div>
           )}
 
-          {/* Search button */}
-          <div
-            style={{
-              marginTop: "0.5rem",
-              display: "flex",
-              justifyContent: "flex-end",
-            }}
-          >
-            <button
-              onClick={handleBedrockQuery}
-              disabled={bedrockLoading || !globalSearchQuery.trim()}
-              style={{
-                backgroundColor: bedrockLoading ? "#9ca3af" : "#10b981",
-                color: "white",
-                padding: "0.5rem 1rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                cursor:
-                  bedrockLoading || !globalSearchQuery.trim()
-                    ? "not-allowed"
-                    : "pointer",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-              }}
-            >
-              {bedrockLoading ? "Searching..." : "Search"}
-            </button>
-          </div>
-
           {/* Error Display */}
           {bedrockError && (
             <div style={{ 
@@ -458,30 +456,17 @@ const ComparePage = () => {
               marginTop: "0.5rem",
               padding: "0.5rem",
               backgroundColor: "#fef2f2",
-              borderRadius: "0.375rem"
+              borderRadius: "0.375rem",
+              position: "absolute",
+              top: "calc(100% + 0.5rem)",
+              left: 0,
+              right: 0,
+              zIndex: 999,
             }}>
               {bedrockError}
             </div>
           )}
 
-          {/* Simple Results Info */}
-          {bedrockResult && (
-            <div style={{ 
-              marginTop: "0.5rem", 
-              padding: "0.5rem", 
-              backgroundColor: "#f0fdf4", 
-              borderRadius: "0.5rem",
-              fontSize: "0.75rem",
-              color: "#065f46"
-            }}>
-              <strong>Search complete:</strong> Found {searchResults.length} resumes
-              {bedrockResult.generatedText && (
-                <div style={{ marginTop: "0.25rem" }}>
-                  AI analysis available
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -491,194 +476,6 @@ const ComparePage = () => {
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
-        <div
-          style={{
-            width: `${leftWidth}%`,
-            backgroundColor: "white",
-            padding: "1.5rem",
-            display: "flex",
-            flexDirection: "column",
-            borderRadius: "1rem",
-            minWidth: "150px",
-            boxSizing: "border-box",
-            overflow: "hidden",
-          }}
-        >
-          {/* Header Section with Menu and Search */}
-          <div
-            style={{
-              marginBottom: "1rem",
-              flexShrink: 0,
-            }}
-          >
-            {/* Title and Menu Icon Row */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                marginBottom: "1rem",
-              }}
-            >
-              {/* Menu Button */}
-              <div
-                style={{
-                  width: "2rem",
-                  height: "2rem",
-                  backgroundColor: "#f3f4f6",
-                  borderRadius: "0.5rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
-              >
-                <Menu size={20} color="#374151" />
-              </div>
-
-              {/* Section Title */}
-              <h2
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#111827",
-                  margin: 0,
-                  lineHeight: 1,
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                }}
-              >
-                Recent Resumes
-              </h2>
-            </div>
-
-            {/* Search Input with Icon */}
-            <div
-              style={{
-                position: "relative",
-                marginBottom: "1rem",
-              }}
-            >
-              <Search
-                size={16}
-                style={{
-                  position: "absolute",
-                  left: "0.75rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#9ca3af",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "0.5rem 0.75rem 0.5rem 2.5rem",
-                  backgroundColor: "#f3f4f6",
-                  border: "none",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  color: "#111827",
-                  outline: "none",
-                  boxSizing: "border-box",
-                  transition: "background-color 0.15s ease",
-                }}
-                onFocus={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#e5e7eb")
-                }
-                onBlur={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#f3f4f6")
-                }
-              />
-            </div>
-          </div>
-
-          {/* Scrollable Resume List */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-              flex: 1,
-              overflowY: "auto",
-            }}
-          >
-            {/* Map through resumes array to create resume items */}
-            {resumes.map((resume) => (
-              <div
-                key={resume.id}
-                onClick={handleResumeClick}
-                style={{
-                  padding: "0.75rem",
-                  borderRadius: "0.5rem",
-                  cursor: "pointer",
-                  backgroundColor: "#f3f4f6",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#e5e7eb")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#f3f4f6")
-                }
-              >
-                {/* Resume Item Header with Name and Options */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  {/* Resume Name */}
-                  <span
-                    style={{
-                      fontSize: "0.875rem",
-                      fontWeight: "500",
-                      color: "#111827",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    {resume.name}
-                  </span>
-                  {/* Options Menu (three lines) */}
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#6b7280",
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    }}
-                  >
-                    ...
-                  </div>
-                </div>
-                {/* Last Modified Date */}
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#6b7280",
-                    fontFamily:
-                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  }}
-                >
-                  2 days ago
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Resize Handle 1 */}
         <div
@@ -879,7 +676,6 @@ const ComparePage = () => {
                     Job Description
                   </button>
                 </div>
-
                 <div
                   className="hide-scrollbar"
                   style={{
