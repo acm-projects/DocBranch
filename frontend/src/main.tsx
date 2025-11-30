@@ -24,6 +24,10 @@ const router = createHashRouter([
     element: <BranchPage />,
   },
   {
+    path: "/branch/:branchId",    
+    element: <ComparePage />,      
+  },
+  {
     path: "/LandingPage", // new route
     element: <LandingPage />,
   },
