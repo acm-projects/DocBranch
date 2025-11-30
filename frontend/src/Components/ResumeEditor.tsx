@@ -1,7 +1,15 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Plus, ChevronDown, GripVertical, X, Edit, Save, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  ChevronDown,
+  GripVertical,
+  X,
+  Edit,
+  Save,
+  RefreshCw,
+} from "lucide-react";
 import PdfViewer from ".././PdfViewer";
-import axios from 'axios';
+import axios from "axios";
 
 // field interface
 export interface FieldData {
@@ -241,7 +249,7 @@ function ResumeSection({
                   border: "2px solid #e5e7eb",
                   borderRadius: "8px",
                   backgroundColor: "white",
-                  color: "#000000", 
+                  color: "#000000",
                   overflow: "hidden",
                   width: "100%",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
@@ -615,7 +623,7 @@ function ResumeSection({
                           fontSize: "13px",
                           outline: "none",
                           backgroundColor: "#f8fafc",
-                          color: "#000000", 
+                          color: "#000000",
                           resize: "vertical",
                           minHeight: "60px",
                           fontFamily: "inherit",
@@ -639,7 +647,7 @@ function ResumeSection({
                           fontSize: "13px",
                           outline: "none",
                           backgroundColor: "#f8fafc",
-                          color: "#000000", 
+                          color: "#000000",
                           fontFamily: "inherit",
                           boxSizing: "border-box",
                         }}
@@ -845,9 +853,9 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     setError(null);
     try {
       // First get all resumes
-      const response = await axios.get('http://localhost:3000/resumes');
-      console.log('Fetched all resumes:', response.data);
-      
+      const response = await axios.get("http://localhost:3000/resumes");
+      console.log("Fetched all resumes:", response.data);
+
       if (response.data && response.data.Items) {
         // Find the specific resume by userId and resumeId
         const targetResume = response.data.Items.find(
@@ -858,14 +866,18 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
           setResumeData(targetResume);
           parseResumeData(targetResume);
         } else {
-          setError(`Resume not found for user ${userId} and resume ${resumeId}`);
+          setError(
+            `Resume not found for user ${userId} and resume ${resumeId}`
+          );
         }
       } else {
-        setError('No resumes found in response');
+        setError("No resumes found in response");
       }
     } catch (err: any) {
-      console.error('Error fetching resume:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to fetch resume');
+      console.error("Error fetching resume:", err);
+      setError(
+        err.response?.data?.message || err.message || "Failed to fetch resume"
+      );
     } finally {
       setLoading(false);
     }
@@ -879,64 +891,70 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     const dynamicSections: SectionData[] = [];
 
     // Iterate through each section in the resume
-    Object.keys(resumeContent).forEach(sectionKey => {
+    Object.keys(resumeContent).forEach((sectionKey) => {
       const sectionData = resumeContent[sectionKey];
       if (!sectionData) return;
 
       const fields: FieldData[] = [];
-      const sectionTitle = sectionKey.replace(/_/g, ' ')
-                                    .replace(/\b\w/g, l => l.toUpperCase());
+      const sectionTitle = sectionKey
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase());
 
       // Process the section data based on its type
       if (Array.isArray(sectionData)) {
         // Handle arrays (education, projects, leadership_experience)
-        if (sectionData.length > 0 && typeof sectionData[0] === 'object') {
+        if (sectionData.length > 0 && typeof sectionData[0] === "object") {
           // Array of objects - take first item
           const firstItem = sectionData[0];
-          Object.keys(firstItem).forEach(fieldKey => {
+          Object.keys(firstItem).forEach((fieldKey) => {
             const value = firstItem[fieldKey];
             if (value !== null && value !== undefined) {
               const fieldType = determineFieldType(fieldKey, value);
-              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
-              
+              const fieldValue = Array.isArray(value)
+                ? value.join(", ")
+                : String(value);
+
               fields.push({
                 id: `${sectionKey}-${fieldKey}`,
-                label: fieldKey.replace(/_/g, ' ')
-                              .replace(/\b\w/g, l => l.toUpperCase()),
+                label: fieldKey
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()),
                 value: fieldValue,
-                type: fieldType
+                type: fieldType,
               });
             }
           });
         }
-      } else if (typeof sectionData === 'object') {
+      } else if (typeof sectionData === "object") {
         // Handle objects (personal_information, skills)
-        Object.keys(sectionData).forEach(fieldKey => {
+        Object.keys(sectionData).forEach((fieldKey) => {
           const value = sectionData[fieldKey];
           if (value !== null && value !== undefined) {
-            
             // Special handling for nested structures
-            if (fieldKey === 'links' && Array.isArray(value)) {
+            if (fieldKey === "links" && Array.isArray(value)) {
               // Handle links array specially
               const linkedinLink = value.find((link: any) => link.linkedin);
               if (linkedinLink) {
                 fields.push({
                   id: `${sectionKey}-linkedin`,
-                  label: 'LinkedIn',
+                  label: "LinkedIn",
                   value: linkedinLink.linkedin,
-                  type: 'url'
+                  type: "url",
                 });
               }
             } else {
               const fieldType = determineFieldType(fieldKey, value);
-              const fieldValue = Array.isArray(value) ? value.join(', ') : String(value);
-              
+              const fieldValue = Array.isArray(value)
+                ? value.join(", ")
+                : String(value);
+
               fields.push({
                 id: `${sectionKey}-${fieldKey}`,
-                label: fieldKey.replace(/_/g, ' ')
-                              .replace(/\b\w/g, l => l.toUpperCase()),
+                label: fieldKey
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()),
                 value: fieldValue,
-                type: fieldType
+                type: fieldType,
               });
             }
           }
@@ -950,7 +968,8 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
           title: sectionTitle,
           fields: fields,
           isOpen: true,
-          allowMultipleEntries: Array.isArray(sectionData) && sectionData.length > 1
+          allowMultipleEntries:
+            Array.isArray(sectionData) && sectionData.length > 1,
         });
       }
     });
@@ -960,16 +979,28 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   };
 
   // Helper function to determine field type
-  const determineFieldType = (key: string, value: any): "text" | "textarea" | "date" | "email" | "tel" | "url" => {
+  const determineFieldType = (
+    key: string,
+    value: any
+  ): "text" | "textarea" | "date" | "email" | "tel" | "url" => {
     const keyLower = key.toLowerCase();
-    
-    if (keyLower.includes('email')) return 'email';
-    if (keyLower.includes('phone')) return 'tel';
-    if (keyLower.includes('linkedin') || keyLower.includes('url') || keyLower.includes('link')) return 'url';
-    if (keyLower.includes('date')) return 'date';
-    if (keyLower.includes('description') || Array.isArray(value) || 
-        (typeof value === 'string' && value.length > 50)) return 'textarea';
-    return 'text';
+
+    if (keyLower.includes("email")) return "email";
+    if (keyLower.includes("phone")) return "tel";
+    if (
+      keyLower.includes("linkedin") ||
+      keyLower.includes("url") ||
+      keyLower.includes("link")
+    )
+      return "url";
+    if (keyLower.includes("date")) return "date";
+    if (
+      keyLower.includes("description") ||
+      Array.isArray(value) ||
+      (typeof value === "string" && value.length > 50)
+    )
+      return "textarea";
+    return "text";
   };
 
   useEffect(() => {
@@ -1279,16 +1310,19 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       {/* API Status */}
       <div style={{ marginBottom: "16px" }}>
         {loading && (
-          <div style={{ color: "#3b82f6", fontSize: "13px", textAlign: "center" }}>
+          <div
+            style={{ color: "#3b82f6", fontSize: "13px", textAlign: "center" }}
+          >
             Loading resume data...
           </div>
         )}
         {error && (
-          <div style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}>
+          <div
+            style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}
+          >
             Error: {error}
           </div>
         )}
-
       </div>
 
       <div
@@ -1356,7 +1390,10 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
                     <div
                       key={template.title}
                       onClick={() =>
-                        addSection(template.title, template.allowMultipleEntries)
+                        addSection(
+                          template.title,
+                          template.allowMultipleEntries
+                        )
                       }
                       style={{
                         padding: "8px 10px",
@@ -1405,7 +1442,6 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               </>
             )}
           </div>
-
         </div>
 
         <div
@@ -1487,7 +1523,13 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
                 />
               ))
             ) : (
-              <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px",
+                  color: "#6b7280",
+                }}
+              >
                 {loading ? "Loading resume data..." : "No resume data found"}
               </div>
             )}
@@ -1499,43 +1541,12 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               padding: "8px",
               borderRadius: "8px",
               border: "1px solid #e5e7eb",
-              /* Allow the flex parent to control height */
               minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              /* Ensure this box expands to fill the available vertical space */
-              flex: 1,
+              width: "100%",
+              height: "100%",
             }}
           >
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                /* Stretch the child vertically so PdfViewer can fill */
-                alignItems: "stretch",
-                justifyContent: "stretch",
-                textAlign: "center",
-                color: "#6b7280",
-                padding: "4px 2px",
-                boxSizing: "border-box",
-                minHeight: 0,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  flex: 1,
-                  minHeight: 0,
-                }}
-              >
-                <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
-                  <PdfViewer resumeObj={buildResume()} />
-                </div>
-              </div>
-            </div>
+            <PdfViewer resumeObj={buildResume()} />
           </div>
         )}
       </div>

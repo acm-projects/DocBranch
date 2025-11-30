@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); // Add this line
 const {
   getResumes,
   getProfiles,
@@ -31,11 +32,20 @@ if (fs.existsSync(swaggerPath)) {
 }
 
 const app = express();
+
+// ADD CORS MIDDLEWARE HERE - right after app creation
+app.use(cors({
+  origin: 'http://localhost:5173', // Your React frontend
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
 app.use(express.json());
 if (swaggerDocument) {
   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 }
 
+// ... rest of your existing code remains the same
 // Mount resume PDF generator (if available). This will allow the PDF endpoint
 // to live on the same server (http://localhost:3000/generate-pdf) instead of
 // running a separate process on port 3080.
