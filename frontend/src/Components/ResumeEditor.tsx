@@ -961,7 +961,7 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
           if (value !== null && value !== undefined) {
             // Special handling for nested structures
             if (fieldKey === "links" && Array.isArray(value)) {
-              // Handle links array specially
+              // Handle links array specially: prefer explicit LinkedIn entry
               const linkedinLink = value.find((link: any) => link.linkedin);
               if (linkedinLink) {
                 fields.push({
@@ -969,6 +969,24 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
                   label: "LinkedIn",
                   value: linkedinLink.linkedin,
                   type: "url",
+                });
+              } else {
+                // Generic mapper: normalize any links array into an array of {label, url}
+                const normalizedLinks = (value || []).map((lnk: any) => {
+                  if (typeof lnk === "string") return { label: "", url: lnk };
+                  if (lnk && typeof lnk === "object") {
+                    const label = lnk.label ?? lnk.name ?? lnk.type ?? "";
+                    const url = lnk.url ?? lnk.link ?? lnk.href ?? "";
+                    return { label, url };
+                  }
+                  return { label: "", url: String(lnk) };
+                });
+
+                fields.push({
+                  id: `${sectionKey}-links`,
+                  label: "Links",
+                  value: JSON.stringify(normalizedLinks),
+                  type: "links",
                 });
               }
             } else {
