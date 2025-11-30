@@ -104,8 +104,7 @@ async function queryKnowledgeBase(userText, options = {}) {
   const promptTextTemplate =
     "You are an assistant that uses the provided retrieved documents to answer the user's question.\n" +
     "Do NOT invent facts beyond the documents. Cite or reference documents when possible.\n" +
-    "Task: Summarize candidate projects found in the retrieved documents and recommend (1) which projects to include on a resume for the job link provided, and (2) 2-4 concise, resume-ready bullet points for each recommended project.\n" +
-    "Provide a one-line justification for each recommended project.\n" +
+    "Task: return only the best matched resume-id and no other text, the return format should be '{resumeId}'.\n" +
     "Retrieved documents:\n$search_results$" +
     jobSection +
     "\n\nUser question:\n$query$";

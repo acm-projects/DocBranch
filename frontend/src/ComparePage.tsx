@@ -5,6 +5,20 @@ import { ResumeEditor } from "./Components/ResumeEditor";
 import PdfViewer from "./PdfViewer";
 import backend_api from "./services/testapi";
 
+// Simplified types
+interface SearchResult {
+  resume_id: string;
+  user_id: string;
+  name: string;
+  score?: number;
+}
+
+interface BedrockResult {
+  searchResults?: SearchResult[];
+  generatedText?: string;
+  raw?: any;
+}
+
 const ComparePage = () => {
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("comments");
@@ -26,11 +40,11 @@ const ComparePage = () => {
   const [showCurrentResume, setShowCurrentResume] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [bedrockLoading, setBedrockLoading] = useState(false);
-  const [bedrockResult, setBedrockResult] = useState<any | null>(null);
+  const [bedrockResult, setBedrockResult] = useState<BedrockResult | null>(null);
   const [bedrockError, setBedrockError] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [selectedResume, setSelectedResume] = useState<any>(null);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const handleAIAnalysis = async () => {
     if (!savedJobDescription) {
@@ -45,7 +59,6 @@ const ComparePage = () => {
     try {
       const resumeResponse = await backend_api.get("/resumes/000000/000005");
       const resumeData = resumeResponse.data;
-      console.log("Resume data received:", resumeData);
 
       const response = await backend_api.post("/analyze-resume", {
         resumeData: resumeData,
@@ -69,284 +82,92 @@ const ComparePage = () => {
     }
   };
 
-  // Bedrock (RAG) query handler - FIXED VERSION
+  // Simplified search results extraction
+  const getSearchResults = (): SearchResult[] => {
+    console.log("getSearchResult function called...")
+    console.log(bedrockResult)
+    if (!bedrockResult?.generatedText) return [];
+
+    return [{
+    resume_id: bedrockResult.generatedText,
+    user_id: "",
+    name: ""
+  }]
+   // return [bedrockResult.generatedText;
+  };
+
+  const searchResults = getSearchResults();
+
+  // Simplified Bedrock query handler
   const handleBedrockQuery = async () => {
-    if (!globalSearchQuery || !globalSearchQuery.trim()) {
-      setBedrockError("Please enter a query");
+    if (!globalSearchQuery.trim()) {
+      setBedrockError("Please enter a search query");
       setBedrockResult(null);
-      setShowSearchResults(false);
       return;
     }
 
     setBedrockLoading(true);
     setBedrockError(null);
     setBedrockResult(null);
-    setShowSearchResults(false);
 
     try {
       const response = await backend_api.post("/bedrock/query", {
         query: globalSearchQuery,
       });
       
-      console.log("Backend response:", response.data);
-      
-      // Set the raw result for debugging
+      console.log("Search response:", response.data);
       setBedrockResult(response.data);
-      
-      // Parse the response to extract resume information
-      const parsedResults = parseResumeResults(response.data);
-      console.log("Parsed results:", parsedResults);
-      
-      setSearchResults(parsedResults);
-      setShowSearchResults(true);
+      setShowSearchDropdown(true);
       
     } catch (error: any) {
-      console.error("Bedrock query failed:", error);
+      console.error("Search failed:", error);
       const msg =
         error?.response?.data?.error ||
         error?.message ||
-        "Bedrock query failed";
+        "Search failed - please try again";
       setBedrockError(msg);
     } finally {
       setBedrockLoading(false);
     }
   };
 
-  // Parse the backend response to extract resume information
-  // Replace the parseResumeResults function with this:
-
-// Parse the backend response to extract resume information from JSON data
-const parseResumeResults = (result: any) => {
-  const results = [];
-  
-  console.log("Full backend result:", result);
-  
-  // Strategy 1: Check if backend returns direct resume objects in citations or retrievedReferences
-  if (result.citations && Array.isArray(result.citations)) {
-    result.citations.forEach((citation: any) => {
-      if (citation.retrievedReferences && Array.isArray(citation.retrievedReferences)) {
-        citation.retrievedReferences.forEach((ref: any) => {
-          // Extract resume ID and name from the reference
-          const resumeId = extractResumeId(ref);
-          const resumeName = extractResumeName(ref);
-          if (resumeId) {
-            results.push({
-              id: resumeId,
-              name: resumeName || `Resume ${resumeId}`,
-              type: 'resume',
-              snippet: `Click to view resume ${resumeId}`,
-              fullContent: JSON.stringify(ref, null, 2)
-            });
-          }
-        });
-      }
-    });
-  }
-  
-  // Strategy 2: Check if there's direct resume data in the output
-  if (result.output?.text) {
-    const text = result.output.text;
-    
-    // Look for resume IDs in the format that your RAG system returns
-        // Try multiple patterns that might indicate resume IDs
-        const patterns = [
-          /\bresume\s+(?:id|ID)?\s*:?\s*(\d{5,6})\b/gi,
-          /\bID\s*:?\s*(\d{5,6})\b/gi,
-          /\b(\d{5,6})\b/g,
-          /\[(\d{5,6})\]/g
-        ];
-        
-        let foundIds: string[] = [];
-        for (const pattern of patterns) {
-          const matches = text.match(pattern);
-          if (matches && matches.length > 0) {
-            foundIds = matches
-              .map((match: string) => {
-                const idMatch = match.match(/\d{5,6}/);
-                return idMatch ? idMatch[0] : null;
-              })
-              .filter((id: string | null): id is string => Boolean(id));
-            if (foundIds.length > 0) break;
-          }
-        }
-        
-        // Extract names from the text
-    const nameMatches = text.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g) || [];
-    
-    console.log("Found resume IDs in text:", foundIds);
-    console.log("Found names in text:", nameMatches);
-    
-    // Create results from found IDs
-    if (foundIds.length > 0) {
-      foundIds.forEach((id: string, index: number) => {
-        const name = nameMatches[index] || `Resume ${id}`;
-        results.push({
-          id: id,
-          name: name,
-          type: 'resume',
-          snippet: `Resume ID: ${id} - Click to view`,
-          fullContent: text
-        });
-      });
-    }
-  }
-  
-  // Strategy 3: Check for raw JSON resume data
-  if (result.raw && typeof result.raw === 'object') {
-    const rawData = result.raw;
-    // Look for resume-like structures in the raw data
-    const resumeId = findResumeIdInObject(rawData);
-    if (resumeId) {
-      results.push({
-        id: resumeId,
-        name: findResumeNameInObject(rawData) || `Resume ${resumeId}`,
-        type: 'resume',
-        snippet: "Found in raw data - Click to view",
-        fullContent: JSON.stringify(rawData, null, 2)
-      });
-    }
-  }
-  
-  // Strategy 4: If we have the generated text but no IDs, try to extract context
-  if (results.length === 0 && result.output?.text) {
-    const text = result.output.text;
-    // Check if this looks like it's talking about specific resumes
-    if (text.includes('resume') || text.includes('Resume')) {
-      // Create a result based on the search context
-      results.push({
-        id: "000005", // Fallback to a common ID
-        name: "Search Result",
-        type: 'resume', 
-        snippet: text.substring(0, 100) + '...',
-        fullContent: text
-      });
-    }
-  }
-  
-  // Remove duplicates based on ID
-  const uniqueResults = results.filter((result, index, self) => 
-    index === self.findIndex(r => r.id === result.id)
-  );
-  
-  console.log("Final parsed results:", uniqueResults);
-  return uniqueResults;
-};
-
-// Helper functions to extract resume data from different parts of the response
-const extractResumeId = (data: any): string | null => {
-  if (!data) return null;
-  
-  // Check common fields where resume ID might be stored
-  const idFields = ['id', 'resumeId', 'resume_id', 'documentId', 'docId'];
-  
-  for (const field of idFields) {
-    if (data[field] && typeof data[field] === 'string') {
-      const idMatch = data[field].match(/\d{5,6}/);
-      if (idMatch) return idMatch[0];
-    }
-  }
-  
-  // Check content fields for IDs
-  const contentFields = ['content', 'text', 'document', 'metadata'];
-  for (const field of contentFields) {
-    if (data[field] && typeof data[field] === 'string') {
-      const idMatch = data[field].match(/\b\d{5,6}\b/);
-      if (idMatch) return idMatch[0];
-    }
-  }
-  
-  return null;
-};
-
-const extractResumeName = (data: any): string | null => {
-  if (!data) return null;
-  
-  // Check for name fields
-  const nameFields = ['name', 'resumeName', 'candidateName', 'author', 'user'];
-  for (const field of nameFields) {
-    if (data[field] && typeof data[field] === 'string') {
-      const nameMatch = data[field].match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
-      if (nameMatch) return nameMatch[0];
-    }
-  }
-  
-  // Check content for names
-  const contentFields = ['content', 'text'];
-  for (const field of contentFields) {
-    if (data[field] && typeof data[field] === 'string') {
-      const nameMatch = data[field].match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
-      if (nameMatch) return nameMatch[0];
-    }
-  }
-  
-  return null;
-};
-
-const findResumeIdInObject = (obj: any): string | null => {
-  if (!obj || typeof obj !== 'object') return null;
-  
-  // Recursively search for resume IDs in the object
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const value = obj[key];
-      
-      if (typeof value === 'string') {
-        const idMatch = value.match(/\b\d{5,6}\b/);
-        if (idMatch) return idMatch[0];
-      } else if (typeof value === 'object' && value !== null) {
-        const foundId = findResumeIdInObject(value);
-        if (foundId) return foundId;
-      }
-    }
-  }
-  
-  return null;
-};
-
-const findResumeNameInObject = (obj: any): string | null => {
-  if (!obj || typeof obj !== 'object') return null;
-  
-  // Recursively search for names in the object
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const value = obj[key];
-      
-      if (typeof value === 'string') {
-        const nameMatch = value.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
-        if (nameMatch) return nameMatch[0];
-      } else if (typeof value === 'object' && value !== null) {
-        const foundName = findResumeNameInObject(value);
-        if (foundName) return foundName;
-      }
-    }
-  }
-  
-  return null;
-};
-
-  const handleResultClick = (resume: any) => {
-    console.log("Selected resume:", resume);
-    setSelectedResume(resume);
+  const handleResumeSelect = (userId: string, resumeId: string) => {
+    console.log("Selected resume:", userId, resumeId);
+    setSelectedUserId(userId);
+    setSelectedResumeId(resumeId);
     setShowCurrentResume(true);
-    setShowSearchResults(false);
+    setShowSearchDropdown(false);
   };
 
-  // Close search results when clicking outside
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGlobalSearchQuery(e.target.value);
+    if (showSearchDropdown) {
+      setShowSearchDropdown(false);
+    }
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleBedrockQuery();
+    }
+  };
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const searchContainer = document.querySelector('.search-container');
-      if (searchContainer && !searchContainer.contains(event.target as Node)) {
-        setShowSearchResults(false);
+      const target = event.target as HTMLElement;
+      if (!target.closest('.search-container')) {
+        setShowSearchDropdown(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, []);
 
-  // --- Resize Handlers ---
+  // --- Resize Handlers (unchanged) ---
   const handleCommentResize = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
@@ -430,7 +251,7 @@ const findResumeNameInObject = (obj: any): string | null => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.removeEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
@@ -473,19 +294,18 @@ const findResumeNameInObject = (obj: any): string | null => {
         boxSizing: "border-box",
       }}
     >
-      {/* Top Search Bar - UPDATED WITH DROPDOWN */}
+      {/* Top Search Bar - Centered and Shorter */}
       <div
-        className="search-container"
         style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           flexShrink: 0,
           marginBottom: "0.5rem",
-          position: "relative",
         }}
       >
-        <div
+        <div 
+          className="search-container"
           style={{
             position: "relative",
             width: "100%",
@@ -496,8 +316,8 @@ const findResumeNameInObject = (obj: any): string | null => {
             size={18}
             style={{
               position: "absolute",
-              left: "1rem",
-              top: "50%",
+              left: "0.5rem",
+              top: "24%",
               transform: "translateY(-50%)",
               color: "#9ca3af",
               pointerEvents: "none",
@@ -505,12 +325,14 @@ const findResumeNameInObject = (obj: any): string | null => {
           />
           <input
             type="text"
-            placeholder="Search for resumes..."
+            placeholder="Search resumes (e.g., 'best AWS resume' or 'resume with sports experience')"
             value={globalSearchQuery}
-            onChange={(e) => setGlobalSearchQuery(e.target.value)}
-            onFocus={(e) => {
-              searchResults.length > 0 && setShowSearchResults(true);
-              e.currentTarget.style.backgroundColor = "#c4c8cc";
+            onChange={handleSearchInputChange}
+            onKeyPress={handleSearchKeyPress}
+            onClick={() => {
+              if (searchResults.length > 0) {
+                setShowSearchDropdown(true);
+              }
             }}
             style={{
               width: "100%",
@@ -528,13 +350,16 @@ const findResumeNameInObject = (obj: any): string | null => {
               outline: "none",
               boxSizing: "border-box",
             }}
+            onFocus={(e) => {
+              e.currentTarget.style.backgroundColor = "#c4c8cc";
+            }}
             onBlur={(e) => {
               e.currentTarget.style.backgroundColor = "#d1d5db";
             }}
           />
           
-          {/* SEARCH RESULTS DROPDOWN - THIS IS WHAT YOU WANT */}
-          {showSearchResults && searchResults.length > 0 && (
+          {/* Search Dropdown Results */}
+          {showSearchDropdown && searchResults.length > 0 && (
             <div
               style={{
                 position: "absolute",
@@ -542,51 +367,54 @@ const findResumeNameInObject = (obj: any): string | null => {
                 left: 0,
                 right: 0,
                 backgroundColor: "white",
-                border: "1px solid #dfe1e5",
-                borderRadius: "0 0 8px 8px",
-                boxShadow: "0 4px 6px rgba(32, 33, 36, 0.28)",
+                border: "1px solid #e5e7eb",
+                borderRadius: "0.5rem",
+                marginTop: "0.5rem",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                 zIndex: 1000,
                 maxHeight: "300px",
                 overflowY: "auto",
-                marginTop: "8px",
               }}
             >
-              {searchResults.map((result, index) => (
+              <div style={{ 
+                padding: "0.75rem 1rem", 
+                backgroundColor: "#f8fafc",
+                borderBottom: "1px solid #e2e8f0",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: "#475569"
+              }}>
+                Found {searchResults.length} resumes:
+              </div>
+              {searchResults.map((result: SearchResult, index: number) => (
                 <div
-                  key={result.id || index}
-                  onClick={() => handleResultClick(result)}
+                  key={`${result.user_id}-${result.resume_id}`}
+                  onClick={() => handleResumeSelect(result.user_id, result.resume_id)}
                   style={{
-                    padding: "12px 16px",
+                    padding: "0.75rem 1rem",
                     cursor: "pointer",
-                    borderBottom: "1px solid #f1f3f4",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    transition: "background-color 0.2s",
+                    borderBottom: "1px solid #f3f4f6",
+                    fontSize: "0.875rem",
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f8f9fa";
+                    e.currentTarget.style.backgroundColor = "#f3f4f6";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "white";
                   }}
                 >
-                  <Lightbulb size={16} color="#1a73e8" />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ 
-                      fontSize: "14px", 
-                      color: "#1a0dab",
-                      fontWeight: 500,
-                      marginBottom: "2px"
-                    }}>
-                      {result.name}
-                    </div>
-                    <div style={{ 
-                      fontSize: "12px", 
-                      color: "#5f6368",
-                    }}>
-                      ID: {result.id} • {result.snippet}
-                    </div>
+                  <div style={{ fontWeight: "500", color: "#111827" }}>
+                    {result.name}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                    User: {result.user_id} | Resume: {result.resume_id}
+                    {result.score && (
+                      <span style={{ marginLeft: "0.5rem", color: "#10b981" }}>
+                        (Score: {(result.score * 100).toFixed(1)}%)
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -618,19 +446,40 @@ const findResumeNameInObject = (obj: any): string | null => {
                 fontWeight: "500",
               }}
             >
-              {bedrockLoading ? "Searching..." : "Search Resumes"}
+              {bedrockLoading ? "Searching..." : "Search"}
             </button>
           </div>
 
-          {/* Error display - KEEP THIS FOR DEBUGGING */}
+          {/* Error Display */}
           {bedrockError && (
             <div style={{ 
               color: "#dc2626", 
-              fontSize: "0.875rem",
+              fontSize: "0.875rem", 
               marginTop: "0.5rem",
-              textAlign: "center"
+              padding: "0.5rem",
+              backgroundColor: "#fef2f2",
+              borderRadius: "0.375rem"
             }}>
-              Error: {bedrockError}
+              {bedrockError}
+            </div>
+          )}
+
+          {/* Simple Results Info */}
+          {bedrockResult && (
+            <div style={{ 
+              marginTop: "0.5rem", 
+              padding: "0.5rem", 
+              backgroundColor: "#f0fdf4", 
+              borderRadius: "0.5rem",
+              fontSize: "0.75rem",
+              color: "#065f46"
+            }}>
+              <strong>Search complete:</strong> Found {searchResults.length} resumes
+              {bedrockResult.generatedText && (
+                <div style={{ marginTop: "0.25rem" }}>
+                  AI analysis available
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -864,7 +713,7 @@ const findResumeNameInObject = (obj: any): string | null => {
           }}
         >
           {/* Current Resume Panel */}
-          {(showCurrentResume || selectedResume) && (
+          {(showCurrentResume || selectedResumeId) && (
             <>
               <div
                 style={{
@@ -902,12 +751,13 @@ const findResumeNameInObject = (obj: any): string | null => {
                         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     }}
                   >
-                    {selectedResume ? `${selectedResume.name} - Resume` : "Current Resume"}
+                    Current Resume {selectedResumeId && `- User: ${selectedUserId} | Resume: ${selectedResumeId}`}
                   </h3>
                   <button
                     onClick={() => {
                       setShowCurrentResume(false);
-                      setSelectedResume(null);
+                      setSelectedResumeId(null);
+                      setSelectedUserId(null);
                     }}
                     style={{
                       backgroundColor: "#e5e7eb",
@@ -946,8 +796,8 @@ const findResumeNameInObject = (obj: any): string | null => {
                   }}
                 >
                   <PdfViewer 
-                    userId={"000000"} 
-                    resumeId={selectedResume ? selectedResume.id : "000005"} 
+                    userId={selectedUserId || "000000"} 
+                    resumeId={selectedResumeId || "000005"} 
                   />
                 </div>
 
@@ -1110,7 +960,6 @@ const findResumeNameInObject = (obj: any): string | null => {
             <ResumeEditor userId="000000" resumeId="000005" />
           </div>
         </div>
-
         {/* Resize Handle 3 */}
         <div
           style={{
