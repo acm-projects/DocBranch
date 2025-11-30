@@ -40,7 +40,9 @@ const ComparePage = () => {
   const [showCurrentResume, setShowCurrentResume] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [bedrockLoading, setBedrockLoading] = useState(false);
-  const [bedrockResult, setBedrockResult] = useState<BedrockResult | null>(null);
+  const [bedrockResult, setBedrockResult] = useState<BedrockResult | null>(
+    null
+  );
   const [bedrockError, setBedrockError] = useState<string | null>(null);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
@@ -82,18 +84,63 @@ const ComparePage = () => {
     }
   };
 
-  // Simplified search results extraction
+  // Parse search results from `bedrockResult.generatedText`.
+  // Expected format: '{name:Allen Zheng,user_id:000000,resume_id:000010}'
   const getSearchResults = (): SearchResult[] => {
-    console.log("getSearchResult function called...")
-    console.log(bedrockResult)
-    if (!bedrockResult?.generatedText) return [];
+    console.log("getSearchResult function called...");
+    console.log(bedrockResult);
 
-    return [{
-    resume_id: bedrockResult.generatedText,
-    user_id: "",
-    name: ""
-  }]
-   // return [bedrockResult.generatedText;
+    const raw = bedrockResult?.generatedText;
+    if (!raw) return [];
+
+    // Remove surrounding braces if present
+    const trimmed = raw.trim();
+    const bodyMatch = /^\{\s*(.*)\s*\}$/.exec(trimmed);
+    const body = bodyMatch ? bodyMatch[1] : trimmed;
+
+    // Match key:value pairs where value can include spaces but not commas
+    const pairRegex = /(\w+)\s*:\s*([^,]+)/g;
+    let m: RegExpExecArray | null;
+
+    let name = "";
+    let user_id = "";
+    let resume_id = "";
+
+    while ((m = pairRegex.exec(body)) !== null) {
+      const key = m[1];
+      const val = m[2].trim();
+      if (key === "name") name = val;
+      else if (key === "user_id") user_id = val;
+      else if (key === "resume_id") resume_id = val;
+    }
+
+    // Fallback: if fields missing, try simpler heuristics
+    if (!resume_id) {
+      // try to find resume_id by searching for 'resume_id:' anywhere
+      const r = /resume_id\s*:\s*([^,}]+)/.exec(body);
+      if (r) resume_id = r[1].trim();
+    }
+
+    if (!user_id) {
+      const u = /user_id\s*:\s*([^,}]+)/.exec(body);
+      if (u) user_id = u[1].trim();
+    }
+
+    if (!name) {
+      const n = /name\s*:\s*([^,}]+)/.exec(body);
+      if (n) name = n[1].trim();
+    }
+
+    // Final fallback: if nothing parsed, return the raw string as resume_id
+    if (!resume_id && body) resume_id = body;
+
+    return [
+      {
+        resume_id,
+        user_id,
+        name,
+      },
+    ];
   };
 
   const searchResults = getSearchResults();
@@ -114,11 +161,10 @@ const ComparePage = () => {
       const response = await backend_api.post("/bedrock/query", {
         query: globalSearchQuery,
       });
-      
+
       console.log("Search response:", response.data);
       setBedrockResult(response.data);
       setShowSearchDropdown(true);
-      
     } catch (error: any) {
       console.error("Search failed:", error);
       const msg =
@@ -147,7 +193,7 @@ const ComparePage = () => {
   };
 
   const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleBedrockQuery();
     }
   };
@@ -156,14 +202,14 @@ const ComparePage = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.search-container')) {
+      if (!target.closest(".search-container")) {
         setShowSearchDropdown(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
@@ -304,7 +350,7 @@ const ComparePage = () => {
           marginBottom: "0.5rem",
         }}
       >
-        <div 
+        <div
           className="search-container"
           style={{
             position: "relative",
@@ -362,7 +408,7 @@ const ComparePage = () => {
               }}
             />
           </div>
-          
+
           <button
             onClick={handleBedrockQuery}
             disabled={bedrockLoading || !globalSearchQuery.trim()}
@@ -384,7 +430,7 @@ const ComparePage = () => {
           >
             {bedrockLoading ? "Searching..." : "Search"}
           </button>
-          
+
           {/* Search Dropdown Results */}
           {showSearchDropdown && searchResults.length > 0 && (
             <div
@@ -403,20 +449,24 @@ const ComparePage = () => {
                 overflowY: "auto",
               }}
             >
-              <div style={{ 
-                padding: "0.75rem 1rem", 
-                backgroundColor: "#f8fafc",
-                borderBottom: "1px solid #e2e8f0",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-                color: "#475569"
-              }}>
+              <div
+                style={{
+                  padding: "0.75rem 1rem",
+                  backgroundColor: "#f8fafc",
+                  borderBottom: "1px solid #e2e8f0",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  color: "#475569",
+                }}
+              >
                 Found {searchResults.length} resumes:
               </div>
               {searchResults.map((result: SearchResult, index: number) => (
                 <div
                   key={`${result.user_id}-${result.resume_id}`}
-                  onClick={() => handleResumeSelect(result.user_id, result.resume_id)}
+                  onClick={() =>
+                    handleResumeSelect(result.user_id, result.resume_id)
+                  }
                   style={{
                     padding: "0.75rem 1rem",
                     cursor: "pointer",
@@ -450,23 +500,24 @@ const ComparePage = () => {
 
           {/* Error Display */}
           {bedrockError && (
-            <div style={{ 
-              color: "#dc2626", 
-              fontSize: "0.875rem", 
-              marginTop: "0.5rem",
-              padding: "0.5rem",
-              backgroundColor: "#fef2f2",
-              borderRadius: "0.375rem",
-              position: "absolute",
-              top: "calc(100% + 0.5rem)",
-              left: 0,
-              right: 0,
-              zIndex: 999,
-            }}>
+            <div
+              style={{
+                color: "#dc2626",
+                fontSize: "0.875rem",
+                marginTop: "0.5rem",
+                padding: "0.5rem",
+                backgroundColor: "#fef2f2",
+                borderRadius: "0.375rem",
+                position: "absolute",
+                top: "calc(100% + 0.5rem)",
+                left: 0,
+                right: 0,
+                zIndex: 999,
+              }}
+            >
               {bedrockError}
             </div>
           )}
-
         </div>
       </div>
 
@@ -548,7 +599,9 @@ const ComparePage = () => {
                         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     }}
                   >
-                    Current Resume {selectedResumeId && `- User: ${selectedUserId} | Resume: ${selectedResumeId}`}
+                    Current Resume{" "}
+                    {selectedResumeId &&
+                      `- User: ${selectedUserId} | Resume: ${selectedResumeId}`}
                   </h3>
                   <button
                     onClick={() => {
@@ -592,9 +645,9 @@ const ComparePage = () => {
                     position: "relative",
                   }}
                 >
-                  <PdfViewer 
-                    userId={selectedUserId || "000000"} 
-                    resumeId={selectedResumeId || "000005"} 
+                  <PdfViewer
+                    userId={selectedUserId || "000000"}
+                    resumeId={selectedResumeId || "000005"}
                   />
                 </div>
 
