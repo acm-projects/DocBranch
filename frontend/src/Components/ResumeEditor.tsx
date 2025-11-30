@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Plus,
   ChevronDown,
@@ -846,6 +846,8 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<any>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [pdfHover, setPdfHover] = useState(false);
 
   // Fetch specific resume from backend
   const fetchResume = async () => {
@@ -1268,6 +1270,34 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     };
   };
 
+  // Memoize built resume so passing to PdfViewer doesn't recreate object
+  // on simple UI state changes (like hover) which would force reloads.
+  const memoResume = useMemo(() => buildResume(), [sections]);
+
+  // Upload resume to backend
+  const uploadResume = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const payload = buildResume();
+      const response = await axios.post(
+        "http://localhost:3000/resumes",
+        payload
+      );
+      setSuccess("Resume uploaded successfully");
+      // Optionally update resumeData with server response
+      if (response && response.data) setResumeData(response.data);
+    } catch (err: any) {
+      console.error("Error uploading resume:", err);
+      setError(
+        err.response?.data?.message || err.message || "Failed to upload resume"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -1321,6 +1351,13 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
             style={{ color: "#ef4444", fontSize: "13px", textAlign: "center" }}
           >
             Error: {error}
+          </div>
+        )}
+        {success && (
+          <div
+            style={{ color: "#10b981", fontSize: "13px", textAlign: "center" }}
+          >
+            {success}
           </div>
         )}
       </div>
@@ -1494,6 +1531,8 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
         </div>
       </div>
 
+      {/* Upload Button */}
+
       <div
         className="hide-scrollbar"
         style={{
@@ -1536,7 +1575,10 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
           </div>
         ) : (
           <div
+            onMouseEnter={() => setPdfHover(true)}
+            onMouseLeave={() => setPdfHover(false)}
             style={{
+              position: "relative",
               backgroundColor: "white",
               padding: "8px",
               borderRadius: "8px",
@@ -1546,7 +1588,61 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
               height: "100%",
             }}
           >
-            <PdfViewer resumeObj={buildResume()} />
+            <PdfViewer resumeObj={memoResume} />
+
+            <button
+              onClick={uploadResume}
+              disabled={loading}
+              aria-hidden={!pdfHover}
+              style={{
+                position: "absolute",
+                top: "8px",
+                right: "8px",
+                zIndex: 50,
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                color: "white",
+                border: "none",
+                padding: "8px 14px",
+                borderRadius: "6px",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontSize: "13px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                transition: "opacity 0.18s ease, transform 0.18s ease",
+                opacity: pdfHover ? 1 : 0,
+                transform: pdfHover
+                  ? "translateY(0) scale(1)"
+                  : "translateY(-4px) scale(0.98)",
+                pointerEvents: pdfHover ? "auto" : "none",
+              }}
+            >
+              <Save size={14} />
+              Upload
+            </button>
+
+            <div
+              style={{
+                marginTop: "12px",
+                padding: "12px",
+                backgroundColor: "#f8fafc",
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+                overflowX: "auto",
+              }}
+            >
+              <pre
+                style={{
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  margin: 0,
+                  fontSize: "12px",
+                }}
+              >
+                {JSON.stringify(memoResume, null, 2)}
+              </pre>
+            </div>
           </div>
         )}
       </div>
