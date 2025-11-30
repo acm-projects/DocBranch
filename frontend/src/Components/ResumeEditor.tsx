@@ -1031,7 +1031,7 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       keyLower.includes("link")
     )
       return "url";
-    if (keyLower.includes("date")) return "date";
+    // if (keyLower.includes("date")) return "date";
     if (
       keyLower.includes("description") ||
       Array.isArray(value) ||
