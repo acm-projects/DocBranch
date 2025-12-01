@@ -1,5 +1,5 @@
 import Sidebar from "./Sidebar";
-
+import { useNavigate } from "react-router-dom";
 import React, { useState, useCallback, useEffect } from 'react';
 
 import ReactFlow, {
@@ -756,10 +756,25 @@ const handleGenerate = (filterFromNode?: string) => {
   setFilteredFrom(filterFromNode || null);
 };
 
-  const onNodeClick = useCallback((_: any, node: Node) => {
+  // const onNodeClick = useCallback((_: any, node: Node) => {
+  //   setSelectedNode(node.id);
+  //   handleGenerate(node.id);
+  // }, [graphData]);
+  const navigate = useNavigate();  // ← This is required
+
+const onNodeClick = useCallback((_event: any, node: Node) => {
+  const nodeType = node.data?.type;  // <= THIS is the correct discriminator
+
+  if (nodeType === "category") {
+    // extended view for categories only
     setSelectedNode(node.id);
     handleGenerate(node.id);
-  }, [graphData]);
+  } else {
+    // routing for everything else
+    navigate(`/branch/${node.id}`);
+  }
+}, [navigate]);
+
 
 useEffect(() => {
     handleGenerate(filteredFrom || undefined);
