@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
 	startOAuth: () => ipcRenderer.invoke('oauth-start'),
 
+	startOAuthInApp: () => ipcRenderer.invoke('oauth-start-in-app'),
+
 	onOAuthCallback: (cb) => {
 		ipcRenderer.on('oauth-callback', (event, data) => cb(data));
 	}

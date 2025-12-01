@@ -11,7 +11,16 @@ const DocBranchLanding = () => {
 
   const handleLogin = async () => {
     if (isElectron) {
-      await (window as any).electronAPI.startOAuth();
+      // Use in-app auth window when running inside Electron for a contained UX.
+      // Note: embedding auth can be less secure than the system browser; consider
+      // using the system browser for production (oauth-start) if you want
+      // to follow OAuth native app best practices.
+      try {
+        await (window as any).electronAPI.startOAuthInApp();
+      } catch (e) {
+        // fallback to opening system browser if in-app fails
+        await (window as any).electronAPI.startOAuth();
+      }
     } else {
       window.location.href = `${AUTH_SERVER}/login`;
     }

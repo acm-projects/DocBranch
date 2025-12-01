@@ -83,6 +83,61 @@ ipcMain.handle('oauth-start', async () => {
   return { opened: true };
 });
 
+// IPC handler: start OAuth inside an Electron BrowserWindow (in-app)
+ipcMain.handle('oauth-start-in-app', async () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const authWin = new BrowserWindow({
+        parent: mainWindow || undefined,
+        modal: !!mainWindow,
+        show: true,
+        width: 600,
+        height: 800,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          sandbox: true,
+        },
+      });
+
+      const authUrl = `${AUTH_BACKEND}/login?electron=1&protocol=${encodeURIComponent(CUSTOM_PROTOCOL)}`;
+      authWin.loadURL(authUrl).catch((e) => console.error('authWin loadURL failed', e));
+
+      const cleanup = () => {
+        try { authWin.close(); } catch (e) {}
+      };
+
+      const handler = (event: any, navigationUrl: string) => {
+        try {
+          if (typeof navigationUrl === 'string' && navigationUrl.startsWith(`${CUSTOM_PROTOCOL}://`)) {
+            // Prevent navigation to the protocol handler - we capture it here
+            event.preventDefault?.();
+            const parsed = new URL(navigationUrl);
+            const access_token = parsed.searchParams.get('access_token');
+            const id_token = parsed.searchParams.get('id_token');
+            // Forward to renderer so it can set localStorage and navigate
+            if (mainWindow) mainWindow.webContents.send('oauth-callback', navigationUrl);
+            resolve({ access_token, id_token, raw: navigationUrl });
+            cleanup();
+          }
+        } catch (err) {
+          reject(err);
+          cleanup();
+        }
+      };
+
+      authWin.webContents.on('will-redirect', handler as any);
+      authWin.webContents.on('will-navigate', handler as any);
+
+      authWin.on('closed', () => {
+        reject(new Error('Auth window closed'));
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+});
+
 // Register a protocol to serve PDF worker files
 app.whenReady().then(() => {
   protocol.registerFileProtocol('pdf-worker', (request, callback) => {

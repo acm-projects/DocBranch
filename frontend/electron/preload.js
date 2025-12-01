@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Start the OAuth flow in the system browser (main process will open it)
   startOAuth: () => ipcRenderer.invoke('oauth-start'),
+  // Start the OAuth flow inside an in-app BrowserWindow (safer UX but less recommended)
+  startOAuthInApp: () => ipcRenderer.invoke('oauth-start-in-app'),
 
   // Listen for the OAuth callback URL data from the main process
   onOAuthCallback: (cb) => {

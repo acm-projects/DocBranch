@@ -163,3 +163,63 @@ ipcMain.handle('oauth-start', async () => {
     });
   });
 });
+
+// IPC: start OAuth inside an in-app BrowserWindow instead of opening system browser
+ipcMain.handle('oauth-start-in-app', async () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const authWin = new BrowserWindow({
+        parent: mainWindow || undefined,
+        modal: !!mainWindow,
+        show: true,
+        width: 600,
+        height: 800,
+        webPreferences: {
+          preload: path.join(__dirname, 'preload.js'),
+          contextIsolation: true,
+          nodeIntegration: false,
+        },
+      });
+
+      const backendHost = process.env.AUTH_SERVER_HOST || 'http://localhost:3100';
+      const url = `${backendHost}/login?electron=1&protocol=${CUSTOM_PROTOCOL}`;
+      authWin.loadURL(url).catch((e) => console.error('[oauth-in-app] loadURL failed', e));
+
+      const cleanup = () => {
+        try { authWin.close(); } catch (e) {}
+      };
+
+      const handler = (event, navigationUrl) => {
+        try {
+          if (typeof navigationUrl === 'string' && navigationUrl.startsWith(`${CUSTOM_PROTOCOL}://`)) {
+            event.preventDefault?.();
+            // Forward to main window for unified handling
+            if (mainWindow) mainWindow.webContents.send('oauth-callback', navigationUrl);
+            // Extract tokens for the caller as well
+            try {
+              const parsed = new URL(navigationUrl);
+              const access_token = parsed.searchParams.get('access_token');
+              const id_token = parsed.searchParams.get('id_token');
+              resolve({ access_token, id_token, raw: navigationUrl });
+            } catch (e) {
+              resolve({ raw: navigationUrl });
+            }
+            cleanup();
+          }
+        } catch (err) {
+          reject(err);
+          cleanup();
+        }
+      };
+
+      authWin.webContents.on('will-redirect', handler);
+      authWin.webContents.on('will-navigate', handler);
+
+      authWin.on('closed', () => {
+        reject(new Error('Auth window closed'));
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+});
