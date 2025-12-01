@@ -87,8 +87,19 @@ app.get('/login', (req, res) => {
   // If electron parameter present, mark this session and remember desired protocol
   if (req.query.electron) {
     req.session.electron = true;
-    req.session.protocol = req.query.protocol || 'docbranch';
-    console.log('[/login] marked session for Electron, protocol=', req.session.protocol);
+    // Prefer a local_port local callback if the Electron main process provided one.
+    if (req.query.local_port) {
+      const port = parseInt(req.query.local_port, 10);
+      if (!Number.isNaN(port)) {
+        req.session.localCallback = `http://127.0.0.1:${port}/oauth-callback`;
+        console.log('[/login] marked session for Electron with localCallback=', req.session.localCallback);
+      }
+    }
+    // Legacy/custom-protocol support (kept for installed app flows)
+    if (!req.session.localCallback) {
+      req.session.protocol = req.query.protocol || 'docbranch';
+      console.log('[/login] marked session for Electron, protocol=', req.session.protocol);
+    }
   }
 
   const authUrl = client.authorizationUrl({
@@ -124,27 +135,37 @@ app.get(REDIRECT_PATH, async (req, res) => {
     req.session.userInfo = userInfo;
     console.log('[/callback] userInfo:', userInfo && userInfo.email ? { email: userInfo.email } : { userInfoPresent: !!userInfo });
 
-    // If this session started an Electron login, redirect to the custom protocol so
-    // the Electron main process can receive the tokens and forward to the renderer.
-    if (req.session.electron && req.session.protocol) {
-      const protocol = req.session.protocol;
-      // Build a safe redirect: include only short-lived tokens; in production consider
-      // handing off a one-time code that the app redeems from the server.
-      const redirectUrl = `${protocol}://auth?access_token=${encodeURIComponent(
-        tokenSet.access_token
-      )}&id_token=${encodeURIComponent(tokenSet.id_token)}&state=${encodeURIComponent(
-        req.session.state || ''
-      )}`;
-      // Destroy server-side PKCE data as it's no longer needed
-      delete req.session.codeVerifier;
-      delete req.session.nonce;
+    if (req.session.electron) {
+      // If the Electron main provided a loopback local callback, redirect the
+      // browser to that local address with tokens so the ephemeral listener in
+      // the Electron process can capture them. This avoids relying on OS-level
+      // protocol handlers in development.
+      if (req.session.localCallback) {
+        const redirectUrl = `${req.session.localCallback}?access_token=${encodeURIComponent(
+          tokenSet.access_token
+        )}&id_token=${encodeURIComponent(tokenSet.id_token)}&state=${encodeURIComponent(
+          req.session.state || ''
+        )}`;
+        // Destroy server-side PKCE data as it's no longer needed
+        delete req.session.codeVerifier;
+        delete req.session.nonce;
+        console.log('[/callback] redirecting to localCallback:', redirectUrl);
+        res.redirect(redirectUrl);
+        return;
+      }
 
-      // Instead of issuing an immediate HTTP redirect to the custom protocol (which
-      // some browsers may block or show an error when the protocol handler isn't
-      // registered in dev), serve a small HTML page that attempts to open the
-      // custom protocol URL via JavaScript. This approach gives the browser a
-      // trusted page to run the navigation from and provides a fallback link.
-      const page = `<!doctype html>
+      // Fallback: if a custom protocol was requested, continue to use the
+      // JavaScript handoff page which attempts to open the protocol URL.
+      if (req.session.protocol) {
+        const protocol = req.session.protocol;
+        const redirectUrl = `${protocol}://auth?access_token=${encodeURIComponent(
+          tokenSet.access_token
+        )}&id_token=${encodeURIComponent(tokenSet.id_token)}&state=${encodeURIComponent(
+          req.session.state || ''
+        )}`;
+        delete req.session.codeVerifier;
+        delete req.session.nonce;
+        const page = `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -157,27 +178,16 @@ app.get(REDIRECT_PATH, async (req, res) => {
     <p>If your app doesn't open automatically, <a id="openLink" href="${redirectUrl}">click here</a> to continue.</p>
     <script>
       (function() {
-        // Try to open the custom protocol. Some browsers will block immediate
-        // navigation from an HTTP->custom-protocol redirect; setting window.location
-        // from an HTML page tends to work better. We still provide the clickable
-        // link as a fallback.
-        try {
-          window.location = ${JSON.stringify(redirectUrl)};
-        } catch (e) {
-          // ignore — user can click link
-        }
-        // Also set a short timeout to close the window if the app opens (best-effort).
-        setTimeout(function() {
-          try { window.close(); } catch (e) {}
-        }, 2000);
+        try { window.location = ${JSON.stringify(redirectUrl)}; } catch (e) {}
+        setTimeout(function() { try { window.close(); } catch (e) {} }, 2000);
       })();
     </script>
   </body>
 </html>`;
-
-      res.set('Content-Type', 'text/html');
-      res.send(page);
-      return;
+        res.set('Content-Type', 'text/html');
+        res.send(page);
+        return;
+      }
     }
 
     // Normal web flow: redirect to frontend and let frontend call /me to get session user
