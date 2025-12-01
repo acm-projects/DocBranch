@@ -11,19 +11,35 @@ const App: React.FC = () => {
     typeof window !== "undefined" && !!(window as any).electronAPI;
 
   const handleLogout = async () => {
-    if (isElectron) {
+    // Clear local tokens (renderer-side)
+    try {
       localStorage.removeItem("access_token");
       localStorage.removeItem("id_token");
+    } catch (e) {
+      console.warn("Failed to clear localStorage", e);
+    }
+
+    // Tell backend to clear session and perform provider logout
+    try {
+      await fetch(`${AUTH_SERVER}/logout`, { credentials: "include" });
+    } catch (e) {
+      console.warn("Logout request failed", e);
+    }
+
+    // Navigate back to the app home. App uses a hash router, so set the
+    // hash to the root route so the HomePage (login button) shows.
+    try {
+      if (typeof window !== "undefined") {
+        // Use hash navigation to work both in Electron and browser
+        window.location.hash = "#/";
+        // Also update location.href as a fallback
+        window.location.href = window.location.href.split("#")[0] + "#/";
+      }
+    } catch (e) {
+      // Last resort: reload the page
       try {
-        await fetch(`${AUTH_SERVER}/logout`, { credentials: "include" });
+        window.location.reload();
       } catch (e) {}
-      // Optionally refresh UI or navigate
-      window.location.href = "/";
-    } else {
-      try {
-        await fetch(`${AUTH_SERVER}/logout`, { credentials: "include" });
-      } catch (e) {}
-      window.location.href = "/";
     }
   };
 
