@@ -1,12 +1,22 @@
 // preload.js
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose a function to the renderer to set the text content of an element
+// Expose functions to the renderer for basic DOM updates and OAuth flows
 contextBridge.exposeInMainWorld('electronAPI', {
   setElementText: (selector, text) => {
     const element = document.getElementById(selector);
     if (element) {
       element.textContent = text;
     }
+  },
+
+  // Start the OAuth flow in the system browser (main process will open it)
+  startOAuth: () => ipcRenderer.invoke('oauth-start'),
+  // Start the OAuth flow inside an in-app BrowserWindow (safer UX but less recommended)
+  startOAuthInApp: () => ipcRenderer.invoke('oauth-start-in-app'),
+
+  // Listen for the OAuth callback URL data from the main process
+  onOAuthCallback: (cb) => {
+    ipcRenderer.on('oauth-callback', (event, data) => cb(data));
   }
 });

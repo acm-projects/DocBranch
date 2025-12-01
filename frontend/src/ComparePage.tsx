@@ -522,7 +522,13 @@ const ComparePage = () => {
       </div>
 
       {/* Main Flex Layout */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: "#F3F4F6",
+        }}
+      >
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
