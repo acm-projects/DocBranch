@@ -47,3 +47,26 @@ root.render(
     <RouterProvider router={router} />
   </StrictMode>
 );
+
+// Electron: listen for OAuth callback forwarded from main process (loopback or protocol)
+if (
+  typeof window !== "undefined" &&
+  (window as any).electronAPI &&
+  (window as any).electronAPI.onOAuthCallback
+) {
+  (window as any).electronAPI.onOAuthCallback((url: string) => {
+    try {
+      const parsed = new URL(url);
+      const accessToken = parsed.searchParams.get("access_token");
+      const idToken = parsed.searchParams.get("id_token");
+      if (accessToken) localStorage.setItem("access_token", accessToken);
+      if (idToken) localStorage.setItem("id_token", idToken);
+      // Navigate to LandingPage (using hash router)
+      if (location.hash.indexOf("/LandingPage") === -1) {
+        location.hash = "/LandingPage";
+      }
+    } catch (e) {
+      console.error("Failed to handle oauth-callback URL", e, url);
+    }
+  });
+}
