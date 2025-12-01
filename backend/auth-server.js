@@ -213,8 +213,13 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => {});
   // Construct logout URL from discovered metadata
   const logoutEndpoint = client.issuer.metadata.end_session_endpoint;
+  // Ask Cognito to return to the frontend with a query flag so the UI can
+  // detect the logout completion and navigate to the appropriate hash route.
+  // Note: make sure this exact URI (including query) is registered as a
+  // valid logout URI in your Cognito app client settings if necessary.
+  const logoutRedirect = `${FRONTEND_URL.replace(/\/$/, '')}?logged_out=1`;
   const logoutUrl = `${logoutEndpoint}?client_id=${encodeURIComponent(CLIENT_ID)}&logout_uri=${encodeURIComponent(
-    FRONTEND_URL
+    logoutRedirect
   )}`;
   res.redirect(logoutUrl);
 });

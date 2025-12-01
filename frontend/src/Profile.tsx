@@ -1,17 +1,13 @@
-// src/App.tsx
-
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 
-const App: React.FC = () => {
+const Profile: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const AUTH_SERVER =
     (import.meta as any).env?.VITE_AUTH_SERVER_URL || "http://localhost:3100";
-  const isElectron =
-    typeof window !== "undefined" && !!(window as any).electronAPI;
 
   const handleLogout = async () => {
-    // Clear local tokens (renderer-side)
+    // Clear client-side tokens first
     try {
       localStorage.removeItem("access_token");
       localStorage.removeItem("id_token");
@@ -19,24 +15,16 @@ const App: React.FC = () => {
       console.warn("Failed to clear localStorage", e);
     }
 
-    // Tell backend to clear session and perform provider logout
-    try {
-      await fetch(`${AUTH_SERVER}/logout`, { credentials: "include" });
-    } catch (e) {
-      console.warn("Logout request failed", e);
-    }
-
-    // Navigate back to the app home. App uses a hash router, so set the
-    // hash to the root route so the HomePage (login button) shows.
+    // Navigate top-level to backend logout so Cognito end_session runs in a
+    // full navigation and provider cookies are cleared. Using fetch does
+    // not reliably clear provider cookies because redirects happen in the
+    // XHR context.
     try {
       if (typeof window !== "undefined") {
-        // Use hash navigation to work both in Electron and browser
-        window.location.hash = "#/";
-        // Also update location.href as a fallback
-        window.location.href = window.location.href.split("#")[0] + "#/";
+        window.location.href = `${AUTH_SERVER}/logout`;
       }
     } catch (e) {
-      // Last resort: reload the page
+      console.warn("Logout navigation failed", e);
       try {
         window.location.reload();
       } catch (e) {}
@@ -71,4 +59,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default Profile;

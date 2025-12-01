@@ -48,6 +48,25 @@ root.render(
   </StrictMode>
 );
 
+// If the auth server redirected back after logout with ?logged_out=1,
+// ensure the app navigates to the home route and clear any tokens.
+if (typeof window !== "undefined") {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("logged_out")) {
+      try {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("id_token");
+      } catch (e) {}
+      // Replace the URL to remove the query and set hash to home
+      const base = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, "", base + "#/");
+    }
+  } catch (e) {
+    console.warn("Failed to handle logged_out redirect", e);
+  }
+}
+
 // Electron: listen for OAuth callback forwarded from main process (loopback or protocol)
 if (
   typeof window !== "undefined" &&
@@ -62,8 +81,8 @@ if (
       if (accessToken) localStorage.setItem("access_token", accessToken);
       if (idToken) localStorage.setItem("id_token", idToken);
       // Navigate to LandingPage (using hash router)
-      if (location.hash.indexOf("/LandingPage") === -1) {
-        location.hash = "/LandingPage";
+      if (location.hash.indexOf("#/LandingPage") === -1) {
+        location.hash = "#/LandingPage";
       }
     } catch (e) {
       console.error("Failed to handle oauth-callback URL", e, url);
