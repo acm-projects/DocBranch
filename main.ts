@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, protocol, shell } from "electron";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -33,6 +33,55 @@ function createWindow(): void {
     }
   }
 }
+
+// OAuth / protocol handling for Electron: open system browser to backend /login
+const CUSTOM_PROTOCOL = process.env.ELECTRON_CUSTOM_PROTOCOL || "docbranch";
+const AUTH_BACKEND = process.env.AUTH_SERVER_HOST || "http://localhost:3100";
+
+// Handle protocol activation on macOS
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  if (mainWindow) mainWindow.webContents.send('oauth-callback', url);
+});
+
+// Single instance lock - capture protocol URL on Windows second-instance
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, argv) => {
+    const url = argv.find((a) => typeof a === 'string' && a.startsWith(`${CUSTOM_PROTOCOL}://`));
+    if (url && mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+      mainWindow.webContents.send('oauth-callback', url);
+    }
+  });
+}
+
+// Try to register protocol handler (works for installed apps)
+app.whenReady().then(() => {
+  try {
+    // In development, register the protocol with explicit execPath and
+    // app argument so Windows routes protocol URLs to the running Electron
+    // instance instead of invoking Electron with a malformed app path.
+    if ((process as any).defaultApp || process.argv[0].endsWith('electron') || process.execPath.endsWith('electron.exe')) {
+      const appPath = path.resolve(process.argv[1] || '.');
+      app.setAsDefaultProtocolClient(CUSTOM_PROTOCOL, process.execPath, [appPath]);
+    } else {
+      app.setAsDefaultProtocolClient(CUSTOM_PROTOCOL);
+    }
+  } catch (e) {
+    console.warn('Protocol registration failed', e);
+  }
+});
+
+// IPC handler: start OAuth by opening backend /login with electron flag
+ipcMain.handle('oauth-start', async () => {
+  const url = `${AUTH_BACKEND}/login?electron=1&protocol=${encodeURIComponent(CUSTOM_PROTOCOL)}`;
+  await shell.openExternal(url);
+  return { opened: true };
+});
 
 // Register a protocol to serve PDF worker files
 app.whenReady().then(() => {

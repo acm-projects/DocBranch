@@ -4,6 +4,18 @@ import { useNavigate } from "react-router-dom";
 
 const DocBranchLanding = () => {
   const navigate = useNavigate();
+  const AUTH_SERVER =
+    (import.meta as any).env?.VITE_AUTH_SERVER_URL || "http://localhost:3100";
+  const isElectron =
+    typeof window !== "undefined" && !!(window as any).electronAPI;
+
+  const handleLogin = async () => {
+    if (isElectron) {
+      await (window as any).electronAPI.startOAuth();
+    } else {
+      window.location.href = `${AUTH_SERVER}/login`;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white border">
@@ -75,7 +87,7 @@ const DocBranchLanding = () => {
             Log-In
           </button> */}
           <button
-            onClick={() => navigate("/LandingPage")}
+            onClick={handleLogin}
             style={{
               background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
               color: "white",
