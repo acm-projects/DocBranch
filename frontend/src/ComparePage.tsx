@@ -652,8 +652,8 @@ const ComparePage = () => {
                   }}
                 >
                   <PdfViewer
-                    userId={selectedUserId || "000000"}
-                    resumeId={selectedResumeId || "000005"}
+                    userId={selectedUserId || "0"}
+                    resumeId={selectedResumeId || "0"}
                   />
                 </div>
 
@@ -812,7 +812,7 @@ const ComparePage = () => {
               overflow: "hidden",
             }}
           >
-            <ResumeEditor userId="000000" resumeId="000005" />
+            <ResumeEditor userId="0" resumeId="0" />
           </div>
         </div>
         {/* Resize Handle 3 */}

@@ -1014,7 +1014,7 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
           id: sectionKey,
           title: sectionTitle,
           fields: fields,
-          isOpen: true,
+          isOpen: false,
           allowMultipleEntries:
             Array.isArray(sectionData) && sectionData.length > 1,
         });
@@ -1088,7 +1088,7 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     const newSection: SectionData = {
       id: `section-${Date.now()}`,
       title,
-      isOpen: true,
+      isOpen: false,
       allowMultipleEntries,
       fields: [
         { id: `field-${Date.now()}`, label: "Title", value: "", type: "text" },
