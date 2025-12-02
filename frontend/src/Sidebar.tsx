@@ -49,14 +49,20 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     >
 {/* Header */}
 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-  <button
-    onClick={() => navigate("/LandingPage")}
-    className={`font-bold text-green-500 transition-all duration-300 ${
-      collapsed ? "text-sm" : "text-xl"
-    }`}
-  >
-    {collapsed ? "DB" : "DocBranch"}
-  </button>
+<button
+  onClick={() => navigate("/LandingPage")}
+  className="transition-all duration-300 flex items-center justify-center"
+>
+  {collapsed ? (
+    <img
+      src="../public/oc.png" // replace with your image path
+      alt="Logo"
+      className="h-12 w-12 object-contain mx-auto"
+    />
+  ) : (
+    <span className="font-bold text-green-500 text-xl">DocBranch</span>
+  )}
+</button>
 
   <button
     onClick={onToggle}

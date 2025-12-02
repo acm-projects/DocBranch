@@ -1179,7 +1179,7 @@ useEffect(() => {
                 Cancel
               </button>
               <button
-                onClick={handleAddCategory}
+                onClick={handleCloseModal}
                 style={{
                   padding: "0.625rem 1.5rem",
                   borderRadius: "0.5rem",
@@ -1213,3 +1213,5 @@ useEffect(() => {
 };
 
 export default ResumeTreeVisualizer;
+
+
