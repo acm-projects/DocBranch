@@ -300,7 +300,7 @@ const CustomNode = ({ data, isConnectable }: any) => {
     {isHovered && (
       <button
         // onClick={handleRemoveNode}
-        style={{
+        style={{  
           position: 'absolute',
           top: '-8px',
           right: '-8px',
@@ -350,7 +350,8 @@ const ResumeTreeVisualizer: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const [newCategoryName, setNewCategoryName] = useState('');
+  // const [newCategoryName, setNewCategoryName] = useState('');
+  // const [newNodeName, setNewNodeName] = useState("");
 
 
   // Check if modal should open on mount
@@ -613,27 +614,27 @@ useEffect(() => {
   }, []);
 
 
-    const handleAddCategory = () => {
-  if (!newCategoryName.trim()) {
-    alert("Please enter a category name");
-    return;
-  }
+//     const handleAddCategory = () => {
+//   if (!newCategoryName.trim()) {
+//     alert("Please enter a category name");
+//     return;
+//   }
 
-  // Generate a unique ID for the category
-  const categoryId = `cat-${newCategoryName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+//   // Generate a unique ID for the category
+//   const categoryId = `cat-${newCategoryName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
 
-  const newCategoryNode: Node = {
-    id: categoryId,
-    type: 'custom',
-    data: { label: newCategoryName, isCategory: true },
-    position: { x: 0, y: nodes.length * 120 }, // simple vertical stacking
-    draggable: false,
-  };
+//   const newCategoryNode: Node = {
+//     id: categoryId,
+//     type: 'custom',
+//     data: { label: newCategoryName, isCategory: true },
+//     position: { x: 0, y: 120 }, // simple vertical stacking
+//     draggable: false,
+//   };
 
-  setNodes((prev) => [...prev, newCategoryNode]);
-  setIsModalOpen(false);
-  setNewCategoryName('');
-};
+//   setNodes((prev) => [...prev, newCategoryNode]);
+//   setIsModalOpen(false);
+//   setNewCategoryName('');
+// };
 
 
   const handleAddNode = async () => {
@@ -1120,8 +1121,8 @@ useEffect(() => {
 
             <textarea
               placeholder="Enter branch name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
+
+              // onChange={(e) => setNewCategoryName(e.target.value)}
               style={{
                 width: "100%",
                 minHeight: "50px",
