@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import PdfViewer from ".././PdfViewer";
 import axios from "axios";
+import { useLocation } from 'react-router-dom';
+
 
 // field interface
 export interface FieldData {
@@ -145,6 +147,7 @@ const defaultSections: SectionData[] = [
 interface ResumeEditorProps {
   userId: string;
   resumeId: string;
+  autoFillData?: any; //autofill from CreatePage
 }
 
 const additionalSectionTemplates = [
@@ -839,8 +842,9 @@ function DraggableResumeSection({
   );
 }
 
-export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
-  const [sections, setSections] = useState<SectionData[]>(defaultSections);
+export function ResumeEditor({ userId, resumeId, autoFillData }: ResumeEditorProps) {
+  const location = useLocation();
+  const [sections, setSections,] = useState<SectionData[]>(defaultSections);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeView, setActiveView] = useState<"edit" | "preview">("edit");
   const [loading, setLoading] = useState(false);
@@ -848,6 +852,16 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   const [resumeData, setResumeData] = useState<any>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [pdfHover, setPdfHover] = useState(false);
+
+   const toggleSection = (sectionId: string) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, isOpen: !section.isOpen }
+          : section
+      )
+    );
+  };
 
   // Fetch specific resume from backend
   const fetchResume = async () => {
@@ -1060,21 +1074,18 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   };
 
   useEffect(() => {
-    // Fetch specific resume when component mounts or props change
-    if (userId && resumeId) {
+    // Check if we have selected data from CreatePage
+    if (location.state?.selectedResumeData) {
+      console.log('Received selected resume data from CreatePage:', location.state.selectedResumeData);
+      setResumeData(location.state.selectedResumeData);
+      parseResumeData(location.state.selectedResumeData);
+    } else if (autoFillData) {
+      console.log('Auto-filling with data:', autoFillData);
+      parseResumeData(autoFillData);
+    } else if (userId && resumeId) {
       fetchResume();
     }
-  }, [userId, resumeId]);
-
-  const toggleSection = (sectionId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? { ...section, isOpen: !section.isOpen }
-          : section
-      )
-    );
-  };
+  }, [location.state, autoFillData, userId, resumeId]);
 
   const updateSectionFields = (sectionId: string, fields: FieldData[]) => {
     setSections(

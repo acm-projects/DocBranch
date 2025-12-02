@@ -89,6 +89,7 @@ interface Template {
   description: string;
   category: string;
   date: string;
+  imageUrl?: string;
 }
 
 export function CreatePage() {
@@ -141,7 +142,7 @@ export function CreatePage() {
       name: 'Professional Template',
       description: 'Classic layout for traditional industries',
       category: 'Professional',
-      date: '2024-01-18'
+      date: '2024-01-18',
     },
     { 
       id: 2, 
@@ -381,59 +382,131 @@ const parseResumeData = (resume: any) => {
     if (section.volunteerItems) section.volunteerItems = [];
   }
 
+  // Helper function to check if two items are similar (basic duplicate detection)
+  const isSimilarExperience = (item1: any, item2: any): boolean => {
+    return (
+      (item1.company && item2.company && 
+       item1.company.toLowerCase() === item2.company.toLowerCase() &&
+       item1.position && item2.position &&
+       item1.position.toLowerCase() === item2.position.toLowerCase()) ||
+      (item1.description && item2.description &&
+       item1.description.substring(0, 50) === item2.description.substring(0, 50))
+    );
+  };
+
+  const isSimilarEducation = (item1: any, item2: any): boolean => {
+    return (
+      (item1.institution && item2.institution &&
+       item1.institution.toLowerCase() === item2.institution.toLowerCase() &&
+       item1.degree && item2.degree &&
+       item1.degree.toLowerCase() === item2.degree.toLowerCase()) ||
+      (item1.institution && item2.institution &&
+       item1.institution.toLowerCase() === item2.institution.toLowerCase() &&
+       item1.startDate && item2.startDate &&
+       item1.startDate === item2.startDate)
+    );
+  };
+
+  const isSimilarProject = (item1: any, item2: any): boolean => {
+    return (
+      (item1.name && item2.name &&
+       item1.name.toLowerCase() === item2.name.toLowerCase()) ||
+      (item1.description && item2.description &&
+       item1.description.substring(0, 50) === item2.description.substring(0, 50))
+    );
+  };
+
   // DIRECT MAPPING - NO NEED FOR COMPLEX DETECTION
   // Process education
   const educationSection = updatedSections.find(s => s.name === 'Education & Certifications');
   if (educationSection && resumeContent.education && Array.isArray(resumeContent.education)) {
-    const educationItems: EducationItem[] = resumeContent.education.map((item: any, index: number) => ({
-      id: `edu-${index}`,
-      institution: item.institution || item.school || item.university || item.college || '',
-      degree: item.degree || item.degree_name || item.program || '',
-      field: getFieldOfStudy(item),
-      startDate: item.start_date || item.startDate || item.duration?.start || '',
-      endDate: item.end_date || item.endDate || item.duration?.end || item.graduation_date || '',
-      gpa: formatGPA(item.gpa || item.GPA),
-      honors: item.honors || item.awards || item.achievements,
-      checked: false,
-    }));
+    const educationItems: EducationItem[] = [];
+    const seenEducation = new Set<string>();
+    
+    resumeContent.education.forEach((item: any, index: number) => {
+      const institution = item.institution || item.school || item.university || item.college || '';
+      const degree = item.degree || item.degree_name || item.program || '';
+      const startDate = item.start_date || item.startDate || item.duration?.start || '';
+      
+      // Create a unique key for this education item
+      const educationKey = `${institution.toLowerCase()}-${degree.toLowerCase()}-${startDate}`;
+      
+      // Only add if we haven't seen this education before
+      if (!seenEducation.has(educationKey) && (institution || degree)) {
+        seenEducation.add(educationKey);
+        educationItems.push({
+          id: `edu-${educationItems.length}`,
+          institution: institution,
+          degree: degree,
+          field: getFieldOfStudy(item),
+          startDate: startDate,
+          endDate: item.end_date || item.endDate || item.duration?.end || item.graduation_date || '',
+          gpa: formatGPA(item.gpa || item.GPA),
+          honors: item.honors || item.awards || item.achievements,
+          checked: false,
+        });
+      }
+    });
+    
     educationSection.educationItems = educationItems;
-    console.log(`Added ${educationItems.length} education items`);
+    console.log(`Added ${educationItems.length} education items (removed ${resumeContent.education.length - educationItems.length} duplicates)`);
   }
 
   // Process experience
   const experienceSection = updatedSections.find(s => s.name === 'Professional Experience');
   if (experienceSection) {
     const experienceItems: ExperienceItem[] = [];
+    const seenExperience = new Set<string>();
     
     // Add regular experience
     if (resumeContent.experience && Array.isArray(resumeContent.experience)) {
       resumeContent.experience.forEach((item: any, index: number) => {
-        experienceItems.push({
-          id: `exp-${index}`,
-          company: item.company || item.employer || item.organization || '',
-          position: item.position || item.role || item.title || '',
-          location: item.location || item.city || item.country || '',
-          startDate: item.start_date || item.startDate || item.duration?.start || '',
-          endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
-          description: createBulletPoints(item.description || item.responsibilities || item.details),
-          checked: false,
-        });
+        const company = item.company || item.employer || item.organization || '';
+        const position = item.position || item.role || item.title || '';
+        
+        // Create a unique key for this experience item
+        const experienceKey = `${company.toLowerCase()}-${position.toLowerCase()}`;
+        
+        // Only add if we haven't seen this experience before
+        if (!seenExperience.has(experienceKey) && (company || position)) {
+          seenExperience.add(experienceKey);
+          experienceItems.push({
+            id: `exp-${experienceItems.length}`,
+            company: company,
+            position: position,
+            location: item.location || item.city || item.country || '',
+            startDate: item.start_date || item.startDate || item.duration?.start || '',
+            endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
+            description: createBulletPoints(item.description || item.responsibilities || item.details),
+            checked: false,
+          });
+        }
       });
     }
     
     // Add leadership experience as experience too
     if (resumeContent.leadership_experience && Array.isArray(resumeContent.leadership_experience)) {
       resumeContent.leadership_experience.forEach((item: any, index: number) => {
-        experienceItems.push({
-          id: `lead-${index}`,
-          company: item.company || item.organization || item.institution || '',
-          position: item.position || item.role || item.title || 'Leadership Role',
-          location: item.location || item.city || item.country || '',
-          startDate: item.start_date || item.startDate || item.duration?.start || '',
-          endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
-          description: createBulletPoints(item.description || item.responsibilities || item.details),
-          checked: false,
-        });
+        const company = item.company || item.organization || item.institution || '';
+        const position = item.position || item.role || item.title || 'Leadership Role';
+        
+        // Create a unique key for this leadership item
+        const leadershipKey = `${company.toLowerCase()}-${position.toLowerCase()}`;
+        
+        // Only add if we haven't seen this leadership experience before
+        if (!seenExperience.has(leadershipKey) && (company || position)) {
+          seenExperience.add(leadershipKey);
+          experienceItems.push({
+            id: `lead-${experienceItems.length}`,
+            company: company,
+            position: position,
+            location: item.location || item.city || item.country || '',
+            startDate: item.start_date || item.startDate || item.duration?.start || '',
+            endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
+            description: createBulletPoints(item.description || item.responsibilities || item.details),
+            checked: false,
+          });
+        }
       });
     }
     
@@ -441,83 +514,136 @@ const parseResumeData = (resume: any) => {
     console.log(`Added ${experienceItems.length} experience items`);
   }
 
-  // Process projects - THIS IS WHAT'S MISSING!
+  // Process projects
   const projectsSection = updatedSections.find(s => s.name === 'Projects');
   if (projectsSection && resumeContent.projects && Array.isArray(resumeContent.projects)) {
-    const projectItems: ProjectItem[] = resumeContent.projects.map((item: any, index: number) => ({
-      id: `proj-${index}`,
-      name: item.name || item.project_name || item.title || 'Untitled Project',
-      role: item.role || item.position || item.contribution || '',
-      startDate: item.start_date || item.startDate || item.duration?.start || '',
-      endDate: item.end_date || item.endDate || item.duration?.end || '',
-      description: createBulletPoints(item.description || item.details || item.summary),
-      technologies: formatTechnologies(item.technologies),
-      checked: false,
-    }));
+    const projectItems: ProjectItem[] = [];
+    const seenProjects = new Set<string>();
+    
+    resumeContent.projects.forEach((item: any, index: number) => {
+      const name = item.name || item.project_name || item.title || 'Untitled Project';
+      
+      // Create a unique key for this project
+      const projectKey = name.toLowerCase();
+      
+      // Only add if we haven't seen this project before
+      if (!seenProjects.has(projectKey) && name !== 'Untitled Project') {
+        seenProjects.add(projectKey);
+        projectItems.push({
+          id: `proj-${projectItems.length}`,
+          name: name,
+          role: item.role || item.position || item.contribution || '',
+          startDate: item.start_date || item.startDate || item.duration?.start || '',
+          endDate: item.end_date || item.endDate || item.duration?.end || '',
+          description: createBulletPoints(item.description || item.details || item.summary),
+          technologies: formatTechnologies(item.technologies),
+          checked: false,
+        });
+      }
+    });
+    
     projectsSection.projectItems = projectItems;
-    console.log(`Added ${projectItems.length} project items`);
+    console.log(`Added ${projectItems.length} project items (removed ${resumeContent.projects.length - projectItems.length} duplicates)`);
   }
 
   // Process skills
   const skillsSection = updatedSections.find(s => s.name === 'Skills & Expertise');
   if (skillsSection && resumeContent.skills && typeof resumeContent.skills === 'object') {
     const skillItems: SkillItem[] = [];
-    let index = 0;
+    let categoryIndex = 0;
     
     for (const [category, skills] of Object.entries(resumeContent.skills)) {
       if (Array.isArray(skills)) {
-        const formattedSkills: string[] = [];
+        const uniqueSkills: string[] = [];
+        const seenSkills = new Set<string>();
+        
         for (const skill of skills) {
           if (skill && typeof skill === 'string') {
-            formattedSkills.push(skill);
+            const skillLower = skill.toLowerCase().trim();
+            if (!seenSkills.has(skillLower)) {
+              seenSkills.add(skillLower);
+              uniqueSkills.push(skill);
+            }
           }
         }
         
-        if (formattedSkills.length > 0) {
+        if (uniqueSkills.length > 0) {
           skillItems.push({
-            id: `skill-${index}`,
+            id: `skill-${categoryIndex}`,
             category: formatCategoryName(category),
-            skills: formattedSkills,
+            skills: uniqueSkills,
             checked: false,
           });
-          index++;
+          categoryIndex++;
         }
       }
     }
     
     skillsSection.skillItems = skillItems;
-    console.log(`Added ${skillItems.length} skill categories`);
+    console.log(`Added ${skillItems.length} skill categories with unique skills`);
   }
 
   // Process certifications
   const certSection = updatedSections.find(s => s.name === 'Education & Certifications');
   if (certSection && resumeContent.certifications && Array.isArray(resumeContent.certifications)) {
-    const certificationItems: CertificationItem[] = resumeContent.certifications.map((item: any, index: number) => ({
-      id: `cert-${index}`,
-      name: item.name || item.title || item.certification_name || 'Unknown Certification',
-      issuer: item.issuer || item.organization || item.authority || '',
-      date: item.date || item.issue_date || item.issued_date || '',
-      credentialId: item.credential_id || item.id || item.certificate_id,
-      checked: false,
-    }));
+    const certificationItems: CertificationItem[] = [];
+    const seenCertifications = new Set<string>();
+    
+    resumeContent.certifications.forEach((item: any, index: number) => {
+      const name = item.name || item.title || item.certification_name || 'Unknown Certification';
+      const issuer = item.issuer || item.organization || item.authority || '';
+      
+      // Create a unique key for this certification
+      const certKey = `${name.toLowerCase()}-${issuer.toLowerCase()}`;
+      
+      // Only add if we haven't seen this certification before
+      if (!seenCertifications.has(certKey) && (name || issuer)) {
+        seenCertifications.add(certKey);
+        certificationItems.push({
+          id: `cert-${certificationItems.length}`,
+          name: name,
+          issuer: issuer,
+          date: item.date || item.issue_date || item.issued_date || '',
+          credentialId: item.credential_id || item.id || item.certificate_id,
+          checked: false,
+        });
+      }
+    });
+    
     certSection.certificationItems = certificationItems;
-    console.log(`Added ${certificationItems.length} certification items`);
+    console.log(`Added ${certificationItems.length} certification items (removed ${resumeContent.certifications.length - certificationItems.length} duplicates)`);
   }
 
   // Process volunteer work
   const volunteerSection = updatedSections.find(s => s.name === 'Volunteer Work');
   if (volunteerSection && resumeContent.volunteer_experience && Array.isArray(resumeContent.volunteer_experience)) {
-    const volunteerItems: VolunteerItem[] = resumeContent.volunteer_experience.map((item: any, index: number) => ({
-      id: `vol-${index}`,
-      organization: item.organization || item.company || item.institution || '',
-      role: item.role || item.position || item.title || '',
-      startDate: item.start_date || item.startDate || item.duration?.start || '',
-      endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
-      description: createBulletPoints(item.description || item.responsibilities || item.details),
-      checked: false,
-    }));
+    const volunteerItems: VolunteerItem[] = [];
+    const seenVolunteer = new Set<string>();
+    
+    resumeContent.volunteer_experience.forEach((item: any, index: number) => {
+      const organization = item.organization || item.company || item.institution || '';
+      const role = item.role || item.position || item.title || '';
+      
+      // Create a unique key for this volunteer item
+      const volunteerKey = `${organization.toLowerCase()}-${role.toLowerCase()}`;
+      
+      // Only add if we haven't seen this volunteer work before
+      if (!seenVolunteer.has(volunteerKey) && (organization || role)) {
+        seenVolunteer.add(volunteerKey);
+        volunteerItems.push({
+          id: `vol-${volunteerItems.length}`,
+          organization: organization,
+          role: role,
+          startDate: item.start_date || item.startDate || item.duration?.start || '',
+          endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
+          description: createBulletPoints(item.description || item.responsibilities || item.details),
+          checked: false,
+        });
+      }
+    });
+    
     volunteerSection.volunteerItems = volunteerItems;
-    console.log(`Added ${volunteerItems.length} volunteer items`);
+    console.log(`Added ${volunteerItems.length} volunteer items (removed ${resumeContent.volunteer_experience.length - volunteerItems.length} duplicates)`);
   }
 
   console.log('Final updated sections:', updatedSections);
@@ -585,6 +711,141 @@ const createBulletPoints = (data: any): string => {
   }
   
   return `• ${data}`;
+};
+
+// Function to build JSON from checked items
+const buildSelectedResumeJson = () => {
+  const selectedResume: any = {
+    resume: {
+      personal_information: {
+        name: "",
+        email: "",
+        phone: "",
+        location: "",
+        links: []
+      },
+      education: [],
+      experience: [],
+      projects: [],
+      skills: {},
+      certifications: [],
+      volunteer_experience: []
+    }
+  };
+
+  // Collect checked education items
+  sections.forEach(section => {
+    if (section.name === 'Education & Certifications') {
+      const checkedEducation = section.educationItems?.filter(edu => edu.checked) || [];
+      if (checkedEducation.length > 0) {
+        checkedEducation.forEach(edu => {
+          selectedResume.resume.education.push({
+            institution: edu.institution,
+            degree: edu.degree,
+            field_of_study: edu.field,
+            start_date: edu.startDate,
+            end_date: edu.endDate,
+            GPA: edu.gpa,
+            description: edu.honors
+          });
+        });
+      }
+
+      // Collect checked certification items
+      const checkedCerts = section.certificationItems?.filter(cert => cert.checked) || [];
+      if (checkedCerts.length > 0) {
+        checkedCerts.forEach(cert => {
+          selectedResume.resume.certifications.push({
+            name: cert.name,
+            issuer: cert.issuer,
+            date: cert.date,
+            credential_id: cert.credentialId
+          });
+        });
+      }
+    }
+
+    if (section.name === 'Professional Experience') {
+      const checkedExperience = section.experienceItems?.filter(exp => exp.checked) || [];
+      if (checkedExperience.length > 0) {
+        checkedExperience.forEach(exp => {
+          selectedResume.resume.experience.push({
+            company: exp.company,
+            position: exp.position,
+            location: exp.location,
+            start_date: exp.startDate,
+            end_date: exp.endDate,
+            description: exp.description ? exp.description.split('\n').map((line: string) => line.replace('• ', '').trim()) : []
+          });
+        });
+      }
+    }
+
+    if (section.name === 'Projects') {
+      const checkedProjects = section.projectItems?.filter(proj => proj.checked) || [];
+      if (checkedProjects.length > 0) {
+        checkedProjects.forEach(proj => {
+          selectedResume.resume.projects.push({
+            name: proj.name,
+            role: proj.role,
+            start_date: proj.startDate,
+            end_date: proj.endDate,
+            description: proj.description ? proj.description.split('\n').map((line: string) => line.replace('• ', '').trim()) : [],
+            technologies: proj.technologies ? proj.technologies.split(', ').map((tech: string) => tech.trim()) : []
+          });
+        });
+      }
+    }
+
+    if (section.name === 'Skills & Expertise') {
+      const checkedSkills = section.skillItems?.filter(skill => skill.checked) || [];
+      if (checkedSkills.length > 0) {
+        const skillsObj: any = {};
+        checkedSkills.forEach(skill => {
+          const categoryKey = skill.category.toLowerCase().replace(/\s+/g, '_');
+          skillsObj[categoryKey] = skill.skills;
+        });
+        selectedResume.resume.skills = skillsObj;
+      }
+    }
+
+    if (section.name === 'Volunteer Work') {
+      const checkedVolunteer = section.volunteerItems?.filter(vol => vol.checked) || [];
+      if (checkedVolunteer.length > 0) {
+        checkedVolunteer.forEach(vol => {
+          selectedResume.resume.volunteer_experience.push({
+            organization: vol.organization,
+            role: vol.role,
+            start_date: vol.startDate,
+            end_date: vol.endDate,
+            description: vol.description ? vol.description.split('\n').map((line: string) => line.replace('• ', '').trim()) : []
+          });
+        });
+      }
+    }
+  });
+
+  // Add metadata
+  selectedResume.user_id = "selected-user";
+  selectedResume.resume_id = `selected-${Date.now()}`;
+  selectedResume.metadata = {
+    resume_info: {
+      resume_creation_date: new Date().toISOString(),
+      filename: 'selected_resume.json',
+      source: 'CreatePage selection',
+      selected_items: {
+        education: selectedResume.resume.education.length,
+        experience: selectedResume.resume.experience.length,
+        projects: selectedResume.resume.projects.length,
+        skills_categories: Object.keys(selectedResume.resume.skills).length,
+        certifications: selectedResume.resume.certifications.length,
+        volunteer: selectedResume.resume.volunteer_experience.length
+      }
+    }
+  };
+
+  console.log('Selected resume JSON:', selectedResume);
+  return selectedResume;
 };
 
   useEffect(() => {
@@ -732,9 +993,19 @@ const createBulletPoints = (data: any): string => {
     ));
   };
 
+
   // Generate resume based on selected items
-  const generateResume = () => {
-  navigate('/ComparePage');
+const generateResume = () => {
+  // Build JSON from checked items
+  const selectedResumeJson = buildSelectedResumeJson();
+  
+  // Navigate to ComparePage with the selected data
+  navigate('/ComparePage', { 
+    state: { 
+      selectedResumeData: selectedResumeJson,
+      autoFill: true 
+    } 
+  });
 };
 
   return (
