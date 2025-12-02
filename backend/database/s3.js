@@ -128,6 +128,5 @@ const deleteFromS3 = async (userId, resumeId, bucket) => {
 module.exports = {
   uploadFileToS3,
   uploadObjectToS3,
-  downloadFileFromS3,
   deleteFromS3
 };

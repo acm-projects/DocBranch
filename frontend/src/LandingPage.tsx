@@ -1,13 +1,7 @@
 import { useState } from "react";
-import {
-  Search,
-  ArrowRight,
-  GitMerge,
-  Edit3,
-} from "lucide-react";
+import { Search, ArrowRight, GitMerge, Edit3 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
-
 
 
 export default function LandingPage() {
@@ -23,7 +17,6 @@ export default function LandingPage() {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
-
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <div className="max-w-6xl mx-auto p-8">
@@ -31,7 +24,6 @@ export default function LandingPage() {
           <h1 className="text-5xl font-bold mb-6">
             Hello, <span className="text-green-600">User</span>
           </h1>
-
 
           {/* Search Bar */}
           <div className="relative mb-8">
@@ -46,14 +38,12 @@ export default function LandingPage() {
             />
           </div>
 
-
           {/* Recents Section */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="text-lg font-semibold">Recents</h2>
               <ArrowRight size={18} />
             </div>
-
 
             {/* Document Cards */}
             <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-200">
@@ -81,7 +71,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Make Branch */}
@@ -106,7 +95,6 @@ export default function LandingPage() {
                 />
               </div>
             </button>
-
 
             {/* Edit Branch */}
             <button className="bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 p-6 rounded-2xl border-2 border-green-600 transition-all hover:shadow-lg text-left group">
@@ -133,5 +121,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-

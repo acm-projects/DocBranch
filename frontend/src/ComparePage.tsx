@@ -297,7 +297,7 @@ const ComparePage = () => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
@@ -522,7 +522,13 @@ const ComparePage = () => {
       </div>
 
       {/* Main Flex Layout */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: "#F3F4F6",
+        }}
+      >
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -646,8 +652,8 @@ const ComparePage = () => {
                   }}
                 >
                   <PdfViewer
-                    userId={selectedUserId || "000000"}
-                    resumeId={selectedResumeId || "000005"}
+                    userId={selectedUserId || "0"}
+                    resumeId={selectedResumeId || "0"}
                   />
                 </div>
 
@@ -806,7 +812,7 @@ const ComparePage = () => {
               overflow: "hidden",
             }}
           >
-            <ResumeEditor userId="000000" resumeId="000005" />
+            <ResumeEditor userId="0" resumeId="0" />
           </div>
         </div>
         {/* Resize Handle 3 */}

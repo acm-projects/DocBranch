@@ -7,7 +7,7 @@ app.whenReady().then(() => {
   const path = require('path');
   // Demo: read the JSON file into an object and pass it to fromObjectToPDF
   const fs = require('fs');
-  const jsonFilePath = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(__dirname, 'resume_json_files/newresume.json');
+  const jsonFilePath = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(__dirname, 'resume_json_files/kidakhanooni.json');
   try {
     // const query = "Generate a new resume json file using the data in Allen Zheng's resumes that would be best to apply to this job posting";
     // const res = queryKnowledgeBase(query, { jobDescription: jobDescription });
@@ -17,7 +17,7 @@ app.whenReady().then(() => {
 
     const raw = fs.readFileSync(jsonFilePath, 'utf8');
     const payload = JSON.parse(raw);
-    const outRel = path.join('generated-resumes', 'allenzheng-resume.pdf');
+    const outRel = path.join('generated-resumes', 'kidakhanooniresume.pdf');
     const outPath = path.resolve(__dirname, outRel);
     Resume.fromObjectToPDF(payload, outPath)
       .then(resolved => console.log('PDF generated at', resolved))

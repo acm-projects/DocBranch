@@ -1,4 +1,4 @@
-const {uploadObjectToS3, downloadFileFromS3, deleteFileFromS3} = require('./s3');
+const {uploadObjectToS3, downloadFileFromS3, deleteFromS3} = require('./s3');
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
