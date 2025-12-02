@@ -59,7 +59,7 @@ const ComparePage = () => {
       setSelectedItemsData(location.state.selectedResumeData);
       
       // Show the left panel with selected items
-      setShowCurrentResume(true);
+      setShowCurrentResume(false);
     }
   }, [location.state]);
 
@@ -583,8 +583,9 @@ const ComparePage = () => {
             overflow: "hidden",
           }}
         >
-          {/* Current Resume Panel - Shows either selected items from CreatePage or searched resume */}
-          {(showCurrentResume || selectedResumeId || selectedItemsData) && (
+          
+          {/* Current Resume Panel */}
+          {(showCurrentResume || selectedResumeId) && (
             <>
               <div
                 style={{
@@ -622,18 +623,15 @@ const ComparePage = () => {
                         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     }}
                   >
-                    {selectedItemsData 
-                      ? "Selected Resume Items" 
-                      : selectedResumeId 
-                      ? `Current Resume - User: ${selectedUserId} | Resume: ${selectedResumeId}`
-                      : "Current Resume"}
+                    Current Resume{" "}
+                    {selectedResumeId &&
+                      `- User: ${selectedUserId} | Resume: ${selectedResumeId}`}
                   </h3>
                   <button
                     onClick={() => {
                       setShowCurrentResume(false);
                       setSelectedResumeId(null);
                       setSelectedUserId(null);
-                      setSelectedItemsData(null); // Clear selected items when closing
                     }}
                     style={{
                       backgroundColor: "#e5e7eb",
@@ -671,165 +669,10 @@ const ComparePage = () => {
                     position: "relative",
                   }}
                 >
-                  {/* Show either selected items preview or PDF viewer */}
-                  {selectedItemsData ? (
-                    <div
-                      style={{
-                        padding: "1rem",
-                        overflowY: "auto",
-                        fontFamily:
-                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                      }}
-                    >
-                      <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>Selected Items from Create Page</h4>
-                      
-                      {selectedItemsData.resume?.education?.length > 0 && (
-                        <div style={{ marginBottom: '1rem' }}>
-                          <h5 style={{ color: '#475569', marginBottom: '0.5rem' }}>
-                            Education ({selectedItemsData.resume.education.length})
-                          </h5>
-                          {selectedItemsData.resume.education.map((edu: any, index: number) => (
-                            <div key={index} style={{ 
-                              marginBottom: '0.75rem', 
-                              padding: '0.75rem',
-                              backgroundColor: '#f8fafc',
-                              borderRadius: '0.5rem'
-                            }}>
-                              <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                                {edu.institution}
-                              </div>
-                              <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                                {edu.degree} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}
-                              </div>
-                              {edu.GPA && (
-                                <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                                  GPA: {edu.GPA}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {selectedItemsData.resume?.experience?.length > 0 && (
-                        <div style={{ marginBottom: '1rem' }}>
-                          <h5 style={{ color: '#475569', marginBottom: '0.5rem' }}>
-                            Experience ({selectedItemsData.resume.experience.length})
-                          </h5>
-                          {selectedItemsData.resume.experience.map((exp: any, index: number) => (
-                            <div key={index} style={{ 
-                              marginBottom: '0.75rem', 
-                              padding: '0.75rem',
-                              backgroundColor: '#f8fafc',
-                              borderRadius: '0.5rem'
-                            }}>
-                              <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                                {exp.position}
-                              </div>
-                              <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                                {exp.company} • {exp.location}
-                              </div>
-                              {exp.description && exp.description.length > 0 && (
-                                <div style={{ marginTop: '0.5rem' }}>
-                                  <div style={{ fontSize: '0.875rem', color: '#475569', fontWeight: '500' }}>
-                                    Responsibilities:
-                                  </div>
-                                  <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0 }}>
-                                    {exp.description.map((desc: string, idx: number) => (
-                                      <li key={idx} style={{ 
-                                        fontSize: '0.75rem', 
-                                        color: '#64748b',
-                                        marginBottom: '0.25rem'
-                                      }}>
-                                        {desc}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {selectedItemsData.resume?.projects?.length > 0 && (
-                        <div style={{ marginBottom: '1rem' }}>
-                          <h5 style={{ color: '#475569', marginBottom: '0.5rem' }}>
-                            Projects ({selectedItemsData.resume.projects.length})
-                          </h5>
-                          {selectedItemsData.resume.projects.map((proj: any, index: number) => (
-                            <div key={index} style={{ 
-                              marginBottom: '0.75rem', 
-                              padding: '0.75rem',
-                              backgroundColor: '#f8fafc',
-                              borderRadius: '0.5rem'
-                            }}>
-                              <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                                {proj.name}
-                              </div>
-                              <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                                Role: {proj.role}
-                              </div>
-                              {proj.technologies && proj.technologies.length > 0 && (
-                                <div style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                                  Technologies: {proj.technologies.join(', ')}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {selectedItemsData.resume?.skills && Object.keys(selectedItemsData.resume.skills).length > 0 && (
-                        <div style={{ marginBottom: '1rem' }}>
-                          <h5 style={{ color: '#475569', marginBottom: '0.5rem' }}>
-                            Skills ({Object.keys(selectedItemsData.resume.skills).length} categories)
-                          </h5>
-                          {Object.entries(selectedItemsData.resume.skills).map(([category, skills]: [string, any]) => (
-                            <div key={category} style={{ 
-                              marginBottom: '0.75rem', 
-                              padding: '0.75rem',
-                              backgroundColor: '#f8fafc',
-                              borderRadius: '0.5rem'
-                            }}>
-                              <div style={{ fontWeight: '600', color: '#1e293b', textTransform: 'capitalize' }}>
-                                {category.replace(/_/g, ' ')}
-                              </div>
-                              <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                                {skills.join(', ')}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {selectedItemsData.metadata?.resume_info?.selected_items && (
-                        <div style={{ 
-                          marginTop: '1rem', 
-                          padding: '0.75rem',
-                          backgroundColor: '#e0f2fe',
-                          borderRadius: '0.5rem',
-                          fontSize: '0.875rem',
-                          color: '#0369a1'
-                        }}>
-                          <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
-                            Summary of Selected Items:
-                          </div>
-                          <div>
-                            Education: {selectedItemsData.metadata.resume_info.selected_items.education || 0} • 
-                            Experience: {selectedItemsData.metadata.resume_info.selected_items.experience || 0} • 
-                            Projects: {selectedItemsData.metadata.resume_info.selected_items.projects || 0} • 
-                            Skills: {selectedItemsData.metadata.resume_info.selected_items.skills_categories || 0} categories
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <PdfViewer
-                      userId={selectedUserId || "0"}
-                      resumeId={selectedResumeId || "0"}
-                    />
-                  )}
+                  <PdfViewer
+                    userId={selectedUserId || "0"}
+                    resumeId={selectedResumeId || "0"}
+                  />
                 </div>
 
                 <div
@@ -945,6 +788,7 @@ const ComparePage = () => {
                   )}
                 </div>
               </div>
+
 
               {/* Resize Handle 2 */}
               <div
