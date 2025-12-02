@@ -29,7 +29,8 @@
     "react-resizable-panels": "^3.0.6",
     "react-router-dom": "^7.9.4",
     "react-split-it": "^2.0.0",
-    "reactflow": "^11.11.4"
+    "reactflow": "^11.11.4",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@aws-sdk/types": "^3.930.0",
