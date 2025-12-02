@@ -143,8 +143,11 @@ const defaultSections: SectionData[] = [
 ];
 
 interface ResumeEditorProps {
-  userId: string;
-  resumeId: string;
+  userId?: string;
+  resumeId?: string;
+  // Optional: pass a resume JSON object directly. If provided, the component
+  // will use this object and will not attempt to fetch from the backend.
+  resumeObj?: any;
 }
 
 const additionalSectionTemplates = [
@@ -839,7 +842,11 @@ function DraggableResumeSection({
   );
 }
 
-export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
+export function ResumeEditor({
+  userId,
+  resumeId,
+  resumeObj,
+}: ResumeEditorProps) {
   const [sections, setSections] = useState<SectionData[]>(defaultSections);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeView, setActiveView] = useState<"edit" | "preview">("edit");
@@ -851,6 +858,9 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
 
   // Fetch specific resume from backend
   const fetchResume = async () => {
+    // Guard: if props are missing, don't attempt to fetch.
+    if (!userId || !resumeId) return;
+
     setLoading(true);
     setError(null);
     try {
@@ -896,11 +906,13 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
     }
   };
 
-  // Parse the resume JSON and populate the form fields
+  // Parse the resume JSON and populate the form fields.
+  // Accept either an envelope object { resume: {...}, ... } or the raw resume object.
   const parseResumeData = (resume: any) => {
-    if (!resume || !resume.resume) return;
+    if (!resume) return;
 
-    const resumeContent = resume.resume;
+    const resumeContent = resume.resume ? resume.resume : resume;
+    if (!resumeContent) return;
     const dynamicSections: SectionData[] = [];
 
     // Iterate through each section in the resume
@@ -908,7 +920,6 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       const sectionData = resumeContent[sectionKey];
       if (!sectionData) return;
 
-      const fields: FieldData[] = [];
       const sectionTitle = sectionKey
         .replace(/_/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -916,46 +927,61 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
       // Process the section data based on its type
       if (Array.isArray(sectionData)) {
         // Handle arrays (education, projects, leadership_experience)
+        // For arrays of objects, create a dynamic section for each item
         if (sectionData.length > 0 && typeof sectionData[0] === "object") {
-          // Array of objects - take first item
-          const firstItem = sectionData[0];
-          Object.keys(firstItem).forEach((fieldKey) => {
-            const value = firstItem[fieldKey];
-            if (value !== null && value !== undefined) {
-              const fieldType = determineFieldType(fieldKey, value);
-              let fieldValue: string;
+          sectionData.forEach((item: any, itemIndex: number) => {
+            const fieldsForItem: FieldData[] = [];
+            Object.keys(item).forEach((fieldKey) => {
+              const value = item[fieldKey];
+              if (value !== null && value !== undefined) {
+                const fieldType = determineFieldType(fieldKey, value);
+                let fieldValue: string;
 
-              if (fieldType === "list") {
-                // Ensure list-typed fields are represented as JSON arrays.
-                const arr = Array.isArray(value)
-                  ? value
-                  : typeof value === "string"
-                  ? value
-                      .split(/,|\n/)
-                      .map((s) => s.trim())
-                      .filter(Boolean)
-                  : [String(value)];
+                if (fieldType === "list") {
+                  const arr = Array.isArray(value)
+                    ? value
+                    : typeof value === "string"
+                    ? value
+                        .split(/,|\n/)
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                    : [String(value)];
 
-                fieldValue = JSON.stringify(arr);
-              } else {
-                fieldValue = Array.isArray(value)
-                  ? value.join(", ")
-                  : String(value);
+                  fieldValue = JSON.stringify(arr);
+                } else {
+                  fieldValue = Array.isArray(value)
+                    ? value.join(", ")
+                    : String(value);
+                }
+
+                fieldsForItem.push({
+                  id: `${sectionKey}-${itemIndex}-${fieldKey}`,
+                  label: fieldKey
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase()),
+                  value: fieldValue,
+                  type: fieldType,
+                });
               }
+            });
 
-              fields.push({
-                id: `${sectionKey}-${fieldKey}`,
-                label: fieldKey
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (l) => l.toUpperCase()),
-                value: fieldValue,
-                type: fieldType,
+            if (fieldsForItem.length > 0) {
+              dynamicSections.push({
+                id: `${sectionKey}-${itemIndex}`,
+                title:
+                  sectionData.length > 1
+                    ? `${sectionTitle} ${itemIndex + 1}`
+                    : sectionTitle,
+                fields: fieldsForItem,
+                isOpen: false,
+                allowMultipleEntries: sectionData.length > 1,
               });
             }
           });
         }
       } else if (typeof sectionData === "object") {
         // Handle objects (personal_information, skills)
+        const fields: FieldData[] = [];
         Object.keys(sectionData).forEach((fieldKey) => {
           const value = sectionData[fieldKey];
           if (value !== null && value !== undefined) {
@@ -1006,18 +1032,18 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
             }
           }
         });
-      }
 
-      // Only add section if it has fields
-      if (fields.length > 0) {
-        dynamicSections.push({
-          id: sectionKey,
-          title: sectionTitle,
-          fields: fields,
-          isOpen: false,
-          allowMultipleEntries:
-            Array.isArray(sectionData) && sectionData.length > 1,
-        });
+        // Only add section if it has fields
+        if (fields.length > 0) {
+          dynamicSections.push({
+            id: sectionKey,
+            title: sectionTitle,
+            fields: fields,
+            isOpen: false,
+            allowMultipleEntries:
+              Array.isArray(sectionData) && sectionData.length > 1,
+          });
+        }
       }
     });
 
@@ -1060,11 +1086,18 @@ export function ResumeEditor({ userId, resumeId }: ResumeEditorProps) {
   };
 
   useEffect(() => {
+    // If a resume object was passed directly, prefer it and do not fetch.
+    if (resumeObj) {
+      setResumeData(resumeObj);
+      parseResumeData(resumeObj);
+      return;
+    }
+
     // Fetch specific resume when component mounts or props change
     if (userId && resumeId) {
       fetchResume();
     }
-  }, [userId, resumeId]);
+  }, [userId, resumeId, resumeObj]);
 
   const toggleSection = (sectionId: string) => {
     setSections(
