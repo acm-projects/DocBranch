@@ -23,7 +23,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { icon: <FilePlus size={20} />, label: "Create Resume", path: "/CreatePage" },
     // { icon: <Files size={20} />, label: "Compare Resumes", path: "/ComparePage" },
     { icon: <FileText size = {20} />, label: "Directory", path: "/TemplatePage" },
-    { icon: <GitBranch size={20} />, label: "View Branches", path: "/BranchPage" },
+    { icon: <GitBranch size={20} />, label: "Branches", path: "/BranchPage" },
 
   ];
 
