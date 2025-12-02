@@ -99,7 +99,8 @@ Be specific and provide actionable advice for improving the resume.
 
     console.log('Calling AI with provided resume and job data...');
     const completion = await openai.chat.completions.create({
-      model: 'deepseek/deepseek-r1-0528-qwen3-8b:free',
+model: "gpt-4.1",
+// or gpt-4.1-mini, gpt-o1, gpt-o3-mini, etc.
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1500,
     });

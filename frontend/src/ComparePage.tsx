@@ -297,7 +297,7 @@ const ComparePage = () => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
