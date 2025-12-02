@@ -73,8 +73,18 @@ export default function SimplePdfViewer({
         if (resumeObj) {
           blob = await generateResumePdf(resumeObj);
         } else {
+          // sanitize userId/resumeId: trim and remove surrounding single/double quotes
+          const sanitize = (v?: string) =>
+            typeof v === "string"
+              ? v
+                  .trim()
+                  // remove single/double ASCII quotes, common unicode quotes, and any bracket chars ()[]{}<>
+                  .replace(/['"\u2018\u2019\u201C\u201D\[\]\(\)\{\}<>]/g, "")
+              : v;
+          const uid = sanitize(userId) as string | undefined;
+          const rid = sanitize(resumeId) as string | undefined;
           // TypeScript: userId/resumeId are guaranteed by the runtime guard above
-          blob = await generateResumePdf(userId!, resumeId!);
+          blob = await generateResumePdf(uid!, rid!);
         }
         if (!mounted) return;
         const url = URL.createObjectURL(blob);

@@ -297,7 +297,7 @@ const ComparePage = () => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
@@ -341,7 +341,13 @@ const ComparePage = () => {
       }}
     >
       {/* Main Flex Layout */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: "#F3F4F6",
+        }}
+      >
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -557,7 +563,10 @@ const ComparePage = () => {
                     zIndex: 999,
                   }}
                 >
-                  {bedrockError}
+                  <PdfViewer
+                    userId={selectedUserId || "0"}
+                    resumeId={selectedResumeId || "0"}
+                  />
                 </div>
               )}
             </div>
@@ -802,25 +811,24 @@ const ComparePage = () => {
               </>
             )}
 
-            {/* Generated Resume Panel */}
-            <div
-              className="hide-scrollbar"
-              style={{
-                flex: 1,
-                backgroundColor: "white",
-                borderRadius: "1rem",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                padding: "1.5rem",
-                border: "2px solid #34d399",
-                display: "flex",
-                flexDirection: "column",
-                minWidth: "250px",
-                boxSizing: "border-box",
-                overflow: "hidden",
-              }}
-            >
-              <ResumeEditor userId="000000" resumeId="000005" />
-            </div>
+          {/* Generated Resume Panel */}
+          <div
+            className="hide-scrollbar"
+            style={{
+              flex: 1,
+              backgroundColor: "white",
+              borderRadius: "1rem",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              padding: "1.5rem",
+              border: "2px solid #34d399",
+              display: "flex",
+              flexDirection: "column",
+              minWidth: "250px",
+              boxSizing: "border-box",
+              overflow: "hidden",
+            }}
+          >
+            <ResumeEditor userId="0" resumeId="0" />
           </div>
         </div>
         {/* Resize Handle 3 */}
