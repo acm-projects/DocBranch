@@ -1,9 +1,89 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ArrowRight, GitMerge, Edit3 } from "lucide-react";
 import Sidebar from "./Sidebar";
 
-export default function LandingPage() {
+export default function LandingPage({
+  userName: userNameProp,
+}: { userName?: string } = {}) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [userName, setUserName] = useState<string | null>(userNameProp || null);
+
+  useEffect(() => {
+    if (userNameProp) {
+      setUserName(userNameProp);
+      return;
+    }
+
+    // Try multiple common places where an OAuth user name might be stored.
+    try {
+      // 1) Global window helper (some apps place the user on window.__USER__)
+      const w: any = window as any;
+      if (!userName) {
+        const fromWindow =
+          (w.__USER__ && w.__USER__.name) ||
+          (w.auth && w.auth.user && w.auth.user.name);
+        if (fromWindow) {
+          setUserName(String(fromWindow));
+          return;
+        }
+      }
+
+      // 2) localStorage/sessionStorage keys used commonly
+      const candidates = [
+        localStorage.getItem("userName"),
+        localStorage.getItem("user"),
+        sessionStorage.getItem("userName"),
+        sessionStorage.getItem("user"),
+      ];
+      for (const c of candidates) {
+        if (!c) continue;
+        try {
+          const parsed = JSON.parse(c);
+          if (parsed && parsed.name) {
+            setUserName(String(parsed.name));
+            return;
+          }
+        } catch (e) {
+          // not JSON; use raw string
+          const trimmed = String(c).trim();
+          if (trimmed) {
+            setUserName(trimmed);
+            return;
+          }
+        }
+      }
+
+      // 3) Try decoding a JWT stored in localStorage (e.g., id_token or access_token)
+      const jwtKeys = ["id_token", "access_token", "token"];
+      for (const k of jwtKeys) {
+        const token = localStorage.getItem(k) || sessionStorage.getItem(k);
+        if (!token) continue;
+        const parts = token.split(".");
+        if (parts.length < 2) continue;
+        try {
+          const payload = JSON.parse(
+            atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"))
+          );
+          if (
+            payload.name ||
+            payload.given_name ||
+            payload.preferred_username
+          ) {
+            setUserName(
+              String(
+                payload.name || payload.given_name || payload.preferred_username
+              )
+            );
+            return;
+          }
+        } catch (e) {
+          // ignore invalid token
+        }
+      }
+    } catch (e) {
+      // ignore any storage/window access errors
+    }
+  }, [userNameProp]);
 
   return (
     // <div className="flex h-screen bg-gradient-to-br from-blue-50 to-pink-50">

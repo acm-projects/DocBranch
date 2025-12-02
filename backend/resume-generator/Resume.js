@@ -275,15 +275,31 @@ class Resume {
     const doc = this.doc;
     this._sectionHeader('EXPERIENCE');
     experience.forEach(exp => {
-      doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
-        .text(`${exp.role}`, { continued: true , indent: this.indentSize })
-        .font('CMUSerif').fontSize(this.positionTitleFontSize)
-        .text(`${exp.duration || ''}`, { align: 'right' , indent: this.indentSize });
-      doc.font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
-        .text(`${exp.organization || ''}`, { continued: true , indent: this.indentSize })
-        .font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
-        .text(`${exp.location || ''}`, { align: 'right' , indent: this.indentSize });
+      // determine date/duration display: prefer explicit start/end, then date, then duration
+      const start = (exp.start_date || exp.start || '').toString().trim();
+      const end = (exp.end_date || exp.end || '').toString().trim();
+      let right = '';
+      if (start || end) {
+        right = start + (end ? ' - ' + end : '');
+      } else if ((exp.date || '').toString().trim()) {
+        right = exp.date.toString().trim();
+      } else if ((exp.duration || '').toString().trim()) {
+        right = exp.duration.toString().trim();
+      }
 
+      // display either exp.name or exp.company first (fall back to role)
+      const main = (exp.name || exp.company || exp.organization || '').toString().trim();
+      doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
+        .text(`${main}`, { continued: true , indent: this.indentSize })
+        .font('CMUSerif').fontSize(this.positionTitleFontSize)
+        .text(`${right}`, { align: 'right' , indent: this.indentSize });
+
+      // show organization on left and prefer location or address on the right
+      const location = (exp.location || exp.address || '').toString().trim();
+      doc.font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
+        .text(`${exp.role || ''}`, { continued: true , indent: this.indentSize })
+        .font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
+        .text(`${location}`, { align: 'right' , indent: this.indentSize , continued: false });
       if (exp.description && Array.isArray(exp.description) && exp.description.length > 0) {
         exp.description.forEach(r => {
           doc.font('CMUSerif').fontSize(this.smallTextFontSize)
@@ -311,7 +327,7 @@ class Resume {
         .text(`${(project.technologies || []).join(', ')}`, { continued: true , indent: this.indentSize })
         .font('CMUSerif').fontSize(this.smallTextFontSize)
         .text(`${dateStr}`, { align: 'right' , indent: this.indentSize });
-      doc.moveDown(this.gapBetweenEachItem);
+      doc.moveDown(1);
       if (project.description && Array.isArray(project.description) && project.description.length > 0) {
         project.description.forEach(d => {
           doc.font('CMUSerif').fontSize(this.smallTextFontSize)
