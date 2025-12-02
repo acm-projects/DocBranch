@@ -9513,7 +9513,7 @@ const CustomNode = React.memo(({ data, isConnectable }: any) => {
         </div>
       )}
 
-      {isHovered && (
+      {/* {isHovered && (
         <button
           aria-label={`delete ${data.resumeId}`}
           style={{
@@ -9540,7 +9540,7 @@ const CustomNode = React.memo(({ data, isConnectable }: any) => {
         >
           ×
         </button>
-      )}
+      )} */}
     </div>
   );
 });
