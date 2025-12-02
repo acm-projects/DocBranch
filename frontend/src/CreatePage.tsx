@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Checkbox } from "./Components/ui/checkbox";
+import { useState, useEffect } from 'react';
+import { Checkbox } from './Components/ui/checkbox';
 import Sidebar from "./Sidebar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 
 interface SectionItem {
   id: string;
@@ -92,316 +93,601 @@ interface Template {
 
 export function CreatePage() {
   const navigate = useNavigate();
+  const { resumeId } = useParams();
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [resumeData, setResumeData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [sections, setSections] = useState<ResumeSection[]>([
     {
-      id: "section-1",
-      name: "Professional Experience",
+      id: 'section-1',
+      name: 'Professional Experience',
       isExpanded: false,
-      experienceItems: [
-        {
-          id: "exp-1",
-          company: "Tech Corp Inc.",
-          position: "Senior Software Engineer",
-          location: "San Francisco, CA",
-          startDate: "Mar 2022",
-          endDate: "Present",
-          description: "Lead development of cloud-native applications",
-          checked: false,
-        },
-        {
-          id: "exp-2",
-          company: "Startup XYZ",
-          position: "Full Stack Developer",
-          location: "Austin, TX",
-          startDate: "Jan 2020",
-          endDate: "Mar 2022",
-          description:
-            "Built and maintained web applications using React and Node.js",
-          checked: false,
-        },
-        {
-          id: "exp-3",
-          company: "Digital Solutions LLC",
-          position: "Junior Developer",
-          location: "Remote",
-          startDate: "Jun 2018",
-          endDate: "Jan 2020",
-          description:
-            "Developed responsive websites and implemented new features",
-          checked: false,
-        },
-      ],
+      experienceItems: [],
     },
     {
-      id: "section-2",
-      name: "Education & Certifications",
+      id: 'section-2',
+      name: 'Education & Certifications',
       isExpanded: false,
-      educationItems: [
-        {
-          id: "edu-1",
-          institution: "UTD",
-          degree: "Bachelor of Science",
-          field: "Computer Science",
-          startDate: "Sep 2016",
-          endDate: "Jun 2020",
-          gpa: "3.8/4.0",
-          honors: "Cum Laude",
-          checked: false,
-        },
-        {
-          id: "edu-2",
-          institution: "SMU",
-          degree: "Master of Science",
-          field: "Artificial Intelligence + Gender Studies",
-          startDate: "Sep 2020",
-          endDate: "Jun 2022",
-          gpa: "3.9/4.0",
-          checked: false,
-        },
-      ],
-      certificationItems: [
-        {
-          id: "cert-1",
-          name: "AWS Certified Solutions Architect",
-          issuer: "Amazon Web Services",
-          date: "Jun 2023",
-          checked: false,
-        },
-        {
-          id: "cert-2",
-          name: "Google Cloud Professional Developer",
-          issuer: "Google Cloud",
-          date: "Mar 2023",
-          checked: false,
-        },
-      ],
+      educationItems: [],
+      certificationItems: [],
     },
     {
-      id: "section-3",
-      name: "Projects",
+      id: 'section-3',
+      name: 'Projects',
       isExpanded: false,
-      projectItems: [
-        {
-          id: "proj-1",
-          name: "Name",
-          role: "Lead Developer",
-          startDate: "Jan 2023",
-          endDate: "Jun 2023",
-          description: "Built platform with React and Node.js",
-          technologies: "React, Node.js, MongoDB",
-          checked: false,
-        },
-        {
-          id: "proj-2",
-          name: "Name",
-          role: "Data Scientist",
-          startDate: "Sep 2022",
-          endDate: "Dec 2022",
-          description: "Developed a...",
-          technologies: "Python, TensorFlow",
-          checked: false,
-        },
-      ],
+      projectItems: [],
     },
     {
-      id: "section-4",
-      name: "Skills & Expertise",
+      id: 'section-4',
+      name: 'Skills & Expertise',
       isExpanded: false,
-      skillItems: [
-        {
-          id: "skill-1",
-          category: "Programming Languages",
-          skills: ["JavaScript", "TypeScript", "Python", "Java", "C++"],
-          checked: false,
-        },
-        {
-          id: "skill-2",
-          category: "Frameworks & Libraries",
-          skills: ["React", "Node.js", "Express", "Git"],
-          checked: false,
-        },
-        {
-          id: "skill-3",
-          category: "Tools & Technologies",
-          skills: ["AWS", "Git", "MongoDB"],
-          checked: false,
-        },
-      ],
+      skillItems: [],
     },
     {
-      id: "section-5",
-      name: "Volunteer Work",
+      id: 'section-5',
+      name: 'Volunteer Work',
       isExpanded: false,
-      volunteerItems: [
-        {
-          id: "vol-1",
-          organization: "Name",
-          role: "Volunteer",
-          startDate: "Jan 2022",
-          endDate: "Present",
-          description: "Developed open source tools for...",
-          checked: false,
-        },
-        {
-          id: "vol-2",
-          organization: "Tech  Program",
-          role: "Mentor",
-          startDate: "Mar 2021",
-          endDate: "Dec 2022",
-          description: "Mentored developers in web development",
-          checked: false,
-        },
-      ],
+      volunteerItems: [],
     },
   ]);
 
   const templates: Template[] = [
-    {
-      id: 1,
-      name: "Professional Template",
-      description: "Classic layout for traditional industries",
-      category: "Professional",
-      date: "2024-01-18",
+    { 
+      id: 1, 
+      name: 'Professional Template',
+      description: 'Classic layout for traditional industries',
+      category: 'Professional',
+      date: '2024-01-18'
     },
-    {
-      id: 2,
-      name: "Modern Template",
-      description: "Contemporary design with accent colors",
-      category: "Modern",
-      date: "2024-01-15",
+    { 
+      id: 2, 
+      name: 'Modern Template',
+      description: 'Contemporary design with accent colors',
+      category: 'Modern',
+      date: '2024-01-15'
     },
-    {
-      id: 3,
-      name: "Minimal Template",
-      description: "Clean and simple aesthetic",
-      category: "Minimal",
-      date: "2024-01-12",
+    { 
+      id: 3, 
+      name: 'Minimal Template',
+      description: 'Clean and simple aesthetic',
+      category: 'Minimal',
+      date: '2024-01-12'
     },
-    {
-      id: 4,
-      name: "Creative Template",
-      description: "Unique layout for creative professionals",
-      category: "Creative",
-      date: "2024-01-10",
+    { 
+      id: 4, 
+      name: 'Creative Template',
+      description: 'Unique layout for creative professionals',
+      category: 'Creative',
+      date: '2024-01-10'
     },
   ];
 
-  const handleItemToggle = (sectionId: string, itemId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              items: section.items?.map((item) =>
-                item.id === itemId ? { ...item, checked: !item.checked } : item
-              ),
+  const fetchResumeData = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await axios.get('http://localhost:3000/resumes');
+    console.log('Fetched all resumes:', response.data);
+    
+    if (response.data && response.data.Items) {
+      const resumes = response.data.Items;
+      console.log(`Found ${resumes.length} resumes`);
+      
+      // PARSE ALL RESUMES AND COMBINE THEIR DATA
+      let combinedResumeData: any = {
+        education: [],
+        experience: [],
+        projects: [],
+        skills: { programming_languages: [], frameworks: [], developer_tools: [], languages: [] },
+        leadership_experience: [],
+        certifications: [],
+        volunteer_experience: []
+      };
+      
+      // Track which resumes have data
+      const resumesWithData: string[] = [];
+      
+      for (const resume of resumes) {
+        if (!resume.resume) continue;
+        
+        const resumeContent = resume.resume;
+        const resumeId = resume.resume_id;
+        
+        console.log(`\n=== Processing resume: ${resumeId} ===`);
+        
+        // Merge education
+        if (resumeContent.education && Array.isArray(resumeContent.education) && resumeContent.education.length > 0) {
+          console.log(`Adding ${resumeContent.education.length} education items from ${resumeId}`);
+          combinedResumeData.education.push(...resumeContent.education);
+          resumesWithData.push(resumeId);
+        }
+        
+        // Merge experience
+        if (resumeContent.experience && Array.isArray(resumeContent.experience) && resumeContent.experience.length > 0) {
+          console.log(`Adding ${resumeContent.experience.length} experience items from ${resumeId}`);
+          combinedResumeData.experience.push(...resumeContent.experience);
+          resumesWithData.push(resumeId);
+        }
+        
+        // Merge projects
+        if (resumeContent.projects && Array.isArray(resumeContent.projects) && resumeContent.projects.length > 0) {
+          console.log(`Adding ${resumeContent.projects.length} project items from ${resumeId}`);
+          combinedResumeData.projects.push(...resumeContent.projects);
+          resumesWithData.push(resumeId);
+        }
+        
+        // Merge leadership_experience
+        if (resumeContent.leadership_experience && Array.isArray(resumeContent.leadership_experience) && resumeContent.leadership_experience.length > 0) {
+          console.log(`Adding ${resumeContent.leadership_experience.length} leadership items from ${resumeId}`);
+          combinedResumeData.leadership_experience.push(...resumeContent.leadership_experience);
+          resumesWithData.push(resumeId);
+        }
+        
+        // Merge skills (combine arrays)
+        if (resumeContent.skills && typeof resumeContent.skills === 'object') {
+          console.log(`Adding skills from ${resumeId}`);
+          for (const skillType in resumeContent.skills) {
+            if (Array.isArray(resumeContent.skills[skillType]) && resumeContent.skills[skillType].length > 0) {
+              if (!combinedResumeData.skills[skillType]) {
+                combinedResumeData.skills[skillType] = [];
+              }
+              // Add unique skills only
+              for (const skill of resumeContent.skills[skillType]) {
+                if (skill && !combinedResumeData.skills[skillType].includes(skill)) {
+                  combinedResumeData.skills[skillType].push(skill);
+                }
+              }
+              resumesWithData.push(resumeId);
             }
-          : section
-      )
-    );
-  };
+          }
+        }
+        
+        // Merge certifications
+        if (resumeContent.certifications && Array.isArray(resumeContent.certifications) && resumeContent.certifications.length > 0) {
+          console.log(`Adding ${resumeContent.certifications.length} certification items from ${resumeId}`);
+          combinedResumeData.certifications.push(...resumeContent.certifications);
+          resumesWithData.push(resumeId);
+        }
+        
+        // Merge volunteer_experience
+        if (resumeContent.volunteer_experience && Array.isArray(resumeContent.volunteer_experience) && resumeContent.volunteer_experience.length > 0) {
+          console.log(`Adding ${resumeContent.volunteer_experience.length} volunteer items from ${resumeId}`);
+          combinedResumeData.volunteer_experience.push(...resumeContent.volunteer_experience);
+          resumesWithData.push(resumeId);
+        }
+      }
+      
+      // Remove duplicates from arrays (keep unique items based on key properties)
+      const uniqueResumesWithData = [...new Set(resumesWithData)];
+      console.log(`\n=== SUMMARY ===`);
+      console.log(`Total resumes processed: ${resumes.length}`);
+      console.log(`Resumes with data: ${uniqueResumesWithData.length}`);
+      console.log(`Resume IDs with data: ${uniqueResumesWithData.join(', ')}`);
+      console.log(`Combined data counts:`);
+      console.log(`  Education: ${combinedResumeData.education.length}`);
+      console.log(`  Experience: ${combinedResumeData.experience.length}`);
+      console.log(`  Projects: ${combinedResumeData.projects.length}`);
+      console.log(`  Leadership: ${combinedResumeData.leadership_experience.length}`);
+      console.log(`  Skills categories: ${Object.keys(combinedResumeData.skills).length}`);
+      
+      // Create a mock resume object to pass to the parser
+      const combinedResume = {
+        resume_id: 'combined-resume',
+        user_id: 'combined-user',
+        resume: combinedResumeData,
+        metadata: {
+          resume_info: {
+            resume_creation_date: new Date().toISOString(),
+            filename: 'combined_resume.json',
+            source_resumes: uniqueResumesWithData,
+            total_items: {
+              education: combinedResumeData.education.length,
+              experience: combinedResumeData.experience.length,
+              projects: combinedResumeData.projects.length,
+              leadership: combinedResumeData.leadership_experience.length,
+              skills: Object.values(combinedResumeData.skills).reduce((total: number, arr: any) => total + arr.length, 0)
+            }
+          }
+        }
+      };
+      
+      setResumeData(combinedResume);
+      parseResumeData(combinedResume);
+      
+    } else {
+      setError('No resumes found in response');
+    }
+  } catch (err: any) {
+    console.error('Error fetching resume:', err);
+    setError(err.response?.data?.message || err.message || 'Failed to fetch resume');
+  } finally {
+    setLoading(false);
+  }
+};
 
+// Helper function to find the first resume with actual data
+const findFirstResumeWithData = (resumes: any[]): any | null => {
+  for (const resume of resumes) {
+    if (hasResumeData(resume)) {
+      console.log(`Found resume with data: ${resume.resume_id}`);
+      return resume;
+    }
+  }
+  return null;
+};
+
+// Helper function to check if a resume has data
+const hasResumeData = (resume: any): boolean => {
+  if (!resume || !resume.resume) return false;
+  
+  const resumeData = resume.resume;
+  
+  // Check if any array has data
+  const hasEducationData = resumeData.education?.length > 0;
+  const hasExperienceData = resumeData.experience?.length > 0;
+  const hasProjectsData = resumeData.projects?.length > 0;
+  const hasLeadershipData = resumeData.leadership_experience?.length > 0;
+  const hasVolunteerData = resumeData.volunteer_experience?.length > 0;
+  
+  // Check if skills object has data
+  let hasSkillsData = false;
+  if (resumeData.skills && typeof resumeData.skills === 'object') {
+    for (const key in resumeData.skills) {
+      if (Array.isArray(resumeData.skills[key]) && resumeData.skills[key].length > 0) {
+        hasSkillsData = true;
+        break;
+      }
+    }
+  }
+  
+  // Check if certifications have data
+  const hasCertificationsData = resumeData.certifications?.length > 0;
+  
+  // Return true if ANY section has data
+  return hasEducationData || 
+         hasExperienceData || 
+         hasProjectsData || 
+         hasLeadershipData || 
+         hasVolunteerData || 
+         hasSkillsData || 
+         hasCertificationsData;
+};
+
+  // Parse resume data and populate sections with bullet points
+  // Parse resume data and populate sections with bullet points
+const parseResumeData = (resume: any) => {
+  if (!resume || !resume.resume) {
+    console.log('No resume data found');
+    return;
+  }
+
+  const resumeContent = resume.resume;
+  console.log('=== PARSING RESUME DATA ===');
+  console.log('Full resume structure:', resumeContent);
+
+  const updatedSections = [...sections];
+  
+  // Reset all sections
+  for (const section of updatedSections) {
+    if (section.experienceItems) section.experienceItems = [];
+    if (section.educationItems) section.educationItems = [];
+    if (section.certificationItems) section.certificationItems = [];
+    if (section.projectItems) section.projectItems = [];
+    if (section.skillItems) section.skillItems = [];
+    if (section.volunteerItems) section.volunteerItems = [];
+  }
+
+  // DIRECT MAPPING - NO NEED FOR COMPLEX DETECTION
+  // Process education
+  const educationSection = updatedSections.find(s => s.name === 'Education & Certifications');
+  if (educationSection && resumeContent.education && Array.isArray(resumeContent.education)) {
+    const educationItems: EducationItem[] = resumeContent.education.map((item: any, index: number) => ({
+      id: `edu-${index}`,
+      institution: item.institution || item.school || item.university || item.college || '',
+      degree: item.degree || item.degree_name || item.program || '',
+      field: getFieldOfStudy(item),
+      startDate: item.start_date || item.startDate || item.duration?.start || '',
+      endDate: item.end_date || item.endDate || item.duration?.end || item.graduation_date || '',
+      gpa: formatGPA(item.gpa || item.GPA),
+      honors: item.honors || item.awards || item.achievements,
+      checked: false,
+    }));
+    educationSection.educationItems = educationItems;
+    console.log(`Added ${educationItems.length} education items`);
+  }
+
+  // Process experience
+  const experienceSection = updatedSections.find(s => s.name === 'Professional Experience');
+  if (experienceSection) {
+    const experienceItems: ExperienceItem[] = [];
+    
+    // Add regular experience
+    if (resumeContent.experience && Array.isArray(resumeContent.experience)) {
+      resumeContent.experience.forEach((item: any, index: number) => {
+        experienceItems.push({
+          id: `exp-${index}`,
+          company: item.company || item.employer || item.organization || '',
+          position: item.position || item.role || item.title || '',
+          location: item.location || item.city || item.country || '',
+          startDate: item.start_date || item.startDate || item.duration?.start || '',
+          endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
+          description: createBulletPoints(item.description || item.responsibilities || item.details),
+          checked: false,
+        });
+      });
+    }
+    
+    // Add leadership experience as experience too
+    if (resumeContent.leadership_experience && Array.isArray(resumeContent.leadership_experience)) {
+      resumeContent.leadership_experience.forEach((item: any, index: number) => {
+        experienceItems.push({
+          id: `lead-${index}`,
+          company: item.company || item.organization || item.institution || '',
+          position: item.position || item.role || item.title || 'Leadership Role',
+          location: item.location || item.city || item.country || '',
+          startDate: item.start_date || item.startDate || item.duration?.start || '',
+          endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
+          description: createBulletPoints(item.description || item.responsibilities || item.details),
+          checked: false,
+        });
+      });
+    }
+    
+    experienceSection.experienceItems = experienceItems;
+    console.log(`Added ${experienceItems.length} experience items`);
+  }
+
+  // Process projects - THIS IS WHAT'S MISSING!
+  const projectsSection = updatedSections.find(s => s.name === 'Projects');
+  if (projectsSection && resumeContent.projects && Array.isArray(resumeContent.projects)) {
+    const projectItems: ProjectItem[] = resumeContent.projects.map((item: any, index: number) => ({
+      id: `proj-${index}`,
+      name: item.name || item.project_name || item.title || 'Untitled Project',
+      role: item.role || item.position || item.contribution || '',
+      startDate: item.start_date || item.startDate || item.duration?.start || '',
+      endDate: item.end_date || item.endDate || item.duration?.end || '',
+      description: createBulletPoints(item.description || item.details || item.summary),
+      technologies: formatTechnologies(item.technologies),
+      checked: false,
+    }));
+    projectsSection.projectItems = projectItems;
+    console.log(`Added ${projectItems.length} project items`);
+  }
+
+  // Process skills
+  const skillsSection = updatedSections.find(s => s.name === 'Skills & Expertise');
+  if (skillsSection && resumeContent.skills && typeof resumeContent.skills === 'object') {
+    const skillItems: SkillItem[] = [];
+    let index = 0;
+    
+    for (const [category, skills] of Object.entries(resumeContent.skills)) {
+      if (Array.isArray(skills)) {
+        const formattedSkills: string[] = [];
+        for (const skill of skills) {
+          if (skill && typeof skill === 'string') {
+            formattedSkills.push(skill);
+          }
+        }
+        
+        if (formattedSkills.length > 0) {
+          skillItems.push({
+            id: `skill-${index}`,
+            category: formatCategoryName(category),
+            skills: formattedSkills,
+            checked: false,
+          });
+          index++;
+        }
+      }
+    }
+    
+    skillsSection.skillItems = skillItems;
+    console.log(`Added ${skillItems.length} skill categories`);
+  }
+
+  // Process certifications
+  const certSection = updatedSections.find(s => s.name === 'Education & Certifications');
+  if (certSection && resumeContent.certifications && Array.isArray(resumeContent.certifications)) {
+    const certificationItems: CertificationItem[] = resumeContent.certifications.map((item: any, index: number) => ({
+      id: `cert-${index}`,
+      name: item.name || item.title || item.certification_name || 'Unknown Certification',
+      issuer: item.issuer || item.organization || item.authority || '',
+      date: item.date || item.issue_date || item.issued_date || '',
+      credentialId: item.credential_id || item.id || item.certificate_id,
+      checked: false,
+    }));
+    certSection.certificationItems = certificationItems;
+    console.log(`Added ${certificationItems.length} certification items`);
+  }
+
+  // Process volunteer work
+  const volunteerSection = updatedSections.find(s => s.name === 'Volunteer Work');
+  if (volunteerSection && resumeContent.volunteer_experience && Array.isArray(resumeContent.volunteer_experience)) {
+    const volunteerItems: VolunteerItem[] = resumeContent.volunteer_experience.map((item: any, index: number) => ({
+      id: `vol-${index}`,
+      organization: item.organization || item.company || item.institution || '',
+      role: item.role || item.position || item.title || '',
+      startDate: item.start_date || item.startDate || item.duration?.start || '',
+      endDate: item.end_date || item.endDate || item.duration?.end || 'Present',
+      description: createBulletPoints(item.description || item.responsibilities || item.details),
+      checked: false,
+    }));
+    volunteerSection.volunteerItems = volunteerItems;
+    console.log(`Added ${volunteerItems.length} volunteer items`);
+  }
+
+  console.log('Final updated sections:', updatedSections);
+  setSections(updatedSections);
+};
+
+// Helper functions
+const getFieldOfStudy = (edu: any): string => {
+  if (!edu) return '';
+  
+  const fields = [];
+  if (edu.field_of_study) fields.push(edu.field_of_study);
+  if (edu.major) fields.push(Array.isArray(edu.major) ? edu.major.join(', ') : edu.major);
+  if (edu.majors) fields.push(Array.isArray(edu.majors) ? edu.majors.join(', ') : edu.majors);
+  if (edu.concentration) fields.push(edu.concentration);
+  
+  return fields.join(', ');
+};
+
+const formatGPA = (gpa: any): string => {
+  if (!gpa) return '';
+  if (typeof gpa === 'number') return gpa.toFixed(2);
+  return String(gpa);
+};
+
+const formatTechnologies = (tech: any): string => {
+  if (!tech) return '';
+  if (Array.isArray(tech)) return tech.join(', ');
+  if (typeof tech === 'string') return tech;
+  if (typeof tech === 'object') return Object.values(tech).join(', ');
+  return String(tech);
+};
+
+const formatCategoryName = (category: string): string => {
+  return category
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase());
+};
+
+const createBulletPoints = (data: any): string => {
+  if (!data) return '';
+  
+  if (Array.isArray(data)) {
+    const points = [];
+    for (const item of data) {
+      if (item && typeof item === 'string') {
+        points.push(`• ${item}`);
+      }
+    }
+    return points.join('\n');
+  }
+  
+  if (typeof data === 'string') {
+    return `• ${data}`;
+  }
+  
+  if (typeof data === 'object') {
+    const points = [];
+    for (const [key, value] of Object.entries(data)) {
+      if (value) {
+        points.push(`• ${key}: ${value}`);
+      }
+    }
+    return points.join('\n');
+  }
+  
+  return `• ${data}`;
+};
+
+  useEffect(() => {
+    fetchResumeData();
+  }, [resumeId]);
+
+  // Toggle handlers for different item types
   const handleEducationToggle = (sectionId: string, eduId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              educationItems: section.educationItems?.map((edu) =>
-                edu.id === eduId ? { ...edu, checked: !edu.checked } : edu
-              ),
-            }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            educationItems: section.educationItems?.map(edu =>
+              edu.id === eduId ? { ...edu, checked: !edu.checked } : edu
+            )
+          }
+        : section
+    ));
   };
 
   const handleExperienceToggle = (sectionId: string, expId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              experienceItems: section.experienceItems?.map((exp) =>
-                exp.id === expId ? { ...exp, checked: !exp.checked } : exp
-              ),
-            }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            experienceItems: section.experienceItems?.map(exp =>
+              exp.id === expId ? { ...exp, checked: !exp.checked } : exp
+            )
+          }
+        : section
+    ));
   };
 
   const handleProjectToggle = (sectionId: string, projectId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              projectItems: section.projectItems?.map((project) =>
-                project.id === projectId
-                  ? { ...project, checked: !project.checked }
-                  : project
-              ),
-            }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            projectItems: section.projectItems?.map(project =>
+              project.id === projectId ? { ...project, checked: !project.checked } : project
+            )
+          }
+        : section
+    ));
   };
 
   const handleCertificationToggle = (sectionId: string, certId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              certificationItems: section.certificationItems?.map((cert) =>
-                cert.id === certId ? { ...cert, checked: !cert.checked } : cert
-              ),
-            }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            certificationItems: section.certificationItems?.map(cert =>
+              cert.id === certId ? { ...cert, checked: !cert.checked } : cert
+            )
+          }
+        : section
+    ));
   };
 
   const handleSkillToggle = (sectionId: string, skillId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              skillItems: section.skillItems?.map((skill) =>
-                skill.id === skillId
-                  ? { ...skill, checked: !skill.checked }
-                  : skill
-              ),
-            }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            skillItems: section.skillItems?.map(skill =>
+              skill.id === skillId ? { ...skill, checked: !skill.checked } : skill
+            )
+          }
+        : section
+    ));
   };
 
   const handleVolunteerToggle = (sectionId: string, volId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              volunteerItems: section.volunteerItems?.map((vol) =>
-                vol.id === volId ? { ...vol, checked: !vol.checked } : vol
-              ),
-            }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            volunteerItems: section.volunteerItems?.map(vol =>
+              vol.id === volId ? { ...vol, checked: !vol.checked } : vol
+            )
+          }
+        : section
+    ));
+  };
+
+  const handleItemToggle = (sectionId: string, itemId: string) => {
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? {
+            ...section,
+            items: section.items?.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            )
+          }
+        : section
+    ));
   };
 
   const handleSelectTemplate = (index: number) => {
     setSelectedTemplate(index);
   };
 
+  // Click handlers
   const handleExperienceClick = (sectionId: string, expId: string) => {
     handleExperienceToggle(sectionId, expId);
   };
@@ -431,150 +717,131 @@ export function CreatePage() {
   };
 
   const handleNavigateToProfile = () => {
-    navigate("/Profile");
+    navigate('/Profile');
   };
 
   const handleNavigateToComparison = () => {
-    navigate("/ComparePage");
+    navigate('/ComparePage');
   };
 
   const toggleSection = (sectionId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? { ...section, isExpanded: !section.isExpanded }
-          : section
-      )
-    );
+    setSections(sections.map(section => 
+      section.id === sectionId 
+        ? { ...section, isExpanded: !section.isExpanded }
+        : section
+    ));
   };
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#f8fafc",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        display: "flex",
-      }}
-    >
-      {/* Sidebar */}
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+  // Generate resume based on selected items
+  const generateResume = () => {
+  navigate('/ComparePage');
+};
 
-      {/* Main Content */}
-      <div
-        style={{
-          flex: 1,
-          padding: "24px",
-          transition: "all 0.3s ease",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1400px",
-            margin: "0 auto",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "32px",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-              }}
-            >
+  return (
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f8fafc',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      display: 'flex'
+    }}>
+      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      
+      <div style={{
+        flex: 1,
+        padding: '24px',
+        transition: 'all 0.3s ease'
+      }}>
+        <div style={{
+          maxWidth: '1400px',
+          margin: '0 auto'
+        }}>
+          <div style={{ 
+            marginBottom: '32px',
+            position: 'relative'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between'
+            }}>
               <div style={{ flex: 1 }}>
-                <h2
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "700",
-                    margin: "0 0 12px 0",
-                    color: "#1e293b",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
+                <h2 style={{
+                  fontSize: '28px',
+                  fontWeight: '700',
+                  margin: '0 0 12px 0',
+                  color: '#1e293b',
+                  letterSpacing: '-0.02em'
+                }}>
                   Create Your Resume
                 </h2>
-                <p
-                  style={{
-                    color: "#64748b",
-                    margin: 0,
-                    fontSize: "16px",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  Select a template and choose which items to include from your
-                  profile
+                <p style={{
+                  color: '#64748b',
+                  margin: 0,
+                  fontSize: '16px',
+                  lineHeight: '1.5'
+                }}>
+                  {resumeId ? `Editing resume: ${resumeId}` : 'Select a template and choose which items to include from your parsed resume'}
                 </p>
               </div>
-              {/* Header Section */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                }}
-              >
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
                 <button
-                  onClick={handleNavigateToComparison}
+                  onClick={generateResume}
                   style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db",
-                    backgroundColor: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#374151",
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: '#22c55e',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
                   }}
                 >
-                  Create
+                  Generate Resume
                 </button>
 
                 <button
                   onClick={handleNavigateToProfile}
                   style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db",
-                    backgroundColor: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#374151",
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
                   }}
                 >
                   Edit Profile
                 </button>
-
+              
                 <button
                   onClick={() => setShowInstructions(!showInstructions)}
                   style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    border: "1px solid #d1d5db",
-                    backgroundColor: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    color: "#6b7280",
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#6b7280',
                   }}
                 >
                   i
@@ -583,182 +850,172 @@ export function CreatePage() {
             </div>
 
             {showInstructions && (
-              <div
-                style={{
-                  backgroundColor: "#ffedd6",
-                  border: "1px solid #fdd9ba",
-                  borderRadius: "8px",
-                  padding: "16px",
-                  marginTop: "16px",
-                  fontSize: "14px",
-                  color: "#63441a",
-                }}
-              >
-                <h4
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    margin: "0 0 8px 0",
-                    color: "#63441a",
-                  }}
-                >
+              <div style={{
+                backgroundColor: '#ffedd6',
+                border: '1px solid #fdd9ba',
+                borderRadius: '8px',
+                padding: '16px',
+                marginTop: '16px',
+                fontSize: '14px',
+                color: '#63441a'
+              }}>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  margin: '0 0 8px 0',
+                  color: '#63441a'
+                }}>
                   How to create your resume:
                 </h4>
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: "20px",
-                    lineHeight: "1.5",
-                  }}
-                >
+                <ul style={{
+                  margin: 0,
+                  paddingLeft: '20px',
+                  lineHeight: '1.5'
+                }}>
                   <li>Choose a template from the left sidebar</li>
-                  <li>
-                    Select the checkboxes next to the content you want to
-                    include
-                  </li>
+                  <li>Select the checkboxes next to the content you want to include</li>
                   <li>Your resume will update with your selections</li>
-                  <li>
-                    <strong>Note:</strong> Content is pulled from your profile.
-                    To edit your information, please update your profile first.
-                  </li>
+                  <li>Click "Generate Resume" to create your final resume</li>
+                  <li><strong>Note:</strong> Content is pulled from your parsed resume data</li>
                 </ul>
+              </div>
+            )}
+
+            {loading && (
+              <div style={{
+                backgroundColor: '#dbeafe',
+                border: '1px solid #93c5fd',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginTop: '16px',
+                fontSize: '14px',
+                color: '#1e40af',
+                textAlign: 'center'
+              }}>
+                Loading your resume data...
+              </div>
+            )}
+
+            {error && (
+              <div style={{
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fca5a5',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginTop: '16px',
+                fontSize: '14px',
+                color: '#dc2626',
+                textAlign: 'center'
+              }}>
+                Error: {error}
               </div>
             )}
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "320px 1fr",
-              gap: "24px",
-              alignItems: "start",
-            }}
-          >
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '320px 1fr',
+            gap: '24px',
+            alignItems: 'start'
+          }}>
+            {/* Template Selection Sidebar */}
             <div>
-              <div
-                style={{
-                  border: "2px solid #f1f5f9",
-                  borderRadius: "16px",
-                  backgroundColor: "white",
-                  overflow: "hidden",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                  position: "sticky",
-                  top: "24px",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "16px 20px",
-                    backgroundColor: "#f8fafc",
-                    borderBottom: "1px solid #f1f5f9",
-                    background:
-                      "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-                  }}
-                >
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "700",
-                      margin: 0,
-                      color: "#1e293b",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
+              <div style={{
+                border: '2px solid #f1f5f9',
+                borderRadius: '16px',
+                backgroundColor: 'white',
+                overflow: 'hidden',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                position: 'sticky',
+                top: '24px'
+              }}>
+                <div style={{
+                  padding: '16px 20px',
+                  backgroundColor: '#f8fafc',
+                  borderBottom: '1px solid #f1f5f9',
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    margin: 0,
+                    color: '#1e293b',
+                    letterSpacing: '-0.02em'
+                  }}>
                     Choose a Template
                   </h3>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#64748b",
-                      margin: "4px 0 0 0",
-                    }}
-                  >
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#64748b',
+                    margin: '4px 0 0 0'
+                  }}>
                     Select a design for your resume
                   </p>
                 </div>
 
-                <div style={{ padding: "16px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                    }}
-                  >
+                <div style={{ padding: '16px' }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
                     {templates.map((template, index) => (
                       <div
                         key={template.id}
                         style={{
-                          border:
-                            selectedTemplate === index
-                              ? "2px solid #22c55e"
-                              : "1px solid #e2e8f0",
-                          borderRadius: "12px",
-                          backgroundColor: "white",
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          boxShadow:
-                            selectedTemplate === index
-                              ? "0 4px 12px rgba(34, 197, 94, 0.15)"
-                              : "0 2px 4px rgba(0, 0, 0, 0.04)",
+                          border: selectedTemplate === index ? '2px solid #22c55e' : '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          backgroundColor: 'white',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          boxShadow: selectedTemplate === index 
+                            ? '0 4px 12px rgba(34, 197, 94, 0.15)' 
+                            : '0 2px 4px rgba(0, 0, 0, 0.04)'
                         }}
                         onClick={() => handleSelectTemplate(index)}
                       >
-                        <div
-                          style={{
-                            height: "80px",
-                            background:
-                              "linear-gradient(135deg, #dcfce7 0%, #86efac 100%)",
-                          }}
-                        ></div>
-
-                        <div style={{ padding: "12px" }}>
-                          <h4
-                            style={{
-                              fontSize: "14px",
-                              fontWeight: "600",
-                              margin: "0 0 6px 0",
-                              color: "#1e293b",
-                            }}
-                          >
+                        <div style={{
+                          height: '80px',
+                          background: 'linear-gradient(135deg, #dcfce7 0%, #86efac 100%)'
+                        }}></div>
+                        
+                        <div style={{ padding: '12px' }}>
+                          <h4 style={{
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            margin: '0 0 6px 0',
+                            color: '#1e293b'
+                          }}>
                             {template.name}
                           </h4>
-                          <p
-                            style={{
-                              fontSize: "12px",
-                              color: "#64748b",
-                              margin: "0 0 8px 0",
-                              lineHeight: "1.4",
-                            }}
-                          >
+                          <p style={{
+                            fontSize: '12px',
+                            color: '#64748b',
+                            margin: '0 0 8px 0',
+                            lineHeight: '1.4'
+                          }}>
                             {template.description}
                           </p>
-
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <span
-                              style={{
-                                backgroundColor: "#dcfce7",
-                                color: "#166534",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
-                                fontSize: "11px",
-                                fontWeight: "600",
-                              }}
-                            >
+                          
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}>
+                            <span style={{
+                              backgroundColor: '#dcfce7',
+                              color: '#166534',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: '600'
+                            }}>
                               {template.category}
                             </span>
-                            <span
-                              style={{
-                                fontSize: "11px",
-                                color: "#94a3b8",
-                              }}
-                            >
+                            <span style={{
+                              fontSize: '11px',
+                              color: '#94a3b8'
+                            }}>
                               {template.date}
                             </span>
                           </div>
@@ -770,800 +1027,583 @@ export function CreatePage() {
               </div>
             </div>
 
-            {/* Resume Builder - Main Content */}
+            {/* Resume Content Sections */}
             <div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "20px",
-                }}
-              >
-                {sections.map((section) => (
-                  <div
-                    key={section.id}
-                    style={{
-                      border: "2px solid #f1f5f9",
-                      borderRadius: "16px",
-                      backgroundColor: "white",
-                      overflow: "hidden",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: "16px 24px",
-                        backgroundColor: "#f8fafc",
-                        borderBottom: "1px solid #f1f5f9",
-                        background:
-                          "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                      onClick={() => toggleSection(section.id)}
-                    >
-                      <h3
+              {!loading && !error && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {sections.map((section) => (
+                    <div key={section.id} style={{
+                      border: '2px solid #f1f5f9',
+                      borderRadius: '16px',
+                      backgroundColor: 'white',
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
+                    }}>
+                      <div 
                         style={{
-                          fontSize: "18px",
-                          fontWeight: "700",
+                          padding: '16px 24px',
+                          backgroundColor: '#f8fafc',
+                          borderBottom: '1px solid #f1f5f9',
+                          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                        onClick={() => toggleSection(section.id)}
+                      >
+                        <h3 style={{
+                          fontSize: '18px',
+                          fontWeight: '700',
                           margin: 0,
-                          color: "#1e293b",
-                          letterSpacing: "-0.02em",
-                        }}
-                      >
-                        {section.name}
-                      </h3>
-                      <svg
-                        style={{
-                          transform: section.isExpanded
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                          transition: "transform 0.2s ease",
-                          width: "20px",
-                          height: "20px",
-                          color: "#64748b",
-                        }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
-
-                    {section.isExpanded && (
-                      <div style={{ padding: "24px" }}>
-                        {section.experienceItems && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "16px",
-                            }}
-                          >
-                            {section.experienceItems.map((exp) => (
-                              <div
-                                key={exp.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "8px",
-                                }}
-                                onClick={() =>
-                                  handleExperienceClick(section.id, exp.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={exp.id}
-                                    checked={exp.checked}
-                                    onCheckedChange={() =>
-                                      handleExperienceToggle(section.id, exp.id)
-                                    }
-                                  />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      padding: "16px",
-                                      backgroundColor: exp.checked
-                                        ? "#f0f9ff"
-                                        : "#f8fafc",
-                                      borderRadius: "8px",
-                                      border: exp.checked
-                                        ? "2px solid #3b82f6"
-                                        : "1px solid #e2e8f0",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        justifyContent: "space-between",
-                                        marginBottom: "8px",
-                                      }}
-                                    >
-                                      <div>
-                                        <h4
-                                          style={{
-                                            fontSize: "16px",
-                                            fontWeight: "600",
-                                            margin: "0 0 4px 0",
-                                            color: "#1e293b",
-                                          }}
-                                        >
-                                          {exp.position}
-                                        </h4>
-                                        <p
-                                          style={{
-                                            fontSize: "14px",
-                                            color: "#64748b",
-                                            margin: "0 0 4px 0",
-                                          }}
-                                        >
-                                          {exp.company} • {exp.location}
-                                        </p>
-                                        {exp.description && (
-                                          <p
-                                            style={{
-                                              fontSize: "14px",
-                                              color: "#64748b",
-                                              margin: 0,
-                                              fontStyle: "italic",
-                                            }}
-                                          >
-                                            {exp.description}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                          whiteSpace: "nowrap",
-                                          marginLeft: "16px",
-                                        }}
-                                      >
-                                        {exp.startDate} - {exp.endDate}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {section.educationItems && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "16px",
-                            }}
-                          >
-                            {section.educationItems.map((edu) => (
-                              <div
-                                key={edu.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "8px",
-                                }}
-                                onClick={() =>
-                                  handleEducationClick(section.id, edu.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={edu.id}
-                                    checked={edu.checked}
-                                    onCheckedChange={() =>
-                                      handleEducationToggle(section.id, edu.id)
-                                    }
-                                  />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      padding: "16px",
-                                      backgroundColor: edu.checked
-                                        ? "#f0f9ff"
-                                        : "#f8fafc",
-                                      borderRadius: "8px",
-                                      border: edu.checked
-                                        ? "2px solid #3b82f6"
-                                        : "1px solid #e2e8f0",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        justifyContent: "space-between",
-                                        marginBottom: "8px",
-                                      }}
-                                    >
-                                      <div>
-                                        <h4
-                                          style={{
-                                            fontSize: "16px",
-                                            fontWeight: "600",
-                                            margin: "0 0 4px 0",
-                                            color: "#1e293b",
-                                          }}
-                                        >
-                                          {edu.institution}
-                                        </h4>
-                                        <p
-                                          style={{
-                                            fontSize: "14px",
-                                            color: "#64748b",
-                                            margin: 0,
-                                          }}
-                                        >
-                                          {edu.degree} in {edu.field}
-                                        </p>
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                          whiteSpace: "nowrap",
-                                          marginLeft: "16px",
-                                        }}
-                                      >
-                                        {edu.startDate} - {edu.endDate}
-                                      </span>
-                                    </div>
-                                    {(edu.gpa || edu.honors) && (
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          gap: "16px",
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                        }}
-                                      >
-                                        {edu.gpa && <span>GPA: {edu.gpa}</span>}
-                                        {edu.honors && (
-                                          <span>• {edu.honors}</span>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {section.certificationItems && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "16px",
-                            }}
-                          >
-                            {section.certificationItems.map((cert) => (
-                              <div
-                                key={cert.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "8px",
-                                }}
-                                onClick={() =>
-                                  handleCertificationClick(section.id, cert.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={cert.id}
-                                    checked={cert.checked}
-                                    onCheckedChange={() =>
-                                      handleCertificationToggle(
-                                        section.id,
-                                        cert.id
-                                      )
-                                    }
-                                  />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      padding: "16px",
-                                      backgroundColor: cert.checked
-                                        ? "#f0f9ff"
-                                        : "#f8fafc",
-                                      borderRadius: "8px",
-                                      border: cert.checked
-                                        ? "2px solid #3b82f6"
-                                        : "1px solid #e2e8f0",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        justifyContent: "space-between",
-                                        marginBottom: "8px",
-                                      }}
-                                    >
-                                      <div>
-                                        <h4
-                                          style={{
-                                            fontSize: "16px",
-                                            fontWeight: "600",
-                                            margin: "0 0 4px 0",
-                                            color: "#1e293b",
-                                          }}
-                                        >
-                                          {cert.name}
-                                        </h4>
-                                        <p
-                                          style={{
-                                            fontSize: "14px",
-                                            color: "#64748b",
-                                            margin: 0,
-                                          }}
-                                        >
-                                          {cert.issuer}
-                                        </p>
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                          whiteSpace: "nowrap",
-                                          marginLeft: "16px",
-                                        }}
-                                      >
-                                        {cert.date}
-                                      </span>
-                                    </div>
-                                    {cert.credentialId && (
-                                      <div
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                        }}
-                                      >
-                                        Credential ID: {cert.credentialId}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {section.projectItems && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "16px",
-                            }}
-                          >
-                            {section.projectItems.map((project) => (
-                              <div
-                                key={project.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "8px",
-                                }}
-                                onClick={() =>
-                                  handleProjectClick(section.id, project.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={project.id}
-                                    checked={project.checked}
-                                    onCheckedChange={() =>
-                                      handleProjectToggle(
-                                        section.id,
-                                        project.id
-                                      )
-                                    }
-                                  />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      padding: "16px",
-                                      backgroundColor: project.checked
-                                        ? "#f0f9ff"
-                                        : "#f8fafc",
-                                      borderRadius: "8px",
-                                      border: project.checked
-                                        ? "2px solid #3b82f6"
-                                        : "1px solid #e2e8f0",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        justifyContent: "space-between",
-                                        marginBottom: "8px",
-                                      }}
-                                    >
-                                      <div>
-                                        <h4
-                                          style={{
-                                            fontSize: "16px",
-                                            fontWeight: "600",
-                                            margin: "0 0 4px 0",
-                                            color: "#1e293b",
-                                          }}
-                                        >
-                                          {project.name}
-                                        </h4>
-                                        <p
-                                          style={{
-                                            fontSize: "14px",
-                                            color: "#64748b",
-                                            margin: "0 0 4px 0",
-                                          }}
-                                        >
-                                          {project.role}
-                                        </p>
-                                        {project.description && (
-                                          <p
-                                            style={{
-                                              fontSize: "14px",
-                                              color: "#64748b",
-                                              margin: "0 0 4px 0",
-                                              fontStyle: "italic",
-                                            }}
-                                          >
-                                            {project.description}
-                                          </p>
-                                        )}
-                                        {project.technologies && (
-                                          <p
-                                            style={{
-                                              fontSize: "14px",
-                                              color: "#64748b",
-                                              margin: 0,
-                                            }}
-                                          >
-                                            <strong>Technologies:</strong>{" "}
-                                            {project.technologies}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                          whiteSpace: "nowrap",
-                                          marginLeft: "16px",
-                                        }}
-                                      >
-                                        {project.startDate} - {project.endDate}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {section.skillItems && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "16px",
-                            }}
-                          >
-                            {section.skillItems.map((skill) => (
-                              <div
-                                key={skill.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "8px",
-                                }}
-                                onClick={() =>
-                                  handleSkillClick(section.id, skill.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={skill.id}
-                                    checked={skill.checked}
-                                    onCheckedChange={() =>
-                                      handleSkillToggle(section.id, skill.id)
-                                    }
-                                  />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      padding: "16px",
-                                      backgroundColor: skill.checked
-                                        ? "#f0f9ff"
-                                        : "#f8fafc",
-                                      borderRadius: "8px",
-                                      border: skill.checked
-                                        ? "2px solid #3b82f6"
-                                        : "1px solid #e2e8f0",
-                                    }}
-                                  >
-                                    <h4
-                                      style={{
-                                        fontSize: "16px",
-                                        fontWeight: "600",
-                                        margin: "0 0 8px 0",
-                                        color: "#1e293b",
-                                      }}
-                                    >
-                                      {skill.category}
-                                    </h4>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexWrap: "wrap",
-                                        gap: "8px",
-                                      }}
-                                    >
-                                      {skill.skills.map((skillItem, index) => (
-                                        <span
-                                          key={index}
-                                          style={{
-                                            backgroundColor: "#e2e8f0",
-                                            color: "#475569",
-                                            padding: "4px 8px",
-                                            borderRadius: "4px",
-                                            fontSize: "14px",
-                                            fontWeight: "500",
-                                          }}
-                                        >
-                                          {skillItem}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {section.volunteerItems && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "16px",
-                            }}
-                          >
-                            {section.volunteerItems.map((vol) => (
-                              <div
-                                key={vol.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "8px",
-                                }}
-                                onClick={() =>
-                                  handleVolunteerClick(section.id, vol.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={vol.id}
-                                    checked={vol.checked}
-                                    onCheckedChange={() =>
-                                      handleVolunteerToggle(section.id, vol.id)
-                                    }
-                                  />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      padding: "16px",
-                                      backgroundColor: vol.checked
-                                        ? "#f0f9ff"
-                                        : "#f8fafc",
-                                      borderRadius: "8px",
-                                      border: vol.checked
-                                        ? "2px solid #3b82f6"
-                                        : "1px solid #e2e8f0",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        justifyContent: "space-between",
-                                        marginBottom: "8px",
-                                      }}
-                                    >
-                                      <div>
-                                        <h4
-                                          style={{
-                                            fontSize: "16px",
-                                            fontWeight: "600",
-                                            margin: "0 0 4px 0",
-                                            color: "#1e293b",
-                                          }}
-                                        >
-                                          {vol.organization}
-                                        </h4>
-                                        <p
-                                          style={{
-                                            fontSize: "14px",
-                                            color: "#64748b",
-                                            margin: "0 0 4px 0",
-                                          }}
-                                        >
-                                          {vol.role}
-                                        </p>
-                                        {vol.description && (
-                                          <p
-                                            style={{
-                                              fontSize: "14px",
-                                              color: "#64748b",
-                                              margin: 0,
-                                              fontStyle: "italic",
-                                            }}
-                                          >
-                                            {vol.description}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#64748b",
-                                          whiteSpace: "nowrap",
-                                          marginLeft: "16px",
-                                        }}
-                                      >
-                                        {vol.startDate} - {vol.endDate}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {section.items && (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "8px",
-                            }}
-                          >
-                            {section.items.map((item) => (
-                              <div
-                                key={item.id}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                  cursor: "pointer",
-                                  padding: "8px",
-                                  borderRadius: "6px",
-                                }}
-                                onClick={() =>
-                                  handleItemClick(section.id, item.id)
-                                }
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minWidth: "20px",
-                                  }}
-                                >
-                                  <Checkbox
-                                    id={item.id}
-                                    checked={item.checked}
-                                    onCheckedChange={() =>
-                                      handleItemToggle(section.id, item.id)
-                                    }
-                                  />
-                                </div>
-                                <div
-                                  style={{
-                                    color: item.checked ? "#1e40af" : "#374151",
-                                    fontSize: "14px",
-                                    lineHeight: "1.5",
-                                    fontWeight: item.checked ? "600" : "400",
-                                  }}
-                                >
-                                  {item.text}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                          color: '#1e293b',
+                          letterSpacing: '-0.02em'
+                        }}>
+                          {section.name}
+                        </h3>
+                        <svg 
+                          style={{
+                            transform: section.isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease',
+                            width: '20px',
+                            height: '20px',
+                            color: '#64748b'
+                          }}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                      
+                      {section.isExpanded && (
+                        <div style={{ padding: '24px' }}>
+                          {/* Experience Items */}
+                          {section.experienceItems && section.experienceItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              {section.experienceItems.map((exp) => (
+                                <div 
+                                  key={exp.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '8px',
+                                  }}
+                                  onClick={() => handleExperienceClick(section.id, exp.id)}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minWidth: '20px'
+                                  }}>
+                                    <Checkbox
+                                      id={exp.id}
+                                      checked={exp.checked}
+                                      onCheckedChange={() => handleExperienceToggle(section.id, exp.id)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      padding: '16px',
+                                      backgroundColor: exp.checked ? '#f0f9ff' : '#f8fafc',
+                                      borderRadius: '8px',
+                                      border: exp.checked ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                    }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '8px'
+                                      }}>
+                                        <div style={{ flex: 1 }}>
+                                          <h4 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            margin: '0 0 4px 0',
+                                            color: '#1e293b'
+                                          }}>
+                                            {exp.position}
+                                          </h4>
+                                          <p style={{
+                                            fontSize: '14px',
+                                            color: '#64748b',
+                                            margin: '0 0 4px 0'
+                                          }}>
+                                            {exp.company} • {exp.location}
+                                          </p>
+                                          {exp.description && (
+                                            <p style={{
+                                              fontSize: '14px',
+                                              color: '#64748b',
+                                              margin: 0,
+                                              fontStyle: 'italic',
+                                              whiteSpace: 'pre-line'
+                                            }}>
+                                              {exp.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <span style={{
+                                          fontSize: '14px',
+                                          color: '#64748b',
+                                          whiteSpace: 'nowrap',
+                                          marginLeft: '16px'
+                                        }}>
+                                          {exp.startDate} - {exp.endDate}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Education Items */}
+                          {section.educationItems && section.educationItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              {section.educationItems.map((edu) => (
+                                <div 
+                                  key={edu.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '8px',
+                                  }}
+                                  onClick={() => handleEducationClick(section.id, edu.id)}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minWidth: '20px'
+                                  }}>
+                                    <Checkbox
+                                      id={edu.id}
+                                      checked={edu.checked}
+                                      onCheckedChange={() => handleEducationToggle(section.id, edu.id)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      padding: '16px',
+                                      backgroundColor: edu.checked ? '#f0f9ff' : '#f8fafc',
+                                      borderRadius: '8px',
+                                      border: edu.checked ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                    }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '8px'
+                                      }}>
+                                        <div style={{ flex: 1 }}>
+                                          <h4 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            margin: '0 0 4px 0',
+                                            color: '#1e293b'
+                                          }}>
+                                            {edu.institution}
+                                          </h4>
+                                          <p style={{
+                                            fontSize: '14px',
+                                            color: '#64748b',
+                                            margin: 0
+                                          }}>
+                                            {edu.degree} in {edu.field}
+                                          </p>
+                                        </div>
+                                        <span style={{
+                                          fontSize: '14px',
+                                          color: '#64748b',
+                                          whiteSpace: 'nowrap',
+                                          marginLeft: '16px'
+                                        }}>
+                                          {edu.startDate} - {edu.endDate}
+                                        </span>
+                                      </div>
+                                      {(edu.gpa || edu.honors) && (
+                                        <div style={{
+                                          display: 'flex',
+                                          gap: '16px',
+                                          fontSize: '14px',
+                                          color: '#64748b'
+                                        }}>
+                                          {edu.gpa && <span>GPA: {edu.gpa}</span>}
+                                          {edu.honors && <span>• {edu.honors}</span>}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Certification Items */}
+                          {section.certificationItems && section.certificationItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              {section.certificationItems.map((cert) => (
+                                <div 
+                                  key={cert.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '8px',
+                                  }}
+                                  onClick={() => handleCertificationClick(section.id, cert.id)}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minWidth: '20px'
+                                  }}>
+                                    <Checkbox
+                                      id={cert.id}
+                                      checked={cert.checked}
+                                      onCheckedChange={() => handleCertificationToggle(section.id, cert.id)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      padding: '16px',
+                                      backgroundColor: cert.checked ? '#f0f9ff' : '#f8fafc',
+                                      borderRadius: '8px',
+                                      border: cert.checked ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                    }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '8px'
+                                      }}>
+                                        <div style={{ flex: 1 }}>
+                                          <h4 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            margin: '0 0 4px 0',
+                                            color: '#1e293b'
+                                          }}>
+                                            {cert.name}
+                                          </h4>
+                                          <p style={{
+                                            fontSize: '14px',
+                                            color: '#64748b',
+                                            margin: 0
+                                          }}>
+                                            {cert.issuer}
+                                          </p>
+                                        </div>
+                                        <span style={{
+                                          fontSize: '14px',
+                                          color: '#64748b',
+                                          whiteSpace: 'nowrap',
+                                          marginLeft: '16px'
+                                        }}>
+                                          {cert.date}
+                                        </span>
+                                      </div>
+                                      {cert.credentialId && (
+                                        <div style={{
+                                          fontSize: '14px',
+                                          color: '#64748b'
+                                        }}>
+                                          Credential ID: {cert.credentialId}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Project Items */}
+                          {section.projectItems && section.projectItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              {section.projectItems.map((project) => (
+                                <div 
+                                  key={project.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '8px',
+                                  }}
+                                  onClick={() => handleProjectClick(section.id, project.id)}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minWidth: '20px'
+                                  }}>
+                                    <Checkbox
+                                      id={project.id}
+                                      checked={project.checked}
+                                      onCheckedChange={() => handleProjectToggle(section.id, project.id)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      padding: '16px',
+                                      backgroundColor: project.checked ? '#f0f9ff' : '#f8fafc',
+                                      borderRadius: '8px',
+                                      border: project.checked ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                    }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '8px'
+                                      }}>
+                                        <div style={{ flex: 1 }}>
+                                          <h4 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            margin: '0 0 4px 0',
+                                            color: '#1e293b'
+                                          }}>
+                                            {project.name}
+                                          </h4>
+                                          <p style={{
+                                            fontSize: '14px',
+                                            color: '#64748b',
+                                            margin: '0 0 4px 0'
+                                          }}>
+                                            {project.role}
+                                          </p>
+                                          {project.description && (
+                                            <p style={{
+                                              fontSize: '14px',
+                                              color: '#64748b',
+                                              margin: '0 0 4px 0',
+                                              fontStyle: 'italic',
+                                              whiteSpace: 'pre-line'
+                                            }}>
+                                              {project.description}
+                                            </p>
+                                          )}
+                                          {project.technologies && (
+                                            <p style={{
+                                              fontSize: '14px',
+                                              color: '#64748b',
+                                              margin: 0
+                                            }}>
+                                              <strong>Technologies:</strong> {project.technologies}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <span style={{
+                                          fontSize: '14px',
+                                          color: '#64748b',
+                                          whiteSpace: 'nowrap',
+                                          marginLeft: '16px'
+                                        }}>
+                                          {project.startDate} - {project.endDate}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Skill Items */}
+                          {section.skillItems && section.skillItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              {section.skillItems.map((skill) => (
+                                <div 
+                                  key={skill.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '8px',
+                                  }}
+                                  onClick={() => handleSkillClick(section.id, skill.id)}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minWidth: '20px'
+                                  }}>
+                                    <Checkbox
+                                      id={skill.id}
+                                      checked={skill.checked}
+                                      onCheckedChange={() => handleSkillToggle(section.id, skill.id)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      padding: '16px',
+                                      backgroundColor: skill.checked ? '#f0f9ff' : '#f8fafc',
+                                      borderRadius: '8px',
+                                      border: skill.checked ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                    }}>
+                                      <h4 style={{
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        margin: '0 0 8px 0',
+                                        color: '#1e293b'
+                                      }}>
+                                        {skill.category}
+                                      </h4>
+                                      <div style={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: '8px'
+                                      }}>
+                                        {skill.skills.map((skillItem, index) => (
+                                          <span
+                                            key={index}
+                                            style={{
+                                              backgroundColor: '#e2e8f0',
+                                              color: '#475569',
+                                              padding: '4px 8px',
+                                              borderRadius: '4px',
+                                              fontSize: '14px',
+                                              fontWeight: '500'
+                                            }}
+                                          >
+                                            {skillItem}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Volunteer Items */}
+                          {section.volunteerItems && section.volunteerItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                              {section.volunteerItems.map((vol) => (
+                                <div 
+                                  key={vol.id} 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '8px',
+                                  }}
+                                  onClick={() => handleVolunteerClick(section.id, vol.id)}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minWidth: '20px'
+                                  }}>
+                                    <Checkbox
+                                      id={vol.id}
+                                      checked={vol.checked}
+                                      onCheckedChange={() => handleVolunteerToggle(section.id, vol.id)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      padding: '16px',
+                                      backgroundColor: vol.checked ? '#f0f9ff' : '#f8fafc',
+                                      borderRadius: '8px',
+                                      border: vol.checked ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                    }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '8px'
+                                      }}>
+                                        <div style={{ flex: 1 }}>
+                                          <h4 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            margin: '0 0 4px 0',
+                                            color: '#1e293b'
+                                          }}>
+                                            {vol.organization}
+                                          </h4>
+                                          <p style={{
+                                            fontSize: '14px',
+                                            color: '#64748b',
+                                            margin: '0 0 4px 0'
+                                          }}>
+                                            {vol.role}
+                                          </p>
+                                          {vol.description && (
+                                            <p style={{
+                                              fontSize: '14px',
+                                              color: '#64748b',
+                                              margin: 0,
+                                              fontStyle: 'italic',
+                                              whiteSpace: 'pre-line'
+                                            }}>
+                                              {vol.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <span style={{
+                                          fontSize: '14px',
+                                          color: '#64748b',
+                                          whiteSpace: 'nowrap',
+                                          marginLeft: '16px'
+                                        }}>
+                                          {vol.startDate} - {vol.endDate}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Empty state for sections with no data */}
+                          {!section.experienceItems?.length && 
+                           !section.educationItems?.length && 
+                           !section.certificationItems?.length && 
+                           !section.projectItems?.length && 
+                           !section.skillItems?.length && 
+                           !section.volunteerItems?.length && 
+                           !section.items?.length && (
+                            <div style={{
+                              textAlign: 'center',
+                              padding: '40px',
+                              color: '#64748b',
+                              fontSize: '14px'
+                            }}>
+                              No {section.name.toLowerCase()} data found in your resume
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
