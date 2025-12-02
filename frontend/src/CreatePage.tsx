@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "./Components/ui/checkbox";
 import Sidebar from "./Sidebar";
 import { useNavigate, useParams } from "react-router-dom";
@@ -269,6 +269,21 @@ export function CreatePage() {
     if (!resume || !resume.resume) {
       console.log("No resume data found");
       return;
+    }
+
+    // Collect personal information (if present) into pushedResume
+    const personalInformation =
+      resume.personal_information ||
+      resume.personalInformation ||
+      resume.personal ||
+      null;
+
+    if (personalInformation && Object.keys(personalInformation).length > 0) {
+      pushedResume.current.push({
+        type: "personal_information",
+        sectionId: "personal",
+        data: personalInformation,
+      });
     }
 
     const resumeContent = resume.resume;
@@ -579,112 +594,230 @@ export function CreatePage() {
 
   // Toggle handlers for different item types
   const handleEducationToggle = (sectionId: string, eduId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              educationItems: section.educationItems?.map((edu) =>
-                edu.id === eduId ? { ...edu, checked: !edu.checked } : edu
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const educationItems = section.educationItems?.map((edu) => {
+        if (edu.id !== eduId) return edu;
+        const newChecked = !edu.checked;
+        const newEdu = { ...edu, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({
+            type: "education",
+            sectionId,
+            data: newEdu,
+          });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "education" &&
+                e.data?.id === eduId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newEdu;
+      });
+
+      return { ...section, educationItems };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleExperienceToggle = (sectionId: string, expId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              experienceItems: section.experienceItems?.map((exp) =>
-                exp.id === expId ? { ...exp, checked: !exp.checked } : exp
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const experienceItems = section.experienceItems?.map((exp) => {
+        if (exp.id !== expId) return exp;
+        const newChecked = !exp.checked;
+        const newExp = { ...exp, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({
+            type: "experience",
+            sectionId,
+            data: newExp,
+          });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "experience" &&
+                e.data?.id === expId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newExp;
+      });
+
+      return { ...section, experienceItems };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleProjectToggle = (sectionId: string, projectId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              projectItems: section.projectItems?.map((project) =>
-                project.id === projectId
-                  ? { ...project, checked: !project.checked }
-                  : project
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const projectItems = section.projectItems?.map((project) => {
+        if (project.id !== projectId) return project;
+        const newChecked = !project.checked;
+        const newProject = { ...project, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({
+            type: "project",
+            sectionId,
+            data: newProject,
+          });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "project" &&
+                e.data?.id === projectId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newProject;
+      });
+
+      return { ...section, projectItems };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleCertificationToggle = (sectionId: string, certId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              certificationItems: section.certificationItems?.map((cert) =>
-                cert.id === certId ? { ...cert, checked: !cert.checked } : cert
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const certificationItems = section.certificationItems?.map((cert) => {
+        if (cert.id !== certId) return cert;
+        const newChecked = !cert.checked;
+        const newCert = { ...cert, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({
+            type: "certification",
+            sectionId,
+            data: newCert,
+          });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "certification" &&
+                e.data?.id === certId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newCert;
+      });
+
+      return { ...section, certificationItems };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleSkillToggle = (sectionId: string, skillId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              skillItems: section.skillItems?.map((skill) =>
-                skill.id === skillId
-                  ? { ...skill, checked: !skill.checked }
-                  : skill
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const skillItems = section.skillItems?.map((skill) => {
+        if (skill.id !== skillId) return skill;
+        const newChecked = !skill.checked;
+        const newSkill = { ...skill, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({
+            type: "skill",
+            sectionId,
+            data: newSkill,
+          });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "skill" &&
+                e.data?.id === skillId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newSkill;
+      });
+
+      return { ...section, skillItems };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleVolunteerToggle = (sectionId: string, volId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              volunteerItems: section.volunteerItems?.map((vol) =>
-                vol.id === volId ? { ...vol, checked: !vol.checked } : vol
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const volunteerItems = section.volunteerItems?.map((vol) => {
+        if (vol.id !== volId) return vol;
+        const newChecked = !vol.checked;
+        const newVol = { ...vol, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({
+            type: "volunteer",
+            sectionId,
+            data: newVol,
+          });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "volunteer" &&
+                e.data?.id === volId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newVol;
+      });
+
+      return { ...section, volunteerItems };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleItemToggle = (sectionId: string, itemId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              items: section.items?.map((item) =>
-                item.id === itemId ? { ...item, checked: !item.checked } : item
-              ),
-            }
-          : section
-      )
-    );
+    const updatedSections = sections.map((section) => {
+      if (section.id !== sectionId) return section;
+
+      const items = section.items?.map((item) => {
+        if (item.id !== itemId) return item;
+        const newChecked = !item.checked;
+        const newItem = { ...item, checked: newChecked };
+        if (newChecked) {
+          pushedResume.current.push({ type: "item", sectionId, data: newItem });
+        } else {
+          pushedResume.current = pushedResume.current.filter(
+            (e) =>
+              !(
+                e.type === "item" &&
+                e.data?.id === itemId &&
+                e.sectionId === sectionId
+              )
+          );
+        }
+        return newItem;
+      });
+
+      return { ...section, items };
+    });
+
+    setSections(updatedSections);
   };
 
   const handleSelectTemplate = (index: number) => {
@@ -744,7 +877,7 @@ export function CreatePage() {
     // Navigate to ComparePage and pass the combined resume via location state
     // so the ComparePage can consume it as a parameter (or via props).
     if (resumeData) {
-      navigate("/ComparePage", { state: { resumeObj: resumeData } });
+      navigate("/ComparePage", { state: { resumeObj: pushedResume.current } });
     } else {
       // If no combined resume was prepared, still navigate but warn
       navigate("/ComparePage");
