@@ -367,7 +367,7 @@ const ComparePage = () => {
           institution: "The University of Texas at Dallas",
           location: "Richardson, TX",
           majors: ["Bachelor of Computer Science"],
-          minors: [""],
+          minors: [],
           GPA: "4.0",
         },
       ],

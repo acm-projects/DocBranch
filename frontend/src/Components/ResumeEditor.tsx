@@ -1372,9 +1372,10 @@ export function ResumeEditor({
     };
   };
 
-  // Memoize built resume so passing to PdfViewer doesn't recreate object
-  // on simple UI state changes (like hover) which would force reloads.
-  const memoResume = useMemo(() => buildResume(), [sections]);
+  // Store built resume in state and update it when the user requests Preview
+  // This avoids rebuilding on every minor UI change and gives explicit
+  // control to refresh the preview when appropriate.
+  const [memoResume, setMemoResume] = useState(() => buildResume());
 
   const hardcodedresume = {
     user_id: "0",
@@ -1489,7 +1490,7 @@ export function ResumeEditor({
     try {
       const payload = buildResume();
       const response = await axios.post(
-        "http://localhost:3000/resumes",
+        "http://localhost:3000/resumes/0/11",
         payload
       );
       setSuccess("Resume uploaded successfully");
@@ -1716,7 +1717,9 @@ export function ResumeEditor({
             Edit
           </button>
           <button
-            onClick={() => setActiveView("preview")}
+            onClick={() => {
+              setActiveView("preview"), setMemoResume(buildResume());
+            }}
             style={{
               padding: "6px 14px",
               borderRadius: "4px",
@@ -1829,7 +1832,7 @@ export function ResumeEditor({
               Upload
             </button>
 
-            {/* <div
+            <div
               style={{
                 marginTop: "12px",
                 padding: "12px",
@@ -1849,7 +1852,7 @@ export function ResumeEditor({
               >
                 {JSON.stringify(memoResume, null, 2)}
               </pre>
-            </div> */}
+            </div>
           </div>
         )}
       </div>
