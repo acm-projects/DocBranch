@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Checkbox } from "./Components/ui/checkbox";
 import Sidebar from "./Sidebar";
 import { useNavigate, useParams } from "react-router-dom";
@@ -170,14 +170,11 @@ export function CreatePage() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch the profile for user 0 and use its resume content
-      const response = await axios.get("http://localhost:3000/profiles/0");
-      console.log("Fetched profile for user 0:", response.data);
+      const profileResp = await axios.get("http://localhost:3000/profiles/0");
+      console.log("Fetched profile for user 0:", profileResp.data);
 
-      const data = response.data;
-      let profile = data.Items[0];
-
-      console.log("\n\nResume info: ", profile);
+      const data = profileResp.data;
+      let profile = data.Items?.[0] ?? data;
 
       if (!profile) {
         setError("No profile resume data found for user 0");
@@ -195,15 +192,15 @@ export function CreatePage() {
           },
         };
 
-        console.log("\n\nCombined Resume: ", combinedResume);
-
         setResumeData(combinedResume);
         parseResumeData(combinedResume);
       }
     } catch (err: any) {
-      console.error("Error fetching resume:", err);
+      console.error("Error fetching resume/profile:", err);
       setError(
-        err.response?.data?.message || err.message || "Failed to fetch resume"
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to fetch resume/profile"
       );
     } finally {
       setLoading(false);
@@ -269,21 +266,6 @@ export function CreatePage() {
     if (!resume || !resume.resume) {
       console.log("No resume data found");
       return;
-    }
-
-    // Collect personal information (if present) into pushedResume
-    const personalInformation =
-      resume.personal_information ||
-      resume.personalInformation ||
-      resume.personal ||
-      null;
-
-    if (personalInformation && Object.keys(personalInformation).length > 0) {
-      pushedResume.current.push({
-        type: "personal_information",
-        sectionId: "personal",
-        data: personalInformation,
-      });
     }
 
     const resumeContent = resume.resume;
@@ -588,236 +570,261 @@ export function CreatePage() {
     return `• ${data}`;
   };
 
+  // Function to build JSON from checked items (selected by user)
+  const buildSelectedResumeJson = () => {
+    const selectedResume: any = {
+      resume: {
+        personal_information: {
+          name: "",
+          email: "",
+          phone: "",
+          location: "",
+          links: [],
+        },
+        education: [],
+        experience: [],
+        projects: [],
+        skills: {},
+        certifications: [],
+        volunteer_experience: [],
+      },
+    };
+
+    sections.forEach((section) => {
+      if (section.name === "Education & Certifications") {
+        const checkedEducation =
+          section.educationItems?.filter((edu) => edu.checked) || [];
+        checkedEducation.forEach((edu) => {
+          selectedResume.resume.education.push({
+            institution: edu.institution,
+            degree: edu.degree,
+            field_of_study: edu.field,
+            start_date: edu.startDate,
+            end_date: edu.endDate,
+            GPA: edu.gpa,
+            description: edu.honors,
+          });
+        });
+
+        const checkedCerts =
+          section.certificationItems?.filter((c) => c.checked) || [];
+        checkedCerts.forEach((cert) => {
+          selectedResume.resume.certifications.push({
+            name: cert.name,
+            issuer: cert.issuer,
+            date: cert.date,
+            credential_id: cert.credentialId,
+          });
+        });
+      }
+
+      if (section.name === "Professional Experience") {
+        const checkedExperience =
+          section.experienceItems?.filter((e) => e.checked) || [];
+        checkedExperience.forEach((exp) => {
+          selectedResume.resume.experience.push({
+            company: exp.company,
+            position: exp.position,
+            location: exp.location,
+            start_date: exp.startDate,
+            end_date: exp.endDate,
+            description: exp.description
+              ? exp.description
+                  .split("\n")
+                  .map((l: string) => l.replace("• ", "").trim())
+              : [],
+          });
+        });
+      }
+
+      if (section.name === "Projects") {
+        const checkedProjects =
+          section.projectItems?.filter((p) => p.checked) || [];
+        checkedProjects.forEach((proj) => {
+          selectedResume.resume.projects.push({
+            name: proj.name,
+            role: proj.role,
+            start_date: proj.startDate,
+            end_date: proj.endDate,
+            description: proj.description
+              ? proj.description
+                  .split("\n")
+                  .map((l: string) => l.replace("• ", "").trim())
+              : [],
+            technologies: proj.technologies
+              ? proj.technologies.split(",").map((t: string) => t.trim())
+              : [],
+          });
+        });
+      }
+
+      if (section.name === "Skills & Expertise") {
+        const checkedSkills =
+          section.skillItems?.filter((s) => s.checked) || [];
+        if (checkedSkills.length > 0) {
+          const skillsObj: any = {};
+          checkedSkills.forEach((s) => {
+            const key = s.category.toLowerCase().replace(/\s+/g, "_");
+            skillsObj[key] = s.skills;
+          });
+          selectedResume.resume.skills = skillsObj;
+        }
+      }
+
+      if (section.name === "Volunteer Work") {
+        const checkedVolunteer =
+          section.volunteerItems?.filter((v) => v.checked) || [];
+        checkedVolunteer.forEach((vol) => {
+          selectedResume.resume.volunteer_experience.push({
+            organization: vol.organization,
+            role: vol.role,
+            start_date: vol.startDate,
+            end_date: vol.endDate,
+            description: vol.description
+              ? vol.description
+                  .split("\n")
+                  .map((l: string) => l.replace("• ", "").trim())
+              : [],
+          });
+        });
+      }
+    });
+
+    selectedResume.user_id = "selected-user";
+    selectedResume.resume_id = `selected-${Date.now()}`;
+    selectedResume.metadata = {
+      resume_info: {
+        resume_creation_date: new Date().toISOString(),
+        filename: "selected_resume.json",
+        source: "CreatePage selection",
+        selected_items: {
+          education: selectedResume.resume.education.length,
+          experience: selectedResume.resume.experience.length,
+          projects: selectedResume.resume.projects.length,
+          skills_categories: Object.keys(selectedResume.resume.skills || {})
+            .length,
+          certifications: selectedResume.resume.certifications.length,
+          volunteer: selectedResume.resume.volunteer_experience.length,
+        },
+      },
+    };
+
+    console.log("Selected resume JSON:", selectedResume);
+    return selectedResume;
+  };
+
   useEffect(() => {
     fetchResumeData();
   }, [resumeId]);
 
   // Toggle handlers for different item types
   const handleEducationToggle = (sectionId: string, eduId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const educationItems = section.educationItems?.map((edu) => {
-        if (edu.id !== eduId) return edu;
-        const newChecked = !edu.checked;
-        const newEdu = { ...edu, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({
-            type: "education",
-            sectionId,
-            data: newEdu,
-          });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "education" &&
-                e.data?.id === eduId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newEdu;
-      });
-
-      return { ...section, educationItems };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              educationItems: section.educationItems?.map((edu) =>
+                edu.id === eduId ? { ...edu, checked: !edu.checked } : edu
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleExperienceToggle = (sectionId: string, expId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const experienceItems = section.experienceItems?.map((exp) => {
-        if (exp.id !== expId) return exp;
-        const newChecked = !exp.checked;
-        const newExp = { ...exp, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({
-            type: "experience",
-            sectionId,
-            data: newExp,
-          });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "experience" &&
-                e.data?.id === expId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newExp;
-      });
-
-      return { ...section, experienceItems };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              experienceItems: section.experienceItems?.map((exp) =>
+                exp.id === expId ? { ...exp, checked: !exp.checked } : exp
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleProjectToggle = (sectionId: string, projectId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const projectItems = section.projectItems?.map((project) => {
-        if (project.id !== projectId) return project;
-        const newChecked = !project.checked;
-        const newProject = { ...project, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({
-            type: "project",
-            sectionId,
-            data: newProject,
-          });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "project" &&
-                e.data?.id === projectId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newProject;
-      });
-
-      return { ...section, projectItems };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              projectItems: section.projectItems?.map((project) =>
+                project.id === projectId
+                  ? { ...project, checked: !project.checked }
+                  : project
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleCertificationToggle = (sectionId: string, certId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const certificationItems = section.certificationItems?.map((cert) => {
-        if (cert.id !== certId) return cert;
-        const newChecked = !cert.checked;
-        const newCert = { ...cert, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({
-            type: "certification",
-            sectionId,
-            data: newCert,
-          });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "certification" &&
-                e.data?.id === certId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newCert;
-      });
-
-      return { ...section, certificationItems };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              certificationItems: section.certificationItems?.map((cert) =>
+                cert.id === certId ? { ...cert, checked: !cert.checked } : cert
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleSkillToggle = (sectionId: string, skillId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const skillItems = section.skillItems?.map((skill) => {
-        if (skill.id !== skillId) return skill;
-        const newChecked = !skill.checked;
-        const newSkill = { ...skill, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({
-            type: "skill",
-            sectionId,
-            data: newSkill,
-          });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "skill" &&
-                e.data?.id === skillId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newSkill;
-      });
-
-      return { ...section, skillItems };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              skillItems: section.skillItems?.map((skill) =>
+                skill.id === skillId
+                  ? { ...skill, checked: !skill.checked }
+                  : skill
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleVolunteerToggle = (sectionId: string, volId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const volunteerItems = section.volunteerItems?.map((vol) => {
-        if (vol.id !== volId) return vol;
-        const newChecked = !vol.checked;
-        const newVol = { ...vol, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({
-            type: "volunteer",
-            sectionId,
-            data: newVol,
-          });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "volunteer" &&
-                e.data?.id === volId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newVol;
-      });
-
-      return { ...section, volunteerItems };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              volunteerItems: section.volunteerItems?.map((vol) =>
+                vol.id === volId ? { ...vol, checked: !vol.checked } : vol
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleItemToggle = (sectionId: string, itemId: string) => {
-    const updatedSections = sections.map((section) => {
-      if (section.id !== sectionId) return section;
-
-      const items = section.items?.map((item) => {
-        if (item.id !== itemId) return item;
-        const newChecked = !item.checked;
-        const newItem = { ...item, checked: newChecked };
-        if (newChecked) {
-          pushedResume.current.push({ type: "item", sectionId, data: newItem });
-        } else {
-          pushedResume.current = pushedResume.current.filter(
-            (e) =>
-              !(
-                e.type === "item" &&
-                e.data?.id === itemId &&
-                e.sectionId === sectionId
-              )
-          );
-        }
-        return newItem;
-      });
-
-      return { ...section, items };
-    });
-
-    setSections(updatedSections);
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              items: section.items?.map((item) =>
+                item.id === itemId ? { ...item, checked: !item.checked } : item
+              ),
+            }
+          : section
+      )
+    );
   };
 
   const handleSelectTemplate = (index: number) => {
@@ -871,15 +878,17 @@ export function CreatePage() {
     );
   };
 
-  // Generate resume based on selected items
+  // Generate resume based on selected items (build JSON of checked items)
   const generateResume = () => {
-    console.log(resumeData);
-    // Navigate to ComparePage and pass the combined resume via location state
-    // so the ComparePage can consume it as a parameter (or via props).
-    if (resumeData) {
-      navigate("/ComparePage", { state: { resumeObj: pushedResume.current } });
+    const selectedResumeJson = buildSelectedResumeJson();
+    if (selectedResumeJson) {
+      navigate("/ComparePage", {
+        state: { selectedResumeData: selectedResumeJson, autoFill: true },
+      });
+    } else if (resumeData) {
+      // fallback to combined resume data
+      navigate("/ComparePage", { state: { resumeObj: resumeData } });
     } else {
-      // If no combined resume was prepared, still navigate but warn
       navigate("/ComparePage");
     }
   };
