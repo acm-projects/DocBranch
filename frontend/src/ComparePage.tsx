@@ -80,30 +80,36 @@ const ComparePage = () => {
     setAiAnalysisResult("");
     setApiError(null);
 
-    try {
-      const resumeResponse = await backend_api.get("/resumes/0/11");
-      const resumeData = resumeResponse.data;
+    // simulate processing delay (8 seconds) before showing results
+    await new Promise((resolve) => setTimeout(resolve, 8000));
 
-      const response = await backend_api.post("/analyze-resume", {
-        resumeData: resumeData,
-        jobDescription: savedJobDescription,
-      });
+    setAiAnalysisResult(
+      "**Resume/Job Match Score: 75%** --- **Areas for Improvement:** - **AI/Cloud Skills Not Quantified**: AWS is listed and used in a project, but there's little detail about scale, deployment, or GenAI. Expand on depth of AWS knowledge and include any cloud deployments or GenAI/AI tools for productivity. - **Limited Professional Experience**: The only relevant experience is FIRST Robotics (as Programming Lead/Team Captain). Consider adding internships, research, TA roles, or freelance projects relevant to software engineering. - **Missing Coursework/Expected Graduation Date**: The resume does NOT explicitly state expected graduation date, term remaining after internship, or relevant coursework (important basic qualification for Amazon). - **No Mention of Object-Oriented Design/Algorithms in Detail**: While Java experience and OOP are mentioned, explicit demonstration of **data structures, algorithms, or object-oriented design principles** is light. Add academic or personal projects highlighting this. - **Insufficient Evidence of SDLC/Agile Practices**: Agile is listed in skills, but not demonstrated in experience or projects. Add lines about participating in sprints, code reviews, or version control usage in team settings. - **Missing Specific Technologies/Preferred Skills**: No mention of **TypeScript, Go, C++, C#, or Rust** (as examples of general-purpose languages), or topics like **cloud-native architectures, microservices, CI/CD, professional debugging, or operational excellence**. Highlight these where possible. - **No Soft Skills Evidence**: Communication, collaboration, and adaptability are only implied (mentored team, led students) and could be more explicit, especially as Amazon values these highly. - **Missing Keywords**: Words/phrases like “**scalable systems**,” “**fault-tolerant systems**,” “**distributed systems**,” “**cloud-native**,” “**microservices**,” “**CI/CD**,” “**SDLC**,” “**test-driven development**,” and “**code reviews**” are missing or underrepresented—important when passing ATS or recruiter review. - **Formatting/Section Gaps**: No summary/objective section. Adding a brief summary can help contextualize fit for Amazon SDE role. --- **Key Strengths:** - **Strong Technical Stack**: Experience with **Java, Python, JavaScript, Node.js, Electron, AWS (Lambda, DynamoDB, S3), SQL/NoSQL**, and **OpenCV** is relevant and valuable. - **Leadership & Mentoring**: Led a robotics programming team, mentored 60 members, and took projects to world championships—demonstrating leadership, mentorship, and teamwork. - **Project Experience**: Developing “DocBranch,” an AI-powered, cross-platform app leveraging **AWS serverless architecture, Node.js backend, React, Electron**, and **AI resume feedback** tools demonstrates a hands-on approach with scalable, modern architectures. - **Academic Excellence**: Maintaining a **4.0 GPA** in Computer Science from a reputable university is a strong signal of dedication and capability. - **Experience with Machine Learning & Vision**: Custom neural networks and OpenCV pipelines show some breadth in AI/ML, which can be tailored to the Machine Learning focus Amazon lists. - **Version Control & Agile**: Knowledge of **Git** and some mention of **Agile Development** meet expectations. --- **Missing Keywords/Skills from Job Requirements:** - **CI/CD** (Continuous Integration/Deployment) - **Cloud-native** architectures, **microservices** - **Distributed systems** - **Operational excellence** - **Testing methodologies** (unit/integration/e2e tests) - **Code reviews, technical documentation** - **SDLC** (Software Development Lifecycle) - **Debugging/troubleshooting complex systems** (in professional or large-scale settings) - **Contributing to open-source projects** - **GenAI/AWS AI services utilization for productivity** - **Professional communication skills** --- **Specific Recommendations:** - **Add a brief professional summary/objective** at the top mapping your skills/experience directly to the SDE Intern role at Amazon. - **Expand your Experience section**: If you have ANY additional internships, academic research, or volunteer experience in technical settings, add them. Even small projects can count if described well (“Software Engineering Intern, Developed…” etc.). - **Explicitly mention key skills and tools in project/experience descriptions**: Use phrases like: “Built scalable microservices with Node.js and AWS Lambda,” “Implemented CI/CD pipelines in project deployment,” or “Participated in code reviews.” - **Quantify your impact and technical decisions**: For example, “Reduced API latency by 50% leveraging DynamoDB and tuning cloud functions,” or “Implemented distributed logging system for real-time fault tolerance.” - **Highlight relevant coursework** (Algorithms, Data Structures, Distributed Systems, Cloud Computing) under Education, and state expected graduation date (“Expected Graduation: May 2027”). - **List additional programming languages** if you have experience with C++, TypeScript, Go, C#, or Rust—even at beginner/intermediate level. - **Communicate adaptability and learning**: Briefly note instances where you learned new technologies quickly, or worked in ambiguous/problem-solving environments. - **Emphasize collaborative skills**: Add real examples (“Worked with cross-functional teams to…”), especially relating to working with designers, PMs, or other developers. - **Include relevant open-source contributions** or personal GitHub repository links if available. - **Tailor your project descriptions** for terms like “distributed systems,” “AI-powered tools,” “cloud-native,” “agile/Scrum,” “fault tolerance,” and “scalable solutions.” - **Finalize with a stronger Skills section** that both broadens (tools, cloud, frameworks, methodologies) and deepens the match to Amazon’s requirements. --- With targeted improvement and added detail, this resume can become highly competitive for the Amazon SDE Internship."
+    );
+    // try {
+    // const resumeResponse = await backend_api.get("/resumes/0/11");
+    // const resumeData = resumeResponse.data;
 
-      if (response.data.success) {
-        setAiAnalysisResult(response.data.result);
-      } else {
-        setApiError(response.data.error || "Analysis failed");
-      }
-    } catch (error: any) {
-      console.error("AI analysis failed:", error);
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to analyze resume - please try again";
-      setApiError(errorMessage);
-    } finally {
-      setAnalyzing(false);
-    }
+    // const response = await backend_api.post("/analyze-resume", {
+    //   resumeData: resumeData,
+    //   jobDescription: savedJobDescription,
+    //   // });
+
+    //   if (response.data.success) {
+    //     setAiAnalysisResult(response.data.result);
+    //   } else {
+    //     setApiError(response.data.error || "Analysis failed");
+    //   }
+    // } catch (error: any) {
+    //   console.error("AI analysis failed:", error);
+    //   const errorMessage =
+    //     error.response?.data?.error ||
+    //     error.message ||
+    //     "Failed to analyze resume - please try again";
+    //   setApiError(errorMessage);
+    // } finally {
+    //   setAnalyzing(false);
+    // }
   };
 
   // Parse search results from `bedrockResult.generatedText`.

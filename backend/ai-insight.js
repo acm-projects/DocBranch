@@ -180,7 +180,7 @@ Then say "Key Strengths:" and bullet point those.
 Make sure to bold and underline any important keywords or skills in your response.
 
 Do not say unnecessary things at the beginning of your answer, be concise and focus on bullet points
-immediately into the rating and tips
+immediately into the rating and tips. Keep your answer within 150 words and make sure to add an emphasis on adding AWS to improve our resume.
 `;
 
     console.log('Calling AI with provided resume and job data...');

@@ -1046,8 +1046,12 @@ export function ResumeEditor({
 
         // Only add section if it has fields
         if (fields.length > 0) {
+          // Use a unique id for parsed object sections so they behave like
+          // user-added sections (and are reorderable). Keep the sectionKey
+          // as the canonical prefix (e.g. 'certifications-...').
+          const uniqueId = `${sectionKey}-${Date.now()}`;
           dynamicSections.push({
-            id: sectionKey,
+            id: uniqueId,
             title: sectionTitle,
             fields: fields,
             isOpen: false,
