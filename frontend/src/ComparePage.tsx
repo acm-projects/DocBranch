@@ -30,7 +30,7 @@ const ComparePage = () => {
     { id: 1, name: "Kida_Khanooni" },
     { id: 2, name: "Kida_Khanooni" },
   ]);
-  const [commentBoxHeight, setCommentBoxHeight] = useState(150);
+  const [commentBoxHeight, setCommentBoxHeight] = useState(0);
   const [leftWidth, setLeftWidth] = useState(15);
   const [middleLeftWidth, setMiddleLeftWidth] = useState(50);
   const [rightWidth, setRightWidth] = useState(15);
@@ -744,9 +744,9 @@ const ComparePage = () => {
                           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                       }}
                     >
-                      Current Resume{" "}
-                      {selectedResumeId &&
-                        `- User: ${selectedUserId} | Resume: ${selectedResumeId}`}
+                      Comparison Resume
+                      {/* {selectedResumeId &&
+                        `- User: ${selectedUserId} | Resume: ${selectedResumeId}`} */}
                     </h3>
                     <button
                       onClick={() => {
