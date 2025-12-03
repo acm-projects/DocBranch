@@ -7,6 +7,28 @@ export default function LandingPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 
+  // Document data with images
+  const documents = [
+    {
+      name: "2025 Data Analyst Resume ",
+      image:
+        "https://i.pinimg.com/1200x/3b/9e/61/3b9e61821937da82f08ff43672126b4b.jpg?w=400&h=200&fit=crop&crop=center",
+      date: "2 days ago",
+    },
+    {
+      name: "2025 Software Engineer Resume",
+      image:
+        "https://i.pinimg.com/1200x/3b/9e/61/3b9e61821937da82f08ff43672126b4b.jpg?w=400&h=200&fit=crop&crop=center",
+      date: "1 week ago",
+    },
+    {
+      name: "2025 Product Manager Resume",
+      image:
+        "https://i.pinimg.com/1200x/3b/9e/61/3b9e61821937da82f08ff43672126b4b.jpg?w=400&h=200&fit=crop&crop=center",
+      date: "3 weeks ago",
+    },
+  ];
+
   return (
     // <div className="flex h-screen bg-gradient-to-br from-blue-50 to-pink-50">
     <div className="flex h-screen bg-gray-100">
@@ -21,7 +43,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto p-8">
           {/* Welcome Header */}
           <h1 className="text-5xl font-bold mb-6">
-            Hello, <span className="text-green-600">User</span>
+            Hello, <span className="text-green-600">Kida</span>
           </h1>
 
           {/* Search Bar */}
@@ -47,22 +69,38 @@ export default function LandingPage() {
             {/* Document Cards */}
             <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {["Doc 1", "Doc 2", "Doc 3"].map((doc) => (
+                {documents.map((doc) => (
                   <div
-                    key={doc}
-                    className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                    key={doc.name}
+                    className="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow overflow-hidden group"
                   >
-                    <div className="h-32 mb-3"></div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">{doc}</span>
-                      <div className="flex gap-1">
-                        {[1, 2, 3].map((dot) => (
-                          <div
-                            key={dot}
-                            className="w-1.5 h-1.5 bg-gray-300 rounded-full"
-                          ></div>
-                        ))}
+                    {/* Image Section */}
+                    <div className="h-48 overflow-hidden relative">
+                      <img
+                        src={doc.image}
+                        alt={doc.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {/* Overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-800">
+                          {doc.name}
+                        </span>
+                        <div className="flex gap-1">
+                          {[1, 2, 3].map((dot) => (
+                            <div
+                              key={dot}
+                              className="w-1.5 h-1.5 bg-gray-300 rounded-full"
+                            ></div>
+                          ))}
+                        </div>
                       </div>
+                      <span className="text-xs text-gray-500">{doc.date}</span>
                     </div>
                   </div>
                 ))}

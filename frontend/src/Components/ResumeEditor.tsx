@@ -1832,7 +1832,7 @@ export function ResumeEditor({
               Upload
             </button>
 
-            <div
+            {/* <div
               style={{
                 marginTop: "12px",
                 padding: "12px",
@@ -1852,7 +1852,7 @@ export function ResumeEditor({
               >
                 {JSON.stringify(memoResume, null, 2)}
               </pre>
-            </div>
+            </div> */}
           </div>
         )}
       </div>
