@@ -25,11 +25,13 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "react-pdf": "^10.2.0",
     "react-resizable-panels": "^3.0.6",
     "react-router-dom": "^7.9.4",
     "react-split-it": "^2.0.0",
     "reactflow": "^11.11.4",
+    "remark-gfm": "^4.0.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

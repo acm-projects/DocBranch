@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import PdfViewer from ".././PdfViewer";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 // field interface
 export interface FieldData {
@@ -856,6 +857,16 @@ export function ResumeEditor({
   const [success, setSuccess] = useState<string | null>(null);
   const [pdfHover, setPdfHover] = useState(false);
 
+  const toggleSection = (sectionId: string) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, isOpen: !section.isOpen }
+          : section
+      )
+    );
+  };
+
   // Fetch specific resume from backend
   const fetchResume = async () => {
     // Guard: if props are missing, don't attempt to fetch.
@@ -1099,16 +1110,6 @@ export function ResumeEditor({
     }
   }, [userId, resumeId, resumeObj]);
 
-  const toggleSection = (sectionId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? { ...section, isOpen: !section.isOpen }
-          : section
-      )
-    );
-  };
-
   const updateSectionFields = (sectionId: string, fields: FieldData[]) => {
     setSections(
       sections.map((section) =>
@@ -1153,8 +1154,19 @@ export function ResumeEditor({
     const resume: any = {};
 
     sections.forEach((section) => {
+      // Some sections created from parsed resume data may have ids like
+      // "projects-0" or "education-1" (one section per item). Normalize
+      // to the canonical base id (the part before the first dash) so we
+      // produce keys like `projects` and `education` in the final resume.
+      const canonicalId =
+        section.id && section.id.includes("-")
+          ? section.id.split("-")[0]
+          : section.id;
       // PERSONAL (accept both `personal` and `personal_information` keys)
-      if (section.id === "personal" || section.id === "personal_information") {
+      if (
+        canonicalId === "personal" ||
+        canonicalId === "personal_information"
+      ) {
         const pi: any = {};
         section.fields.forEach((f) => {
           const baseId = f.id.startsWith(`${section.id}-`)
@@ -1200,7 +1212,7 @@ export function ResumeEditor({
         resume.personal_information = pi;
 
         // PROJECTS (each section treated as one project entry)
-      } else if (section.id === "projects") {
+      } else if (canonicalId === "projects") {
         const proj: any = {};
         let hasProjData = false;
         section.fields.forEach((f) => {
@@ -1234,12 +1246,12 @@ export function ResumeEditor({
         });
 
         if (hasProjData) {
-          resume.projects = resume.projects || [];
-          resume.projects.push(proj);
+          resume[canonicalId] = resume[canonicalId] || [];
+          resume[canonicalId].push(proj);
         }
 
         // EDUCATION
-      } else if (section.id === "education") {
+      } else if (canonicalId === "education") {
         const ed: any = {};
         let hasEduData = false;
         section.fields.forEach((f) => {
@@ -1272,12 +1284,12 @@ export function ResumeEditor({
         });
 
         if (hasEduData) {
-          resume.education = resume.education || [];
-          resume.education.push(ed);
+          resume[canonicalId] = resume[canonicalId] || [];
+          resume[canonicalId].push(ed);
         }
 
         // SKILLS (special mapping)
-      } else if (section.id === "skills") {
+      } else if (canonicalId === "skills") {
         const skillsObj: any = {};
         section.fields.forEach((f) => {
           const baseId = f.id.startsWith(`${section.id}-`)
@@ -1301,7 +1313,7 @@ export function ResumeEditor({
           (arr: any) => Array.isArray(arr) && arr.length > 0
         );
 
-        if (hasSkills) resume.skills = skillsObj;
+        if (hasSkills) resume[canonicalId] = skillsObj;
 
         // GENERIC / OTHER SECTIONS
       } else {
@@ -1337,8 +1349,8 @@ export function ResumeEditor({
         });
 
         if (hasObjData) {
-          resume[section.id] = resume[section.id] || [];
-          resume[section.id].push(obj);
+          resume[canonicalId] = resume[canonicalId] || [];
+          resume[canonicalId].push(obj);
         }
       }
     });
@@ -1347,7 +1359,7 @@ export function ResumeEditor({
     // only sections that had data are present on `resume`.
     return {
       user_id: "0",
-      resume_id: "0",
+      resume_id: "11",
       resume,
       metadata: {
         resume_info: {
@@ -1360,9 +1372,115 @@ export function ResumeEditor({
     };
   };
 
-  // Memoize built resume so passing to PdfViewer doesn't recreate object
-  // on simple UI state changes (like hover) which would force reloads.
-  const memoResume = useMemo(() => buildResume(), [sections]);
+  // Store built resume in state and update it when the user requests Preview
+  // This avoids rebuilding on every minor UI change and gives explicit
+  // control to refresh the preview when appropriate.
+  const [memoResume, setMemoResume] = useState(() => buildResume());
+
+  const hardcodedresume = {
+    user_id: "0",
+    resume_id: "11",
+    resume: {
+      personal_information: {
+        name: "Kida Khanooni",
+        phone: "469-920-0092",
+        email: "ksk.230002@utdallas.edu",
+        location: "Plano, TX",
+        linkedin: "linkedin.com/in/kida-khanooni",
+      },
+      education: [
+        {
+          institution: "The University of Texas at Dallas",
+          location: "Richardson, TX",
+          majors: ["Bachelor of Computer Science"],
+          GPA: "4.0",
+        },
+      ],
+      experience: [
+        {
+          name: "FIRST ROBOTICS COMPETITION",
+          location: "Plano, TX",
+          start_date: "March 2022",
+          end_date: "March 2025",
+          role: "Team Captain",
+          description: [
+            "Programming Lead at FRC team 9128, led the team to the world championships in 2023 and 2024.",
+            "Worked on custom logging systems and visualizers to enhance hardware communication with multiple robots, increasing debugging efficiency by 90%",
+            "Introduced custom neural networks and OpenCV pipelines on multiple robots, including April Tag localization, object detection, and color pipelines, which decrease driver cognition load by 30%.",
+            "Mentored 60 team members on Java, OOP, and software design patterns, fostering high-performing collaborative teams over the 4 years",
+          ],
+        },
+      ],
+      projects: [
+        {
+          name: "DocBranch - AI-Powered Resume Version Control App (In Progress)",
+          description: [
+            "Developing a cross-platform Electron + React application with a modular component architecture, drag-and-drop UI features, and state management using React Hooks and the Context API. Built a Node.js backend integrated with AWS Lambda and DynamoDB for scalable serverless CRUD operations. Implemented PDF export functionality and AI-driven resume feedback powered by job description analysis. (Expected Completion: December 2025)",
+          ],
+        },
+      ],
+      skills: {
+        technical_skills: [
+          "Java",
+          "JavaScript",
+          "Python",
+          "Node.js",
+          "Electron",
+          "AWS (Lambda, DynamoDB, S3)",
+          "SQL/NoSQL",
+          "OpenCV",
+          "OpenAI API",
+          "Git",
+          "Agile Development",
+        ],
+      },
+    },
+    metadata: {
+      resume_info: {
+        resume_creation_date: "2025-12-02",
+        filename: "kidakhanooniresume.pdf",
+        template_used: "jakes_resume",
+        section_order: [
+          "education",
+          "experience",
+          "projects",
+          "leadership_experience",
+          "skills",
+          "awards",
+        ],
+      },
+      branch_info: {
+        branch_name: "Main",
+        parent_resume_ids: [null],
+        children_resume_ids: [1],
+        created_date: "2025-12-02T10:30:00Z",
+        last_modified: "2025-12-02T10:30:00Z",
+      },
+      commit_info: {
+        number_of_commits: 1,
+        commits: [
+          {
+            commit_id: "commit_001",
+            timestamp: "2025-12-02T10:30:00Z",
+            message: "Initial commit of Kida Khanooni's resume",
+            changes_summary: {
+              added_sections: [
+                "personal_information",
+                "experience",
+                "education",
+                "projects",
+                "leadership_experience",
+                "skills",
+                "awards",
+              ],
+              modified_sections: [],
+              removed_sections: [],
+            },
+          },
+        ],
+      },
+    },
+  };
 
   // Upload resume to backend
   const uploadResume = async () => {
@@ -1599,7 +1717,9 @@ export function ResumeEditor({
             Edit
           </button>
           <button
-            onClick={() => setActiveView("preview")}
+            onClick={() => {
+              setActiveView("preview"), setMemoResume(buildResume());
+            }}
             style={{
               padding: "6px 14px",
               borderRadius: "4px",

@@ -4,6 +4,9 @@ import Sidebar from "./Sidebar";
 import { ResumeEditor } from "./Components/ResumeEditor";
 import PdfViewer from "./PdfViewer";
 import backend_api from "./services/testapi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useLocation } from "react-router-dom"; // Add this import
 
 // Simplified types
 interface SearchResult {
@@ -20,13 +23,14 @@ interface BedrockResult {
 }
 
 const ComparePage = () => {
+  const location = useLocation(); // Add this hook
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("comments");
   const [resumes] = useState([
     { id: 1, name: "Kida_Khanooni" },
     { id: 2, name: "Kida_Khanooni" },
   ]);
-  const [commentBoxHeight, setCommentBoxHeight] = useState(150);
+  const [commentBoxHeight, setCommentBoxHeight] = useState(0);
   const [leftWidth, setLeftWidth] = useState(15);
   const [middleLeftWidth, setMiddleLeftWidth] = useState(50);
   const [rightWidth, setRightWidth] = useState(15);
@@ -48,6 +52,24 @@ const ComparePage = () => {
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
+  // State for auto-filled data from CreatePage
+  const [autoFillData, setAutoFillData] = useState<any>(null);
+  const [selectedItemsData, setSelectedItemsData] = useState<any>(null);
+
+  // Check for selected data from CreatePage
+  useEffect(() => {
+    if (location.state?.selectedResumeData) {
+      console.log(
+        "Received selected resume data from CreatePage:",
+        location.state.selectedResumeData
+      );
+      setSelectedItemsData(location.state.selectedResumeData);
+
+      // Show the left panel with selected items
+      setShowCurrentResume(false);
+    }
+  }, [location.state]);
+
   const handleAIAnalysis = async () => {
     if (!savedJobDescription) {
       alert("Please add a job description first");
@@ -59,7 +81,7 @@ const ComparePage = () => {
     setApiError(null);
 
     try {
-      const resumeResponse = await backend_api.get("/resumes/000000/000005");
+      const resumeResponse = await backend_api.get("/resumes/0/11");
       const resumeData = resumeResponse.data;
 
       const response = await backend_api.post("/analyze-resume", {
@@ -183,6 +205,8 @@ const ComparePage = () => {
     setSelectedResumeId(resumeId);
     setShowCurrentResume(true);
     setShowSearchDropdown(false);
+    // Clear selected items data when selecting a new resume
+    setSelectedItemsData(null);
   };
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -297,7 +321,7 @@ const ComparePage = () => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
@@ -326,6 +350,112 @@ const ComparePage = () => {
   const middleTotal = sidebarCollapsed
     ? 100 - rightWidth
     : 100 - leftWidth - rightWidth;
+
+  const hardcodedresume = {
+    user_id: "0",
+    resume_id: "11",
+    resume: {
+      personal_information: {
+        name: "Kida Khanooni",
+        phone: "469-920-0092",
+        email: "ksk.230002@utdallas.edu",
+        location: "Plano, TX",
+        linkedin: "linkedin.com/in/kida-khanooni",
+      },
+      education: [
+        {
+          institution: "The University of Texas at Dallas",
+          location: "Richardson, TX",
+          majors: ["Bachelor of Computer Science"],
+          minors: [],
+          GPA: "4.0",
+        },
+      ],
+      experience: [
+        {
+          name: "FIRST ROBOTICS COMPETITION",
+          location: "Plano, TX",
+          start_date: "March 2022",
+          end_date: "March 2025",
+          role: "Team Captain",
+          description: [
+            "Programming Lead at FRC team 9128, led the team to the world championships in 2023 and 2024.",
+            "Worked on custom logging systems and visualizers to enhance hardware communication with multiple robots, increasing debugging efficiency by 90%",
+            "Introduced custom neural networks and OpenCV pipelines on multiple robots, including April Tag localization, object detection, and color pipelines, which decrease driver cognition load by 30%.",
+            "Mentored 60 team members on Java, OOP, and software design patterns, fostering high-performing collaborative teams over the 4 years",
+          ],
+        },
+      ],
+      projects: [
+        {
+          name: "DocBranch - AI-Powered Resume Version Control App (In Progress)",
+          description: [
+            "Developing a cross-platform Electron + React application with a modular component architecture, drag-and-drop UI features, and state management using React Hooks and the Context API. Built a Node.js backend integrated with AWS Lambda and DynamoDB for scalable serverless CRUD operations. Implemented PDF export functionality and AI-driven resume feedback powered by job description analysis. (Expected Completion: December 2025)",
+          ],
+        },
+      ],
+      skills: {
+        technical_skills: [
+          "Java",
+          "JavaScript",
+          "Python",
+          "Node.js",
+          "Electron",
+          "AWS (Lambda, DynamoDB, S3)",
+          "SQL/NoSQL",
+          "OpenCV",
+          "OpenAI API",
+          "Git",
+          "Agile Development",
+        ],
+      },
+    },
+    metadata: {
+      resume_info: {
+        resume_creation_date: "2025-12-02",
+        filename: "kidakhanooniresume.pdf",
+        template_used: "jakes_resume",
+        section_order: [
+          "education",
+          "experience",
+          "projects",
+          "leadership_experience",
+          "skills",
+          "awards",
+        ],
+      },
+      branch_info: {
+        branch_name: "Main",
+        parent_resume_ids: [null],
+        children_resume_ids: [1],
+        created_date: "2025-12-02T10:30:00Z",
+        last_modified: "2025-12-02T10:30:00Z",
+      },
+      commit_info: {
+        number_of_commits: 1,
+        commits: [
+          {
+            commit_id: "commit_001",
+            timestamp: "2025-12-02T10:30:00Z",
+            message: "Initial commit of Kida Khanooni's resume",
+            changes_summary: {
+              added_sections: [
+                "personal_information",
+                "experience",
+                "education",
+                "projects",
+                "leadership_experience",
+                "skills",
+                "awards",
+              ],
+              modified_sections: [],
+              removed_sections: [],
+            },
+          },
+        ],
+      },
+    },
+  };
 
   return (
     <div
@@ -614,9 +744,9 @@ const ComparePage = () => {
                           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                       }}
                     >
-                      Current Resume{" "}
-                      {selectedResumeId &&
-                        `- User: ${selectedUserId} | Resume: ${selectedResumeId}`}
+                      Comparison Resume
+                      {/* {selectedResumeId &&
+                        `- User: ${selectedUserId} | Resume: ${selectedResumeId}`} */}
                     </h3>
                     <button
                       onClick={() => {
@@ -821,7 +951,7 @@ const ComparePage = () => {
                 overflow: "hidden",
               }}
             >
-              <ResumeEditor userId="000000" resumeId="000005" />
+              <ResumeEditor resumeObj={hardcodedresume} />
             </div>
           </div>
         </div>
@@ -1093,7 +1223,8 @@ const ComparePage = () => {
                       fontSize: "0.875rem",
                       color: "#374151",
                       lineHeight: "1.5",
-                      whiteSpace: "pre-wrap",
+                      // allow the markdown renderer to handle wrapping and lists
+                      whiteSpace: "normal",
                       wordBreak: "break-word",
                       overflowY: "auto",
                       flex: 1,
@@ -1102,7 +1233,9 @@ const ComparePage = () => {
                       border: "1px solid #e5e7eb",
                     }}
                   >
-                    {aiAnalysisResult}
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {aiAnalysisResult}
+                    </ReactMarkdown>
                   </div>
                 )}
 

@@ -88,7 +88,7 @@ interface Template {
   name: string;
   description: string;
   category: string;
-  date: string;
+  imageUrl?: string;
 }
 
 export function CreatePage() {
@@ -141,28 +141,32 @@ export function CreatePage() {
       name: "Professional Template",
       description: "Classic layout for traditional industries",
       category: "Professional",
-      date: "2024-01-18",
+      imageUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSl0AaYuHmrv4y10XrJI-jT5eQmdJKsJ9dosw&s",
     },
     {
       id: 2,
       name: "Modern Template",
       description: "Contemporary design with accent colors",
       category: "Modern",
-      date: "2024-01-15",
+      imageUrl:
+        "https://s3.resume.io/cdn-cgi/image/width=380,format=auto/uploads/local_template_image/image/503/persistent-resource/amsterdam-resume-templates.jpg?v=1650527806",
     },
     {
       id: 3,
-      name: "Minimal Template",
-      description: "Clean and simple aesthetic",
-      category: "Minimal",
-      date: "2024-01-12",
+      name: "DocBranch Template",
+      description: "Sleek design with green accents",
+      category: "DocBranch",
+      imageUrl:
+        "https://s3.us-west-2.amazonaws.com/public.notion-static.com/template/5f094b95-985b-445d-977c-d69734c5934f/desktop.png",
     },
     {
       id: 4,
       name: "Creative Template",
       description: "Unique layout for creative professionals",
       category: "Creative",
-      date: "2024-01-10",
+      imageUrl:
+        "https://s3.resume.io/cdn-cgi/image/width=380,format=auto/uploads/local_template_image/image/2740/persistent-resource/lisbon-resume-templates.jpg?v=1652268408",
     },
   ];
 
@@ -1189,8 +1193,22 @@ export function CreatePage() {
                             height: "80px",
                             background:
                               "linear-gradient(135deg, #dcfce7 0%, #86efac 100%)",
+                            overflow: "hidden",
+                            position: "relative",
                           }}
-                        ></div>
+                        >
+                          {template.imageUrl && (
+                            <img
+                              src={template.imageUrl}
+                              alt={template.name}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          )}
+                        </div>
 
                         <div style={{ padding: "12px" }}>
                           <h4
@@ -1233,14 +1251,14 @@ export function CreatePage() {
                             >
                               {template.category}
                             </span>
-                            <span
+                            {/* <span
                               style={{
                                 fontSize: "11px",
                                 color: "#94a3b8",
                               }}
                             >
                               {template.date}
-                            </span>
+                            </span> */}
                           </div>
                         </div>
                       </div>

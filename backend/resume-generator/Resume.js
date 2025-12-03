@@ -256,8 +256,15 @@ class Resume {
       //doc.moveDown(this.gapBetweenEachItem);
       doc.font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
         .text(`${(edu.majors && edu.majors.length) ? edu.majors.join(', ') : ''}${(edu.minors && edu.minors.length) ? ', Minor in ' + edu.minors.join(', ') : ''}`, { continued: true , indent: this.indentSize })
-        .font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
-        .text(`${(edu.start_date + ' - ' + edu.end_date) || edu.date || ''}`, { align: 'right' });
+        .font('CMUSerif-Italic').fontSize(this.smallTextFontSize);
+
+      // Build a safe date string: prefer start_date + ' - ' + end_date when both exist,
+      // otherwise fall back to edu.date, otherwise empty string.
+      const eduDate = (edu && edu.start_date && edu.end_date)
+        ? `${edu.start_date} - ${edu.end_date}`
+        : (edu && edu.date) || '';
+
+      doc.text(eduDate, { align: 'right' });
       doc.moveDown(this.gapBetweenEachItem);
 
       if (edu.description && Array.isArray(edu.description) && edu.description.length > 0) {
@@ -273,6 +280,7 @@ class Resume {
   _renderExperience(experience) {
     if (!experience || !Array.isArray(experience) || experience.length === 0) return;
     const doc = this.doc;
+    doc.moveDown(this.gapAboveSectionTitle);
     this._sectionHeader('EXPERIENCE');
     experience.forEach(exp => {
       // determine date/duration display: prefer explicit start/end, then date, then duration
