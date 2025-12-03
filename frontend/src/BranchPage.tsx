@@ -16,6 +16,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Plus, Trash2 } from 'lucide-react';
+const [collapsed, setCollapsed] = useState(false);
 
 const lightenColor = (color: string) => {
   const hex = color.replace('#', '');
@@ -31,7 +32,6 @@ const CustomNode = React.memo(({ data, isConnectable }: any) => {
   const isCategory = !!data.isCategory;
   const baseColor = data.color || '#10B981';
   const backgroundColor = isHovered ? lightenColor(baseColor) : baseColor;
-  const [collapsed, setCollapsed] = useState(false);
 
   return isCategory ? (
     <div
@@ -107,6 +107,8 @@ const CustomNode = React.memo(({ data, isConnectable }: any) => {
 const nodeTypes = { custom: CustomNode };
 
 const SimplifiedResumeTree: React.FC = () => {
+    const [collapsed, setCollapsed] = useState(false);
+
   const initialNodes: Node[] = [
     // Category 1
     {
@@ -231,7 +233,7 @@ const SimplifiedResumeTree: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#F3F4F6' }}>
-    {/* <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} /> */}
+    <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div
