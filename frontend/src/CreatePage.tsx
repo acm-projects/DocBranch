@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
+
 interface SectionItem {
   id: string;
   text: string;
@@ -137,35 +138,39 @@ export function CreatePage() {
   ]);
 
   const templates: Template[] = [
-    { 
-      id: 1, 
-      name: 'Professional Template',
-      description: 'Classic layout for traditional industries',
-      category: 'Professional',
-      date: '2024-01-18',
-    },
-    { 
-      id: 2, 
-      name: 'Modern Template',
-      description: 'Contemporary design with accent colors',
-      category: 'Modern',
-      date: '2024-01-15'
-    },
-    { 
-      id: 3, 
-      name: 'Minimal Template',
-      description: 'Clean and simple aesthetic',
-      category: 'Minimal',
-      date: '2024-01-12'
-    },
-    { 
-      id: 4, 
-      name: 'Creative Template',
-      description: 'Unique layout for creative professionals',
-      category: 'Creative',
-      date: '2024-01-10'
-    },
-  ];
+  { 
+    id: 1, 
+    name: 'Professional Template',
+    description: 'Classic layout for traditional industries',
+    category: 'Professional',
+    date: '2024-01-18',
+    imageUrl: 'https://writelatex.s3.amazonaws.com/published_ver/16158.jpeg?X-Amz-Expires=14400&X-Amz-Date=20251203T034800Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWJBOALPNFPV7PVH5/20251203/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=4f214d2e6bb2308df06ec2a2fd6c3c098dd101d183b63cc5a81635366d3b80de'
+  },
+  { 
+    id: 2, 
+    name: 'Modern Template',
+    description: 'Contemporary design with accent colors',
+    category: 'Modern',
+    date: '2024-01-15',
+    imageUrl: 'https://s3.resume.io/cdn-cgi/image/width=380,format=auto/uploads/local_template_image/image/503/persistent-resource/amsterdam-resume-templates.jpg?v=1650527806'
+  },
+  { 
+    id: 3, 
+    name: 'Minimal Template',
+    description: 'Clean and simple aesthetic',
+    category: 'Minimal',
+    date: '2024-01-12',
+    imageUrl: 'https://s3.us-west-2.amazonaws.com/public.notion-static.com/template/5f094b95-985b-445d-977c-d69734c5934f/desktop.png'
+  },
+  { 
+    id: 4, 
+    name: 'Creative Template',
+    description: 'Unique layout for creative professionals',
+    category: 'Creative',
+    date: '2024-01-10',
+    imageUrl: 'https://img.pikbest.com/origin/06/27/47/40SpIkbEsTi7C.jpg!w700wphttps://img.pikbest.com/origin/06/27/47/40SpIkbEsTi7C.jpg!w700wp'
+  },
+];
 
   const fetchResumeData = async () => {
   setLoading(true);
@@ -1003,7 +1008,7 @@ const generateResume = () => {
   navigate('/ComparePage', { 
     state: { 
       selectedResumeData: selectedResumeJson,
-      autoFill: true 
+      autoFill: true
     } 
   });
 };
@@ -1190,113 +1195,128 @@ const generateResume = () => {
             alignItems: 'start'
           }}>
             {/* Template Selection Sidebar */}
-            <div>
-              <div style={{
-                border: '2px solid #f1f5f9',
-                borderRadius: '16px',
-                backgroundColor: 'white',
-                overflow: 'hidden',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                position: 'sticky',
-                top: '24px'
-              }}>
-                <div style={{
-                  padding: '16px 20px',
-                  backgroundColor: '#f8fafc',
-                  borderBottom: '1px solid #f1f5f9',
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
-                }}>
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: '700',
-                    margin: 0,
-                    color: '#1e293b',
-                    letterSpacing: '-0.02em'
-                  }}>
-                    Choose a Template
-                  </h3>
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#64748b',
-                    margin: '4px 0 0 0'
-                  }}>
-                    Select a design for your resume
-                  </p>
-                </div>
+<div>
+  <div style={{
+    border: '2px solid #f1f5f9',
+    borderRadius: '16px',
+    backgroundColor: 'white',
+    overflow: 'hidden',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+    position: 'sticky',
+    top: '24px'
+  }}>
+    <div style={{
+      padding: '16px 20px',
+      backgroundColor: '#f8fafc',
+      borderBottom: '1px solid #f1f5f9',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+    }}>
+      <h3 style={{
+        fontSize: '18px',
+        fontWeight: '700',
+        margin: 0,
+        color: '#1e293b',
+        letterSpacing: '-0.02em'
+      }}>
+        Choose a Template
+      </h3>
+      <p style={{
+        fontSize: '14px',
+        color: '#64748b',
+        margin: '4px 0 0 0'
+      }}>
+        Select a design for your resume
+      </p>
+    </div>
 
-                <div style={{ padding: '16px' }}>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}>
-                    {templates.map((template, index) => (
-                      <div
-                        key={template.id}
-                        style={{
-                          border: selectedTemplate === index ? '2px solid #22c55e' : '1px solid #e2e8f0',
-                          borderRadius: '12px',
-                          backgroundColor: 'white',
-                          overflow: 'hidden',
-                          cursor: 'pointer',
-                          boxShadow: selectedTemplate === index 
-                            ? '0 4px 12px rgba(34, 197, 94, 0.15)' 
-                            : '0 2px 4px rgba(0, 0, 0, 0.04)'
-                        }}
-                        onClick={() => handleSelectTemplate(index)}
-                      >
-                        <div style={{
-                          height: '80px',
-                          background: 'linear-gradient(135deg, #dcfce7 0%, #86efac 100%)'
-                        }}></div>
-                        
-                        <div style={{ padding: '12px' }}>
-                          <h4 style={{
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            margin: '0 0 6px 0',
-                            color: '#1e293b'
-                          }}>
-                            {template.name}
-                          </h4>
-                          <p style={{
-                            fontSize: '12px',
-                            color: '#64748b',
-                            margin: '0 0 8px 0',
-                            lineHeight: '1.4'
-                          }}>
-                            {template.description}
-                          </p>
-                          
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                          }}>
-                            <span style={{
-                              backgroundColor: '#dcfce7',
-                              color: '#166534',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: '600'
-                            }}>
-                              {template.category}
-                            </span>
-                            <span style={{
-                              fontSize: '11px',
-                              color: '#94a3b8'
-                            }}>
-                              {template.date}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+    <div style={{ padding: '16px' }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px'
+      }}>
+        {templates.map((template, index) => (
+          <div
+            key={template.id}
+            style={{
+              border: selectedTemplate === index ? '2px solid #22c55e' : '1px solid #e2e8f0',
+              borderRadius: '12px',
+              backgroundColor: 'white',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              boxShadow: selectedTemplate === index 
+                ? '0 4px 12px rgba(34, 197, 94, 0.15)' 
+                : '0 2px 4px rgba(0, 0, 0, 0.04)',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={() => handleSelectTemplate(index)}
+          >
+            <div style={{
+              height: '80px',
+              background: 'linear-gradient(135deg, #dcfce7 0%, #86efac 100%)',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              {template.imageUrl && (
+                <img 
+                  src={template.imageUrl} 
+                  alt={template.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              )}
+            </div>
+            
+            <div style={{ padding: '12px' }}>
+              <h4 style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                margin: '0 0 6px 0',
+                color: '#1e293b'
+              }}>
+                {template.name}
+              </h4>
+              <p style={{
+                fontSize: '12px',
+                color: '#64748b',
+                margin: '0 0 8px 0',
+                lineHeight: '1.4'
+              }}>
+                {template.description}
+              </p>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <span style={{
+                  backgroundColor: '#dcfce7',
+                  color: '#166534',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '600'
+                }}>
+                  {template.category}
+                </span>
+                <span style={{
+                  fontSize: '11px',
+                  color: '#94a3b8'
+                }}>
+                  {template.date}
+                </span>
               </div>
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
 
             {/* Resume Content Sections */}
             <div>
