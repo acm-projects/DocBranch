@@ -81,7 +81,7 @@ const ComparePage = () => {
     setApiError(null);
 
     try {
-      const resumeResponse = await backend_api.get("/resumes/0/0");
+      const resumeResponse = await backend_api.get("/resumes/0/11");
       const resumeData = resumeResponse.data;
 
       const response = await backend_api.post("/analyze-resume", {
@@ -353,7 +353,7 @@ const ComparePage = () => {
 
   const hardcodedresume = {
     user_id: "0",
-    resume_id: "0",
+    resume_id: "11",
     resume: {
       personal_information: {
         name: "Kida Khanooni",

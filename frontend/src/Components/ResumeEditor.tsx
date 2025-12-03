@@ -1359,7 +1359,7 @@ export function ResumeEditor({
     // only sections that had data are present on `resume`.
     return {
       user_id: "0",
-      resume_id: "0",
+      resume_id: "11",
       resume,
       metadata: {
         resume_info: {
@@ -1379,7 +1379,7 @@ export function ResumeEditor({
 
   const hardcodedresume = {
     user_id: "0",
-    resume_id: "0",
+    resume_id: "11",
     resume: {
       personal_information: {
         name: "Kida Khanooni",
@@ -1490,7 +1490,7 @@ export function ResumeEditor({
     try {
       const payload = buildResume();
       const response = await axios.post(
-        "http://localhost:3000/resumes/0/11",
+        "http://localhost:3000/resumes",
         payload
       );
       setSuccess("Resume uploaded successfully");
