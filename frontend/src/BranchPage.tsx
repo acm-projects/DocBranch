@@ -58,6 +58,10 @@ const CustomNode = ({ data, style }: any) => {
     width: isCategory ? (style?.width || '150px') : (style?.width || '50px'),
     height: isCategory ? (style?.height || '50px') : (style?.height || '50px'),
     fontWeight: isCategory ? 'bold' : 'normal',
+    textAlign: 'center' as const,
+    whiteSpace: 'pre-wrap' as const,
+    wordBreak: 'break-word' as const
+
   };
 
   return (
