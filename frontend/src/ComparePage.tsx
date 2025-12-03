@@ -547,7 +547,7 @@ const ComparePage = () => {
                 />
                 <input
                   type="text"
-                  placeholder="Search resumes (e.g., 'best AWS resume' or 'resume with sports experience')"
+                  placeholder="Search resumes (e.g., 'best Data Analytics resume' or 'resume with sports experience')"
                   value={globalSearchQuery}
                   onChange={handleSearchInputChange}
                   onKeyPress={handleSearchKeyPress}
