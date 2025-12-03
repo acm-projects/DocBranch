@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import PdfViewer from ".././PdfViewer";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 // field interface
 export interface FieldData {
@@ -856,6 +857,16 @@ export function ResumeEditor({
   const [success, setSuccess] = useState<string | null>(null);
   const [pdfHover, setPdfHover] = useState(false);
 
+  const toggleSection = (sectionId: string) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, isOpen: !section.isOpen }
+          : section
+      )
+    );
+  };
+
   // Fetch specific resume from backend
   const fetchResume = async () => {
     // Guard: if props are missing, don't attempt to fetch.
@@ -1098,16 +1109,6 @@ export function ResumeEditor({
       fetchResume();
     }
   }, [userId, resumeId, resumeObj]);
-
-  const toggleSection = (sectionId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? { ...section, isOpen: !section.isOpen }
-          : section
-      )
-    );
-  };
 
   const updateSectionFields = (sectionId: string, fields: FieldData[]) => {
     setSections(
@@ -1828,7 +1829,7 @@ export function ResumeEditor({
               Upload
             </button>
 
-            <div
+            {/* <div
               style={{
                 marginTop: "12px",
                 padding: "12px",
@@ -1848,7 +1849,7 @@ export function ResumeEditor({
               >
                 {JSON.stringify(memoResume, null, 2)}
               </pre>
-            </div>
+            </div> */}
           </div>
         )}
       </div>

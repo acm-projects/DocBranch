@@ -6,6 +6,7 @@ import PdfViewer from "./PdfViewer";
 import backend_api from "./services/testapi";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useLocation } from "react-router-dom"; // Add this import
 
 // Simplified types
 interface SearchResult {
@@ -22,6 +23,7 @@ interface BedrockResult {
 }
 
 const ComparePage = () => {
+  const location = useLocation(); // Add this hook
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("comments");
   const [resumes] = useState([
@@ -49,6 +51,24 @@ const ComparePage = () => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  // State for auto-filled data from CreatePage
+  const [autoFillData, setAutoFillData] = useState<any>(null);
+  const [selectedItemsData, setSelectedItemsData] = useState<any>(null);
+
+  // Check for selected data from CreatePage
+  useEffect(() => {
+    if (location.state?.selectedResumeData) {
+      console.log(
+        "Received selected resume data from CreatePage:",
+        location.state.selectedResumeData
+      );
+      setSelectedItemsData(location.state.selectedResumeData);
+
+      // Show the left panel with selected items
+      setShowCurrentResume(false);
+    }
+  }, [location.state]);
 
   const handleAIAnalysis = async () => {
     if (!savedJobDescription) {
@@ -185,6 +205,8 @@ const ComparePage = () => {
     setSelectedResumeId(resumeId);
     setShowCurrentResume(true);
     setShowSearchDropdown(false);
+    // Clear selected items data when selecting a new resume
+    setSelectedItemsData(null);
   };
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
