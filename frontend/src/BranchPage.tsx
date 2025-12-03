@@ -1,5 +1,4 @@
 import Sidebar from "./Sidebar";
-
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +15,20 @@ import ReactFlow, {
 import type { Node, Edge, Connection } from "reactflow";
 import "reactflow/dist/style.css";
 import { Plus, X, Trash2, Menu } from "lucide-react";
+
+const fileNameMap: Record<string, string> = {
+  branch_001: "Allen_Resume_001",
+  branch_002: "Allen_Resume_002",
+  branch_003: "Allen_Resume_003",
+  branch_004: "Allen_Resume_004",
+  branch_005: "Allen_Resume_005",
+  branch_006: "Allen_Resume_006",
+  branch_007: "Allen_Resume_007",
+  branch_008: "Allen_Resume_008",
+  branch_009: "Allen_Resume_009",
+  branch_010: "Allen_Resume_010",
+  branch_final: "Allen_Resume_011",
+};
 
 const CustomNode = ({ data, style }: any) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -105,6 +118,7 @@ const CustomNode = ({ data, style }: any) => {
           ×
         </button>
       )}
+
       {/* Tooltip for branch nodes */}
       {!isCategory && isHovered && data.branchId && (
         <div
@@ -123,21 +137,14 @@ const CustomNode = ({ data, style }: any) => {
             pointerEvents: "none",
           }}
         >
-          {data.branchId}
+          {data.fileName} {/* Show file name */}
           <br />
-          {data.categoryParents && data.categoryParents.length > 1 && (
-            <>
-              Categories: {data.categoryParents.join(", ")}
-              <br />
-            </>
-          )}
           {"Date created: 11/12/2025"}
         </div>
       )}
 
       {/* Handles for connectivity */}
       {isCategory ? (
-        // Category nodes: Only source handle (connections start from them)
         <Handle
           type="source"
           position={Position.Right}
@@ -149,7 +156,6 @@ const CustomNode = ({ data, style }: any) => {
           isConnectable={true}
         />
       ) : (
-        // Branch nodes: Both source and target handles
         <>
           <Handle
             type="target"
@@ -188,7 +194,8 @@ type BranchNode = {
     children_branch_ids: (string | null)[];
   };
   categoryId: string;
-  categoryParents?: string[]; // Track multiple category parents
+  categoryParents?: string[];
+  fileName?: string;
 };
 
 type GraphData = {
@@ -209,6 +216,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_002", "branch_005"],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_001"],
     },
     {
       branch_info: {
@@ -217,6 +225,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_006"],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_002"],
     },
     {
       branch_info: {
@@ -225,6 +234,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_004", "branch_007"],
       },
       categoryId: "cat-2",
+      fileName: fileNameMap["branch_003"],
     },
     {
       branch_info: {
@@ -233,6 +243,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_008"],
       },
       categoryId: "cat-2",
+      fileName: fileNameMap["branch_004"],
     },
     {
       branch_info: {
@@ -241,6 +252,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_009"],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_005"],
     },
     {
       branch_info: {
@@ -249,6 +261,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_010"],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_006"],
     },
     {
       branch_info: {
@@ -257,6 +270,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_010"],
       },
       categoryId: "cat-2",
+      fileName: fileNameMap["branch_007"],
     },
     {
       branch_info: {
@@ -265,6 +279,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_final"],
       },
       categoryId: "cat-2",
+      fileName: fileNameMap["branch_008"],
     },
     {
       branch_info: {
@@ -273,6 +288,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_final"],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_009"],
     },
     {
       branch_info: {
@@ -281,6 +297,7 @@ const sampleData: GraphData = {
         children_branch_ids: ["branch_final"],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_010"],
     },
     {
       branch_info: {
@@ -289,9 +306,21 @@ const sampleData: GraphData = {
         children_branch_ids: [null],
       },
       categoryId: "cat-1",
+      fileName: fileNameMap["branch_final"],
     },
   ],
 };
+
+// --------- generateLayout, FlowDiagram, BranchPage remain mostly unchanged ---------
+// Just ensure that `fileName` is passed into each node's data:
+// e.g., in generateLayout:
+
+// data: {
+//   branchId: nodeId,
+//   fileName: node.fileName || nodeId,
+//   ...
+// }
+
 
 function generateLayout(
   data: GraphData,
@@ -401,24 +430,46 @@ function generateLayout(
         node.categoryParents = [node.categoryId];
       }
 
-      // const color = categoryColors.get(node.categoryId) || '#999';
-      const color =
-        node.categoryId === ""
-          ? "#90EE90" // Light green for unconnected nodes
-          : categoryColors.get(node.categoryId) || "#999";
+      // // const color = categoryColors.get(node.categoryId) || '#999';
+      // const color =
+      //   node.categoryId === ""
+      //     ? "#90EE90" // Light green for unconnected nodes
+      //     : categoryColors.get(node.categoryId) || "#999";
+
+      // Determine node color
+let color = "#90EE90"; // default light green
+
+if (node.categoryId && categoryColors.has(node.categoryId)) {
+  color = categoryColors.get(node.categoryId)!;
+}
+
+// If node has categoryParents (multi-category), use the first as primary color
+if (
+  node.categoryParents &&
+  node.categoryParents.length > 0 &&
+  categoryColors.has(node.categoryParents[0])
+) {
+  color = categoryColors.get(node.categoryParents[0])!;
+}
+
 
       const x = CATEGORY_WIDTH + 100 + levelIdx * LEVEL_SPACING;
       const y = nodeIdx * NODE_SPACING + 25;
 
       reactFlowNodes.push({
         id: nodeId,
+        // key: `${nodeId}-${color}`,
         type: "custom",
         data: {
           label: "",
           isCircle: true,
           branchId: nodeId,
-          categoryParents: node.categoryParents,
+            fileName: node.fileName || nodeId, // ← add this
+
+          categoryParents: [...(node.categoryParents ?? [])], // ← new array reference
           onRemove: onRemoveNode,
+          color,  
+          updateKey: color,
         },
         position: { x, y },
         style: {
@@ -429,6 +480,7 @@ function generateLayout(
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+            // ...{}
         },
       });
 
@@ -570,67 +622,67 @@ const FlowDiagram: React.FC<FlowDiagramProps> = ({
       });
 
       // Update graph data
-      setGraphData((prevData) => {
-        const newData: GraphData = { ...prevData, nodes: [...prevData.nodes] };
+setGraphData((prevData) => {
+  const newData: GraphData = { ...prevData, nodes: prevData.nodes.map(n => ({ ...n })) };
 
-        // Check if source is a category node
-        const isSourceCategory = params.source?.startsWith("cat-");
+  const isSourceCategory = params.source?.startsWith("cat-");
 
-        // Only update branch node relationships if source is not a category
-        if (!isSourceCategory) {
-          const sourceNode = newData.nodes.find(
-            (n) => n.branch_info.branch_id === params.source
-          );
-          if (sourceNode && params.target) {
-            const childrenIds =
-              sourceNode.branch_info.children_branch_ids.filter(
-                (id): id is string => id !== null
-              );
-            if (!childrenIds.includes(params.target)) {
-              sourceNode.branch_info.children_branch_ids = [
-                ...childrenIds,
-                params.target,
-              ];
-            }
-          }
-        }
+  const sourceNode = newData.nodes.find(
+    (n) => n.branch_info.branch_id === params.source
+  );
+  const targetNode = newData.nodes.find(
+    (n) => n.branch_info.branch_id === params.target
+  );
 
-        // Update target node's parent
-        const targetNode = newData.nodes.find(
-          (n) => n.branch_info.branch_id === params.target
-        );
-        if (targetNode && params.source) {
-          // If source is a category, add it as a parent category (allow multiple)
-          if (isSourceCategory) {
-            // Initialize categoryParents if this is a new unconnected node
-            if (!targetNode.categoryParents || targetNode.categoryId === "") {
-              targetNode.categoryParents = []; // Start fresh for unconnected nodes
-            }
-            if (!targetNode.categoryParents.includes(params.source)) {
-              targetNode.categoryParents.push(params.source);
-            }
-            // Set primary category (changes color from light green)
-            targetNode.categoryId = params.source;
+  if (!targetNode) return newData;
 
-            // Keep parent_branch_id as null for category connections
-            if (!targetNode.branch_info.parent_branch_id.includes(null)) {
-              targetNode.branch_info.parent_branch_id = [null];
-            }
-          } else {
-            const parentIds = targetNode.branch_info.parent_branch_id.filter(
-              (id): id is string => id !== null
-            );
-            if (!parentIds.includes(params.source)) {
-              targetNode.branch_info.parent_branch_id = [
-                ...parentIds,
-                params.source,
-              ];
-            }
-          }
-        }
+  // CATEGORY → NODE connection
+  if (isSourceCategory) {
+    // ensure categoryParents array exists
+    if (!targetNode.categoryParents) {
+      targetNode.categoryParents = [];
+    }
 
-        return newData;
-      });
+    // add category to parents
+    if (!targetNode.categoryParents.includes(params.source!)) {
+      targetNode.categoryParents = [...targetNode.categoryParents, params.source!];
+    }
+
+    // IMPORTANT: update categoryId so layout gets correct color
+    targetNode.categoryId = params.source!;
+    
+    // Keep parent_branch_id as [null]
+    targetNode.branch_info.parent_branch_id = [null];
+
+  } else {
+    // NODE → NODE connection
+    const parentIds = targetNode.branch_info.parent_branch_id.filter(
+      (id): id is string => id !== null
+    );
+
+    if (!parentIds.includes(params.source!)) {
+      targetNode.branch_info.parent_branch_id = [
+        ...parentIds,
+        params.source!,
+      ];
+    }
+
+    if (sourceNode) {
+      const children = sourceNode.branch_info.children_branch_ids.filter(
+        (c): c is string => c !== null
+      );
+
+      if (!children.includes(params.target!)) {
+        sourceNode.branch_info.children_branch_ids = [
+          ...children,
+          params.target!,
+        ];
+      }
+    }
+  }
+
+  return newData;
+});
     },
 
     [setEdges, setGraphData]
@@ -749,24 +801,26 @@ const FlowDiagram: React.FC<FlowDiagramProps> = ({
     setFilteredFrom(filterFromNode || null);
   };
 
-  const onNodeClick = useCallback(
-    (_: any, node: Node) => {
-      setSelectedNode(node.id);
-      handleGenerate(node.id);
-      // Navigate to CreatePage and pass the clicked node id in location state
-      try {
-        navigate("/CreatePage", { state: { branchId: node.id } });
-      } catch (e) {
-        // Fallback: set hash directly if navigation fails
-        try {
-          location.hash = `#/CreatePage`;
-        } catch (err) {
-          console.warn("Navigation to CreatePage failed", err);
-        }
-      }
-    },
-    [graphData, navigate]
-  );
+const onNodeClick = useCallback(
+  (_: any, node: Node) => {
+    setSelectedNode(node.id);
+
+    // Do filtering for both categories & nodes
+    handleGenerate(node.id);
+
+    // 🚫 Prevent category nodes from navigating to CreatePage
+    const isCategory = node.id.startsWith("cat-");
+    if (isCategory) return;
+
+    // ✔ Only non-category nodes navigate to CreatePage
+    try {
+      navigate("/CreatePage", { state: { branchId: node.id } });
+    } catch {
+      location.hash = `#/CreatePage`;
+    }
+  },
+  [graphData, navigate]
+);
 
   useEffect(() => {
     handleGenerate(filteredFrom || undefined);
