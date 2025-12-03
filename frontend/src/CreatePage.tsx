@@ -156,9 +156,9 @@ export function CreatePage() {
   },
   { 
     id: 3, 
-    name: 'Minimal Template',
-    description: 'Clean and simple aesthetic',
-    category: 'Minimal',
+    name: 'DocBranch Template',
+    description: 'Sleek design with green accents',
+    category: 'DocBranch',
     date: '2024-01-12',
     imageUrl: 'https://s3.us-west-2.amazonaws.com/public.notion-static.com/template/5f094b95-985b-445d-977c-d69734c5934f/desktop.png'
   },
@@ -168,7 +168,7 @@ export function CreatePage() {
     description: 'Unique layout for creative professionals',
     category: 'Creative',
     date: '2024-01-10',
-    imageUrl: 'https://img.pikbest.com/origin/06/27/47/40SpIkbEsTi7C.jpg!w700wphttps://img.pikbest.com/origin/06/27/47/40SpIkbEsTi7C.jpg!w700wp'
+    imageUrl: 'https://s3.resume.io/cdn-cgi/image/width=380,format=auto/uploads/local_template_image/image/2740/persistent-resource/lisbon-resume-templates.jpg?v=1652268408'
   },
 ];
 
