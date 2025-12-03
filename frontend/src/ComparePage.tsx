@@ -4,6 +4,8 @@ import Sidebar from "./Sidebar";
 import { ResumeEditor } from "./Components/ResumeEditor";
 import PdfViewer from "./PdfViewer";
 import backend_api from "./services/testapi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Simplified types
 interface SearchResult {
@@ -297,7 +299,7 @@ const ComparePage = () => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
@@ -1199,7 +1201,8 @@ const ComparePage = () => {
                       fontSize: "0.875rem",
                       color: "#374151",
                       lineHeight: "1.5",
-                      whiteSpace: "pre-wrap",
+                      // allow the markdown renderer to handle wrapping and lists
+                      whiteSpace: "normal",
                       wordBreak: "break-word",
                       overflowY: "auto",
                       flex: 1,
@@ -1208,7 +1211,9 @@ const ComparePage = () => {
                       border: "1px solid #e5e7eb",
                     }}
                   >
-                    {aiAnalysisResult}
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {aiAnalysisResult}
+                    </ReactMarkdown>
                   </div>
                 )}
 

@@ -95,6 +95,15 @@ Please analyze this resume data and provide:
 
 Analyze whatever data is present in the resume JSON. If some fields are missing, note that in your analysis.
 Be specific and provide actionable advice for improving the resume.
+
+Start Your Response by giving a score matching the resume to the job description out of 100 Ex. 70% Match
+
+Then proceed with the analysis.
+Saying "Areas of Improvement:" and the bullet point the feedback.
+Then say "Key Strengths:" and bullet point those.
+
+Do not say unnecessary things at the beginning of your answer, be straight to the point and go
+immediately into the rating and tips
 `;
 
     console.log('Calling AI with provided resume and job data...');
