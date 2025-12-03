@@ -186,6 +186,7 @@ class Resume {
       education: () => this._renderEducation(resumeData.education),
       experience: () => this._renderExperience(resumeData.experience),
       projects: () => this._renderProjects(resumeData.projects),
+      certifications: () => this._renderCertifications(resumeData.certifications),
     };
 
     order.forEach(key => {
@@ -401,6 +402,71 @@ class Resume {
   //     }
   //   });
   // }
+
+  _renderCertifications(certs) {
+    if (!certs) return;
+    const doc = this.doc;
+    this._sectionHeader('CERTIFICATIONS');
+
+    // If certifications is an array of objects, render each entry
+    if (Array.isArray(certs)) {
+      certs.forEach(c => {
+        if (!c) return;
+        const name = (c.name || c.title || c.certification || '').toString().trim();
+        const issuer = (c.issuer || c.organization || '').toString().trim();
+        const date = (c.date || c.issued || c.issued_date || '').toString().trim();
+        const credential = (c.credentialId || c.credential_id || c.id || '').toString().trim();
+
+        if (name || issuer || date) {
+          // Name on left, issuer/date on right
+          const right = date || issuer || '';
+          doc.font('CMUSerif-Bold').fontSize(this.positionTitleFontSize)
+            .text(`${name}`, { continued: true, indent: this.indentSize })
+            .font('CMUSerif').fontSize(this.positionTitleFontSize)
+            .text(`${right}`, { align: 'right', indent: this.indentSize });
+        }
+
+        if (issuer && !(issuer === (date))) {
+          // If issuer wasn't already shown on the right, show it here as italic secondary
+          if (!date) {
+            doc.font('CMUSerif-Italic').fontSize(this.smallTextFontSize)
+              .text(`${issuer}`, { indent: this.indentSize });
+          }
+        }
+
+        if (credential) {
+          doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+            .text(`Credential: ${credential}`, { indent: this.indentSize });
+        }
+
+        doc.moveDown(this.gapBetweenEachItem);
+      });
+      return;
+    }
+
+    // If certifications is an object mapping categories -> arrays or strings
+    if (typeof certs === 'object') {
+      Object.entries(certs).forEach(([label, items]) => {
+        if (!items) return;
+        if (Array.isArray(items)) {
+          doc.font('CMUSerif-Bold').fontSize(this.smallTextFontSize)
+            .text(label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ':', { continued: true , indent: this.indentSize })
+            .font('CMUSerif').fontSize(this.smallTextFontSize)
+            .text(` ${items.join(', ')}`, { indent: this.indentSize });
+          doc.moveDown(this.gapBetweenEachItem);
+        } else if (typeof items === 'string') {
+          doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+            .text(`${label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${items}`, { indent: this.indentSize });
+          doc.moveDown(this.gapBetweenEachItem);
+        }
+      });
+      return;
+    }
+
+    // Fallback: primitive value
+    doc.font('CMUSerif').fontSize(this.smallTextFontSize)
+      .text(String(certs), { indent: this.indentSize });
+  }
 
   /**
    * Convert a JSON section key into a human-friendly title.
