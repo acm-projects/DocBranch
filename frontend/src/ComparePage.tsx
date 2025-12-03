@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { Lightbulb, Menu, Search, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { ResumeEditor } from "./Components/ResumeEditor";
@@ -20,11 +19,7 @@ interface BedrockResult {
   raw?: any;
 }
 
-const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
-  const location = useLocation();
-  // Prefer prop, fall back to location.state.resumeObj for navigation-based passes
-  const resumeFromLocation = (location.state as any)?.resumeObj;
-  const resumeToPass = resumeObj ?? resumeFromLocation ?? undefined;
+const ComparePage = () => {
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("comments");
   const [resumes] = useState([
@@ -35,7 +30,7 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
   const [leftWidth, setLeftWidth] = useState(15);
   const [middleLeftWidth, setMiddleLeftWidth] = useState(50);
   const [rightWidth, setRightWidth] = useState(15);
-  const [rightTab, setRightTab] = useState("ai-insights");
+  const [rightTab, setRightTab] = useState("job-description");
   const [searchQuery, setSearchQuery] = useState("");
   const [apiError, setApiError] = useState<string | null>(null);
   const [jobModalContent, setJobModalContent] = useState<string | null>(null);
@@ -64,8 +59,8 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
     setApiError(null);
 
     try {
-      //const resumeResponse = await backend_api.get("/resumes/0/0");
-      const resumeData = resumeObj;
+      const resumeResponse = await backend_api.get("/resumes/000000/000005");
+      const resumeData = resumeResponse.data;
 
       const response = await backend_api.post("/analyze-resume", {
         resumeData: resumeData,
@@ -302,7 +297,7 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
       document.removeEventListener("mouseup", handleMouseUp);
     }
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.removeEventListener("mouseup", handleMouseUp);
   };
 
   const handleJobSubmit = () => {
@@ -346,13 +341,7 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
       }}
     >
       {/* Main Flex Layout */}
-      <div
-        style={{
-          display: "flex",
-          minHeight: "100vh",
-          backgroundColor: "#F3F4F6",
-        }}
-      >
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -541,7 +530,9 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
                       <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
                         User: {result.user_id} | Resume: {result.resume_id}
                         {result.score && (
-                          <span style={{ marginLeft: "0.5rem", color: "#10b981" }}>
+                          <span
+                            style={{ marginLeft: "0.5rem", color: "#10b981" }}
+                          >
                             (Score: {(result.score * 100).toFixed(1)}%)
                           </span>
                         )}
@@ -568,10 +559,7 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
                     zIndex: 999,
                   }}
                 >
-                  <PdfViewer
-                    userId={selectedUserId || "0"}
-                    resumeId={selectedResumeId || "0"}
-                  />
+                  {bedrockError}
                 </div>
               )}
             </div>
@@ -816,24 +804,25 @@ const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
               </>
             )}
 
-          {/* Generated Resume Panel */}
-          <div
-            className="hide-scrollbar"
-            style={{
-              flex: 1,
-              backgroundColor: "white",
-              borderRadius: "1rem",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              padding: "1.5rem",
-              border: "2px solid #34d399",
-              display: "flex",
-              flexDirection: "column",
-              minWidth: "250px",
-              boxSizing: "border-box",
-              overflow: "hidden",
-            }}
-          >
-            <ResumeEditor resumeObj={resumeToPass} />
+            {/* Generated Resume Panel */}
+            <div
+              className="hide-scrollbar"
+              style={{
+                flex: 1,
+                backgroundColor: "white",
+                borderRadius: "1rem",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                padding: "1.5rem",
+                border: "2px solid #34d399",
+                display: "flex",
+                flexDirection: "column",
+                minWidth: "250px",
+                boxSizing: "border-box",
+                overflow: "hidden",
+              }}
+            >
+              <ResumeEditor userId="000000" resumeId="000005" />
+            </div>
           </div>
         </div>
         {/* Resize Handle 3 */}
