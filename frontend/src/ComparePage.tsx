@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Lightbulb, Menu, Search, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { ResumeEditor } from "./Components/ResumeEditor";
@@ -19,7 +20,11 @@ interface BedrockResult {
   raw?: any;
 }
 
-const ComparePage = () => {
+const ComparePage = ({ resumeObj }: { resumeObj?: any }) => {
+  const location = useLocation();
+  // Prefer prop, fall back to location.state.resumeObj for navigation-based passes
+  const resumeFromLocation = (location.state as any)?.resumeObj;
+  const resumeToPass = resumeObj ?? resumeFromLocation ?? undefined;
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("comments");
   const [resumes] = useState([
@@ -59,8 +64,8 @@ const ComparePage = () => {
     setApiError(null);
 
     try {
-      const resumeResponse = await backend_api.get("/resumes/000000/000005");
-      const resumeData = resumeResponse.data;
+      //const resumeResponse = await backend_api.get("/resumes/0/0");
+      const resumeData = resumeObj;
 
       const response = await backend_api.post("/analyze-resume", {
         resumeData: resumeData,
@@ -828,7 +833,7 @@ const ComparePage = () => {
               overflow: "hidden",
             }}
           >
-            <ResumeEditor userId="0" resumeId="0" />
+            <ResumeEditor resumeObj={resumeToPass} />
           </div>
         </div>
         {/* Resize Handle 3 */}
