@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Search, ArrowRight, GitMerge, Edit3 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
+
 
 export default function LandingPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const navigate = useNavigate();
 
   return (
     // <div className="flex h-screen bg-gradient-to-br from-blue-50 to-pink-50">
@@ -71,7 +74,10 @@ export default function LandingPage() {
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Make Branch */}
-            <button className="bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 p-6 rounded-2xl border-2 border-green-600 transition-all hover:shadow-lg text-left group">
+            <button 
+              onClick={() => navigate('/BranchPage', { state: { openModal: true } })}
+              className="bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 p-6 rounded-2xl border-2 border-green-600 transition-all hover:shadow-lg text-left group"
+              >
               <div className="flex items-start gap-3 mb-4">
                 <GitMerge size={24} className="text-green-700" />
                 <div>
