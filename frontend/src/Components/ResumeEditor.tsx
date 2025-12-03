@@ -1153,8 +1153,19 @@ export function ResumeEditor({
     const resume: any = {};
 
     sections.forEach((section) => {
+      // Some sections created from parsed resume data may have ids like
+      // "projects-0" or "education-1" (one section per item). Normalize
+      // to the canonical base id (the part before the first dash) so we
+      // produce keys like `projects` and `education` in the final resume.
+      const canonicalId =
+        section.id && section.id.includes("-")
+          ? section.id.split("-")[0]
+          : section.id;
       // PERSONAL (accept both `personal` and `personal_information` keys)
-      if (section.id === "personal" || section.id === "personal_information") {
+      if (
+        canonicalId === "personal" ||
+        canonicalId === "personal_information"
+      ) {
         const pi: any = {};
         section.fields.forEach((f) => {
           const baseId = f.id.startsWith(`${section.id}-`)
@@ -1200,7 +1211,7 @@ export function ResumeEditor({
         resume.personal_information = pi;
 
         // PROJECTS (each section treated as one project entry)
-      } else if (section.id === "projects") {
+      } else if (canonicalId === "projects") {
         const proj: any = {};
         let hasProjData = false;
         section.fields.forEach((f) => {
@@ -1234,12 +1245,12 @@ export function ResumeEditor({
         });
 
         if (hasProjData) {
-          resume.projects = resume.projects || [];
-          resume.projects.push(proj);
+          resume[canonicalId] = resume[canonicalId] || [];
+          resume[canonicalId].push(proj);
         }
 
         // EDUCATION
-      } else if (section.id === "education") {
+      } else if (canonicalId === "education") {
         const ed: any = {};
         let hasEduData = false;
         section.fields.forEach((f) => {
@@ -1272,12 +1283,12 @@ export function ResumeEditor({
         });
 
         if (hasEduData) {
-          resume.education = resume.education || [];
-          resume.education.push(ed);
+          resume[canonicalId] = resume[canonicalId] || [];
+          resume[canonicalId].push(ed);
         }
 
         // SKILLS (special mapping)
-      } else if (section.id === "skills") {
+      } else if (canonicalId === "skills") {
         const skillsObj: any = {};
         section.fields.forEach((f) => {
           const baseId = f.id.startsWith(`${section.id}-`)
@@ -1301,7 +1312,7 @@ export function ResumeEditor({
           (arr: any) => Array.isArray(arr) && arr.length > 0
         );
 
-        if (hasSkills) resume.skills = skillsObj;
+        if (hasSkills) resume[canonicalId] = skillsObj;
 
         // GENERIC / OTHER SECTIONS
       } else {
@@ -1337,8 +1348,8 @@ export function ResumeEditor({
         });
 
         if (hasObjData) {
-          resume[section.id] = resume[section.id] || [];
-          resume[section.id].push(obj);
+          resume[canonicalId] = resume[canonicalId] || [];
+          resume[canonicalId].push(obj);
         }
       }
     });
@@ -1783,7 +1794,7 @@ export function ResumeEditor({
               height: "100%",
             }}
           >
-            <PdfViewer resumeObj={hardcodedresume} />
+            <PdfViewer resumeObj={memoResume} />
 
             <button
               onClick={uploadResume}
