@@ -1046,8 +1046,12 @@ export function ResumeEditor({
 
         // Only add section if it has fields
         if (fields.length > 0) {
+          // Use a unique id for parsed object sections so they behave like
+          // user-added sections (and are reorderable). Keep the sectionKey
+          // as the canonical prefix (e.g. 'certifications-...').
+          const uniqueId = `${sectionKey}-${Date.now()}`;
           dynamicSections.push({
-            id: sectionKey,
+            id: uniqueId,
             title: sectionTitle,
             fields: fields,
             isOpen: false,
@@ -1158,10 +1162,24 @@ export function ResumeEditor({
       // "projects-0" or "education-1" (one section per item). Normalize
       // to the canonical base id (the part before the first dash) so we
       // produce keys like `projects` and `education` in the final resume.
-      const canonicalId =
+      // Determine canonical id for the section.
+      // For built-in sections we keep their id (e.g., 'education', 'projects').
+      // For user-added sections the id is like 'section-<ts>', so derive a
+      // canonical key from the section title (e.g. 'Certifications' -> 'certifications').
+      let canonicalId =
         section.id && section.id.includes("-")
           ? section.id.split("-")[0]
           : section.id;
+
+      if (canonicalId === "section" || canonicalId === "custom") {
+        // Normalize the human-friendly title into a canonical key.
+        // Lowercase, replace whitespace with underscore, strip non-alphanumerics
+        // except underscores.
+        canonicalId = String(section.title || "")
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .replace(/[^a-z0-9_]/g, "");
+      }
       // PERSONAL (accept both `personal` and `personal_information` keys)
       if (
         canonicalId === "personal" ||
